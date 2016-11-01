@@ -1,11 +1,13 @@
 package se.teknikhogskolan.springcasemanagement.model;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 
 @Entity
-public class User {
+public class User extends AbstractEntity {
 
+    @Column(unique = true)
     private String username;
     private String firstName;
     private String lastName;
