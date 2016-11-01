@@ -10,7 +10,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 @Entity
-public class WorkItem {
+public class WorkItem extends AbstractEntity {
     
     @Column(nullable = false)
     private String description;

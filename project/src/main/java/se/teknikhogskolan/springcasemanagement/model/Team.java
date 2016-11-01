@@ -7,7 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 
 @Entity
-public class Team {
+public class Team extends AbstractEntity {
 
     @Column(unique = true)
     private String name;
