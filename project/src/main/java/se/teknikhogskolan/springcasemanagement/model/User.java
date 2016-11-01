@@ -52,12 +52,9 @@ public class User {
         return active;
     }
 
-    public void activate() {
-        active = true;
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
-    public void inactiviate() {
-        active = false;
-    }
 
 }
