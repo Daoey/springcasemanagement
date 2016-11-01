@@ -5,8 +5,6 @@ import org.springframework.stereotype.Service;
 import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
 
-import java.util.List;
-
 @Service
 public class IssueService {
 

@@ -5,7 +5,7 @@ import javax.persistence.FetchType;
 import javax.persistence.OneToOne;
 
 @Entity
-public class Issue extends AbstractEntity{
+public class Issue extends AbstractEntity {
 
     @OneToOne(fetch = FetchType.EAGER, mappedBy = "issue")
     private WorkItem workItem;
