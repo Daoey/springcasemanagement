@@ -19,4 +19,18 @@ public class WorkItemService {
     public WorkItem createWorkItem(String description) {
         return repository.save(new WorkItem(description));
     }
+
+    public WorkItem setWorkItemStatus(WorkItem workItem, WorkItem.Status status) {
+        workItem.setStatus(status);
+        return repository.save(workItem);
+    }
+    
+    public WorkItem getById(Long id) {
+        return repository.findOne(id);
+    }
+    
+    public WorkItem remove(WorkItem workItem) {
+        repository.delete(workItem);
+        return workItem;
+    }
 }
