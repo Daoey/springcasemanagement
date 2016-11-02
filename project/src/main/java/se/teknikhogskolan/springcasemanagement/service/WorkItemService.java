@@ -1,5 +1,7 @@
 package se.teknikhogskolan.springcasemanagement.service;
 
+import java.util.Collection;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,5 +34,9 @@ public class WorkItemService {
     public WorkItem remove(WorkItem workItem) {
         repository.delete(workItem);
         return workItem;
+    }
+    
+    public Collection<WorkItem> findByStatus(WorkItem.Status status) {
+        return repository.findByStatus(status);
     }
 }
