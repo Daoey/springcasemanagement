@@ -18,10 +18,18 @@ public class User extends AbstractEntity {
     protected User() {
     }
 
+    public User(String username, String firstName, String lastName, Team team, boolean active) {
+        this.username = username;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.team = team;
+        this.active = active;
+    }
+
     public String getUsername() {
         return username;
     }
-    
+
     public void setUsername(String username) {
         this.username = username;
     }
@@ -29,7 +37,7 @@ public class User extends AbstractEntity {
     public String getFirstName() {
         return firstName;
     }
-    
+
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
@@ -37,7 +45,7 @@ public class User extends AbstractEntity {
     public String getLastName() {
         return lastName;
     }
-    
+
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
@@ -45,7 +53,7 @@ public class User extends AbstractEntity {
     public Team getTeam() {
         return team;
     }
-    
+
     public void setTeam(Team team) {
         this.team = team;
     }
@@ -57,6 +65,5 @@ public class User extends AbstractEntity {
     public void setActive(boolean active) {
         this.active = active;
     }
-
 
 }
