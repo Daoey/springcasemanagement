@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import se.teknikhogskolan.springcasemanagement.model.Team;
 import se.teknikhogskolan.springcasemanagement.model.User;
+import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
 import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 
@@ -27,30 +28,27 @@ public class UserService {
     @Transactional
     public User saveUser(User user) {
 
-        // TODO teamRepository.saveTeam(user.getTeam());
+        if (user.getTeam().getId() == null) {
+            teamRepository.save(user.getTeam());
+        }
 
         if (!user.isActive()) {
-            throw new RuntimeException("Can not save inactive user");
+            throw new ServiceException("Can not save inactive user");
         }
 
         if (user.getId() != null) {
-            throw new RuntimeException("User has already been saved.");
+            throw new ServiceException("User has already been saved.");
         }
 
         if (!usernameLongEnough(user.getUsername())) {
-            throw new RuntimeException("Username too short.");
+            throw new ServiceException("Username too short.");
         }
 
         if (teamIsFull(user.getTeam())) {
-            throw new RuntimeException("Team is full.");
+            throw new ServiceException("Team is full.");
         }
 
         return userRepository.save(user);
-    }
-
-    private boolean teamIsFull(Team team) {
-        // TODO Implement me
-        return false;
     }
 
     // TODO Remove later?
@@ -74,7 +72,7 @@ public class UserService {
             user.setFirstName(firstName);
             return userRepository.save(user);
         } else {
-            throw new RuntimeException("User is inactive");
+            throw new ServiceException("User is inactive");
         }
     }
 
@@ -84,7 +82,7 @@ public class UserService {
             user.setLastName(lastName);
             return userRepository.save(user);
         } else {
-            throw new RuntimeException("User is inactive");
+            throw new ServiceException("User is inactive");
         }
     }
 
@@ -96,11 +94,11 @@ public class UserService {
                 user.setUsername(username);
                 return userRepository.save(user);
             } else {
-                throw new RuntimeException("Username too short.");
+                throw new ServiceException("Username too short.");
             }
 
         } else {
-            throw new RuntimeException("User is inactive");
+            throw new ServiceException("User is inactive");
         }
     }
 
@@ -112,6 +110,7 @@ public class UserService {
 
     public User inacctivateUser(Long userNumber) {
         User user = userRepository.findByUserNumber(userNumber);
+        user.getWorkItems().forEach(workItem -> workItem.setStatus(Status.UNSTARTED));
         user.setActive(false);
         return userRepository.save(user);
     }
@@ -120,47 +119,19 @@ public class UserService {
         return userRepository.findByFirstNameContainingAndLastNameContainingAndUsernameContaining(firstName, lastName,
                 username);
     }
-
-    // private boolean userFillsRequirements(User user) throws
-    // RepositoryException {
-    // if (!usernameLongEnough(user.getUsername())) {
-    // return false;
-    // }
-    // if (!teamHasSpaceForUser(user.getTeamId(), user.getId())) {
-    // return false;
-    // }
-    // return true;
-    // }
-    //
+    
     private boolean usernameLongEnough(String username) {
         int maxTeamSize = 10;
         return username.length() >= maxTeamSize;
     }
-    //
-    // private boolean teamHasSpaceForUser(int teamId, int userId) throws
-    // RepositoryException {
-    //
-    // if (teamId == 0) {
-    // return true;
-    // }
-    // return numberOfUsersInTeamLessThanTen(teamId);
-    // }
-    //
-    // private boolean numberOfUsersInTeamLessThanTen(int teamId) throws
-    // RepositoryException {
-    // List<User> users = userRepository.getUsersByTeamId(teamId);
-    // return users.size() < 10;
-    // }
-    //
-    // private void setStatusOfAllWorkItemsOfUserToUnstarted(int userId) throws
-    // RepositoryException {
-    //
-    // List<WorkItem> workItems =
-    // workItemRepository.getWorkItemsByUserId(userId);
-    // for (WorkItem workItem : workItems) {
-    // workItemRepository.updateStatusById(workItem.getId(),
-    // WorkItem.Status.UNSTARTED);
-    // }
-    // }
+    
+    private boolean teamIsFull(Team team) {
+        int maxTeamSize = 10;
+        if (team.getUsers().size() > maxTeamSize) {
+            return true;
+        }
+        return false;
+    }
+
 
 }
