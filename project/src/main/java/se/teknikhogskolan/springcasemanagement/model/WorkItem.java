@@ -27,7 +27,7 @@ public class WorkItem extends AbstractEntity {
         UNSTARTED, STARTED, DONE
     }
 
-    protected WorkItem(String description) {
+    public WorkItem(String description) {
         this.description = description;
     }
 
