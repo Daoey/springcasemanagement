@@ -18,12 +18,12 @@ public class User extends AbstractEntity {
     protected User() {
     }
 
-    public User(String username, String firstName, String lastName, Team team, boolean active) {
+    public User(String username, String firstName, String lastName, Team team) {
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
         this.team = team;
-        this.active = active;
+        this.active = true;
     }
 
     public String getUsername() {
