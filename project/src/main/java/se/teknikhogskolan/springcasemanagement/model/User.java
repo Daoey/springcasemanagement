@@ -8,20 +8,36 @@ import javax.persistence.ManyToOne;
 public class User extends AbstractEntity {
 
     @Column(unique = true)
+    private Long userNumber;
+    
+    @Column(unique = true)
     private String username;
+    
     private String firstName;
+    
     private String lastName;
+    
     @ManyToOne
     private Team team;
+    
     private boolean active;
 
     protected User() {
     }
 
+    public User(Long userNumber, String username, String firstName, String lastName, Team team) {
+        this.userNumber = userNumber;
+        this.username = username;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.team = team;
+        this.active = true;
+    }
+
     public String getUsername() {
         return username;
     }
-    
+
     public void setUsername(String username) {
         this.username = username;
     }
@@ -29,7 +45,7 @@ public class User extends AbstractEntity {
     public String getFirstName() {
         return firstName;
     }
-    
+
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
@@ -37,7 +53,7 @@ public class User extends AbstractEntity {
     public String getLastName() {
         return lastName;
     }
-    
+
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
@@ -45,7 +61,7 @@ public class User extends AbstractEntity {
     public Team getTeam() {
         return team;
     }
-    
+
     public void setTeam(Team team) {
         this.team = team;
     }
@@ -57,6 +73,5 @@ public class User extends AbstractEntity {
     public void setActive(boolean active) {
         this.active = active;
     }
-
 
 }

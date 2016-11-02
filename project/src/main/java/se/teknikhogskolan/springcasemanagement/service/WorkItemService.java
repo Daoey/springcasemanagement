@@ -1,8 +1,11 @@
 package se.teknikhogskolan.springcasemanagement.service;
 
+import java.util.Collection;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
 import se.teknikhogskolan.springcasemanagement.repository.WorkItemRepository;
 
@@ -18,5 +21,32 @@ public class WorkItemService {
 
     public WorkItem createWorkItem(String description) {
         return repository.save(new WorkItem(description));
+    }
+
+    public WorkItem setWorkItemStatus(WorkItem workItem, WorkItem.Status status) {
+        workItem.setStatus(status);
+        return repository.save(workItem);
+    }
+    
+    public WorkItem getById(Long id) {
+        return repository.findOne(id);
+    }
+    
+    public WorkItem removeById(Long workItemId) {
+        WorkItem workItem = repository.findOne(workItemId);
+        repository.delete(workItem);
+        return workItem;
+    }
+    
+    public Collection<WorkItem> findByStatus(WorkItem.Status status) {
+        return repository.findByStatus(status);
+    }
+    
+    public Collection<WorkItem> findByUserId(Long userId) {
+        return repository.findByUserId(userId);
+    }
+    
+    public Collection<WorkItem> findByDescriptionContains(String text) {
+        return repository.findByDescriptionContains(text);
     }
 }
