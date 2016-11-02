@@ -1,5 +1,6 @@
 package se.teknikhogskolan.springcasemanagement.service;
 
+import org.hibernate.service.spi.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import se.teknikhogskolan.springcasemanagement.model.Issue;
@@ -15,25 +16,33 @@ public class IssueService {
         this.issueRepository = issueRepository;
     }
 
-    public Issue saveIssue(Issue issue) {
-        return issueRepository.save(issue);
-    }
-
     public Issue updateIssueDescription(Long id, String description) {
-        Issue issueToUpdate = issueRepository.findOne(id);
-        issueToUpdate.setDescription(description);
-        return issueRepository.save(issueToUpdate);
+        Issue issue = issueRepository.findOne(id);
+        if (issue != null){
+            if(issue.isActive()){
+                issue.setDescription(description);
+                return issueRepository.save(issue);
+            }else
+                throw new ServiceException("Could not update description on Issue with id '" + id + "' since it's inactive.");
+        }else
+            throw new ServiceException("Issue with id '" + id + "' did not exist.");
     }
 
     public Issue inactiveIssue(Long id) {
-        Issue issueToUpdate = issueRepository.findOne(id);
-        issueToUpdate.setActive(false);
-        return issueRepository.save(issueToUpdate);
+        Issue issue = issueRepository.findOne(id);
+        if(issue != null){
+                issue.setActive(false);
+                return issueRepository.save(issue);
+        }else
+            throw new ServiceException("Issue with id '" + id + "' did not exist.");
     }
 
     public Issue activateIssue(Long id) {
-        Issue issueToUpdate = issueRepository.findOne(id);
-        issueToUpdate.setActive(true);
-        return issueRepository.save(issueToUpdate);
+        Issue issue = issueRepository.findOne(id);
+        if(issue != null){
+            issue.setActive(true);
+            return issueRepository.save(issue);
+        }else
+            throw new ServiceException("Issue with id '" + id + "' did not exist.");
     }
 }
