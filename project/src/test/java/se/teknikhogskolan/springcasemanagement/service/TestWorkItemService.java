@@ -11,18 +11,39 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
+import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 
 public final class TestWorkItemService {
     private final String projectPackage = "se.teknikhogskolan.springcasemanagement";
 
-    @Test
-    public void canFindByTeamId() {
-        fail("Not implemented, use TeamRepo in WorkItemService");
-    }
+    // @Test
+    // public void canFindByTeamId() {
+    // fail("Not implemented, use TeamRepo in WorkItemService");
+    // }
 
     @Test
     public void canFindByUserId() {
-        fail("Not implemented, use UserRepo to persist user in this test");
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.scan(projectPackage);
+            context.refresh();
+
+            WorkItemService workItemService = context.getBean(WorkItemService.class);
+            WorkItem workItem1 = workItemService.createWorkItem("Find all workitems by user!");
+            WorkItem workItem2 = workItemService.createWorkItem("Find workitems by user!");
+            
+            UserService userService = context.getBean(UserService.class);
+            final Long userNumber = 1656L;
+            final String username = "Mister Cool";
+            User user = new User(userNumber, username, "Per-Erik", "Ferb", null);
+            user = userService.saveUser(user);
+            
+            workItemService.setUserToWorkItem(userNumber, workItem1);
+            workItemService.setUserToWorkItem(userNumber, workItem2);
+
+            Collection<WorkItem> workItems = workItemService.getByUserId(user.getId());
+
+            workItems.forEach(item -> assertEquals(username, item.getUser().getUsername()));
+        }
     }
 
     @Test
@@ -35,7 +56,7 @@ public final class TestWorkItemService {
 
             WorkItem workItem = workItemService.createWorkItem("Find all by description containing something!");
             String text = "Find";
-            Collection<WorkItem> result = workItemService.findByDescriptionContains(text);
+            Collection<WorkItem> result = workItemService.getByDescriptionContains(text);
 
             result.forEach(item -> assertEquals(true, item.getDescription().contains(text)));
         }
@@ -53,7 +74,7 @@ public final class TestWorkItemService {
             WorkItem.Status status = WorkItem.Status.STARTED;
             workItem = workItemService.setWorkItemStatus(workItem, status);
 
-            Collection<WorkItem> result = workItemService.findByStatus(status);
+            Collection<WorkItem> result = workItemService.getByStatus(status);
 
             result.forEach(item -> assertEquals(status, item.getStatus()));
         }
