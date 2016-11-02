@@ -30,19 +30,23 @@ public final class TestWorkItemService {
             WorkItemService workItemService = context.getBean(WorkItemService.class);
             WorkItem workItem1 = workItemService.createWorkItem("Find all workitems by user!");
             WorkItem workItem2 = workItemService.createWorkItem("Find workitems by user!");
-            
+
             UserService userService = context.getBean(UserService.class);
             final Long userNumber = 1656L;
             final String username = "Mister Cool";
             User user = new User(userNumber, username, "Per-Erik", "Ferb", null);
             user = userService.saveUser(user);
-            
+
             workItemService.setUserToWorkItem(userNumber, workItem1);
             workItemService.setUserToWorkItem(userNumber, workItem2);
 
             Collection<WorkItem> workItems = workItemService.getByUserId(user.getId());
 
             workItems.forEach(item -> assertEquals(username, item.getUser().getUsername()));
+        } catch (Exception e) {
+            if (e.getMessage().contains("execute statement; SQL [n/a]; constraint [null]; nested exception is"))
+                fail("Duplicated unique userNumber in database, drop and create database between tests");
+            throw e;
         }
     }
 

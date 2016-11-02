@@ -1,13 +1,18 @@
 package se.teknikhogskolan.springcasemanagement.model;
 
-import javax.persistence.*;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 @Entity
 public class WorkItem extends AbstractEntity {
-    
+
     @Column(nullable = false)
     private String description;
 
@@ -73,9 +78,12 @@ public class WorkItem extends AbstractEntity {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
         WorkItem other = (WorkItem) obj;
         if (description == null) {
             if (other.description != null)
