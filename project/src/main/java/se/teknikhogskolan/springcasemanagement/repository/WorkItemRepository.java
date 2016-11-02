@@ -4,9 +4,12 @@ import java.util.Collection;
 
 import org.springframework.data.repository.CrudRepository;
 
+import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
 
 public interface WorkItemRepository extends CrudRepository<WorkItem, Long> {
     
     Collection<WorkItem> findByStatus(WorkItem.Status status);
+    
+    Collection<WorkItem> findByUserId(Long id);
 }

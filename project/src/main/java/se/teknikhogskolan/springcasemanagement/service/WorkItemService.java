@@ -5,6 +5,7 @@ import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
 import se.teknikhogskolan.springcasemanagement.repository.WorkItemRepository;
 
@@ -31,12 +32,17 @@ public class WorkItemService {
         return repository.findOne(id);
     }
     
-    public WorkItem remove(WorkItem workItem) {
+    public WorkItem removeById(Long workItemId) {
+        WorkItem workItem = repository.findOne(workItemId);
         repository.delete(workItem);
         return workItem;
     }
     
     public Collection<WorkItem> findByStatus(WorkItem.Status status) {
         return repository.findByStatus(status);
+    }
+    
+    public Collection<WorkItem> findByUserId(Long userId) {
+        return repository.findByUserId(userId);
     }
 }

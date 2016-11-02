@@ -8,6 +8,7 @@ import java.util.Collection;
 import org.junit.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
 
 public final class TestWorkItemService {
@@ -24,7 +25,7 @@ public final class TestWorkItemService {
             WorkItem workItem = workItemService.createWorkItem("Find all with my status!");
             WorkItem.Status status = WorkItem.Status.STARTED;
             workItem = workItemService.setWorkItemStatus(workItem, status);
-            
+
             Collection<WorkItem> result = workItemService.findByStatus(status);
 
             result.forEach(item -> assertEquals(status, item.getStatus()));
@@ -40,11 +41,11 @@ public final class TestWorkItemService {
             WorkItemService workItemService = context.getBean(WorkItemService.class);
 
             WorkItem workItem = workItemService.createWorkItem("Delete this work item!");
-            
-            workItem = workItemService.remove(workItem);
+
+            workItem = workItemService.removeById(workItem.getId());
 
             WorkItem result = workItemService.getById(workItem.getId());
-            
+
             assertEquals(null, result);
         }
     }
@@ -58,12 +59,12 @@ public final class TestWorkItemService {
             WorkItemService workItemService = context.getBean(WorkItemService.class);
 
             WorkItem workItem = workItemService.createWorkItem("Do something else!");
-            
+
             WorkItem.Status status = WorkItem.Status.STARTED;
             workItem = workItemService.setWorkItemStatus(workItem, status);
 
             WorkItem result = workItemService.getById(workItem.getId());
-            
+
             assertEquals(status, result.getStatus());
         }
     }
