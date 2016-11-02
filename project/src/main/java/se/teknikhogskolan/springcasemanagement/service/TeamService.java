@@ -20,46 +20,57 @@ public class TeamService {
         this.userRepository = userRepository;
     }
 
-    public Team createTeam(String name){
+    public Team createTeam(String name) {
         return teamRepository.save(new Team(name));
     }
 
-    public Team updateTeam(Long id, String name){
+    public Team updateTeam(Long id, String name) {
         Team team = teamRepository.findOne(id);
-        team.setName(name);
-        return teamRepository.save(team);
+        if (team != null) {
+            team.setName(name);
+            return teamRepository.save(team);
+        } else
+            throw new ServiceException("Team with id '" + id + "' did not exist.");
     }
 
     public Team inactiveTeam(Long id) {
         Team team = teamRepository.findOne(id);
-        team.setActive(false);
-        return teamRepository.save(team);
+        if (team != null) {
+            team.setActive(false);
+            return teamRepository.save(team);
+        } else
+            throw new ServiceException("Team with id '" + id + "' did not exist.");
     }
 
     public Team activateTeam(Long id) {
         Team team = teamRepository.findOne(id);
-        team.setActive(true);
-        return teamRepository.save(team);
+        if (team != null) {
+            team.setActive(true);
+            return teamRepository.save(team);
+        } else
+            throw new ServiceException("Team with id '" + id + "' did not exist.");
     }
 
-    public Iterable<Team> getAllTeams(){
+    public Iterable<Team> getAllTeams() {
         return teamRepository.findAll();
     }
 
-    public Team addUserToTeam(Long teamId, Long userId){
+    public Team addUserToTeam(Long teamId, Long userId) {
         User user = userRepository.findOne(userId);
         Team team = teamRepository.findOne(teamId);
 
-        if(user.isActive() && team.isActive()){
-            if(team.getUsers().size() < 10){
+        if (team == null || user == null)
+            throw new ServiceException("Team with id '" + teamId + "' or User with id '" + userId + "' did not exist.");
+        else if (!user.isActive() || !team.isActive()) {
+            throw new ServiceException("User with id '" + userId + "' or Team with id '" + teamId + "' is inactive");
+        } else {
+            if (team.getUsers().size() < 10) {
                 user.setTeam(team);
                 userRepository.save(user);
                 return teamRepository.findOne(teamId);
-            }else{
+            } else {
                 throw new ServiceException("Team with id '" + teamId + "' already contains 10 users");
             }
-        }else{
-            throw new ServiceException("User with id '" + userId + "' or Team with id '" + teamId + "' is inactive");
         }
     }
 }

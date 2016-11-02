@@ -18,31 +18,33 @@ public class IssueService {
 
     public Issue updateIssueDescription(Long id, String description) {
         Issue issue = issueRepository.findOne(id);
-        if (issue != null){
-            if(issue.isActive()){
+        if (issue != null) {
+            if (issue.isActive()) {
                 issue.setDescription(description);
                 return issueRepository.save(issue);
-            }else
-                throw new ServiceException("Could not update description on Issue with id '" + id + "' since it's inactive.");
-        }else
+            } else {
+                throw new ServiceException("Could not update "
+                        + "description on Issue with id '" + id + "' since it's inactive.");
+            }
+        } else
             throw new ServiceException("Issue with id '" + id + "' did not exist.");
     }
 
     public Issue inactiveIssue(Long id) {
         Issue issue = issueRepository.findOne(id);
-        if(issue != null){
-                issue.setActive(false);
-                return issueRepository.save(issue);
-        }else
+        if (issue != null) {
+            issue.setActive(false);
+            return issueRepository.save(issue);
+        } else
             throw new ServiceException("Issue with id '" + id + "' did not exist.");
     }
 
     public Issue activateIssue(Long id) {
         Issue issue = issueRepository.findOne(id);
-        if(issue != null){
+        if (issue != null) {
             issue.setActive(true);
             return issueRepository.save(issue);
-        }else
+        } else
             throw new ServiceException("Issue with id '" + id + "' did not exist.");
     }
 }

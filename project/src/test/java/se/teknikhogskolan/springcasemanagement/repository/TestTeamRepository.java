@@ -40,8 +40,8 @@ public final class TestTeamRepository {
         deleteTeam(team);
     }
 
-    private Team execute(Function<TeamRepository, Team> operation){
-        try(AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()){
+    private Team execute(Function<TeamRepository, Team> operation) {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
             context.scan(projectPackage);
             context.refresh();
             TeamRepository teamRepository = context.getBean(TeamRepository.class);
@@ -49,8 +49,8 @@ public final class TestTeamRepository {
         }
     }
 
-    private void executeVoid(Consumer<TeamRepository> operation){
-        try(AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()){
+    private void executeVoid(Consumer<TeamRepository> operation) {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
             context.scan(projectPackage);
             context.refresh();
             TeamRepository teamRepository = context.getBean(TeamRepository.class);
@@ -58,7 +58,7 @@ public final class TestTeamRepository {
         }
     }
 
-    private void deleteTeam(Team team){
+    private void deleteTeam(Team team) {
         executeVoid(teamRepository -> teamRepository.delete(team));
     }
 }

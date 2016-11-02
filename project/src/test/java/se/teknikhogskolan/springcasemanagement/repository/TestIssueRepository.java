@@ -36,8 +36,8 @@ public final class TestIssueRepository {
         deleteIssue(issue);
     }
 
-    private Issue execute(Function<IssueRepository, Issue> operation){
-        try(AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()){
+    private Issue execute(Function<IssueRepository, Issue> operation) {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
             context.scan(projectPackage);
             context.refresh();
             IssueRepository issueRepository = context.getBean(IssueRepository.class);
@@ -45,8 +45,8 @@ public final class TestIssueRepository {
         }
     }
 
-    private void executeVoid(Consumer<IssueRepository> operation){
-        try(AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()){
+    private void executeVoid(Consumer<IssueRepository> operation) {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
             context.scan(projectPackage);
             context.refresh();
             IssueRepository issueRepository = context.getBean(IssueRepository.class);
@@ -54,7 +54,7 @@ public final class TestIssueRepository {
         }
     }
 
-    private void deleteIssue(Issue issue){
+    private void deleteIssue(Issue issue) {
         executeVoid(issueRepository -> issueRepository.delete(issue));
     }
 }
