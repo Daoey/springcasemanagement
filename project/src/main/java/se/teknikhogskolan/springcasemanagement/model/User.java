@@ -8,17 +8,25 @@ import javax.persistence.ManyToOne;
 public class User extends AbstractEntity {
 
     @Column(unique = true)
+    private Long userNumber;
+    
+    @Column(unique = true)
     private String username;
+    
     private String firstName;
+    
     private String lastName;
+    
     @ManyToOne
     private Team team;
+    
     private boolean active;
 
     protected User() {
     }
 
-    public User(String username, String firstName, String lastName, Team team) {
+    public User(Long userNumber, String username, String firstName, String lastName, Team team) {
+        this.userNumber = userNumber;
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
