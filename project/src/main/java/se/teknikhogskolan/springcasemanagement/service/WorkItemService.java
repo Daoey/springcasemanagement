@@ -45,4 +45,8 @@ public class WorkItemService {
     public Collection<WorkItem> findByUserId(Long userId) {
         return repository.findByUserId(userId);
     }
+    
+    public Collection<WorkItem> findByDescriptionContains(String text) {
+        return repository.findByDescriptionContains(text);
+    }
 }
