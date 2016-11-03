@@ -26,8 +26,18 @@ public final class TestIssueService {
 
     @Before
     public void setUp() {
-        issueId = 2L;
-        issueInDb = new Issue("desc");
+        this.issueId = 2L;
+        this.issueInDb = new Issue("desc");
+    }
+
+    @Test
+    public void canGetIssueById() throws Exception {
+
+    }
+
+    @Test
+    public void canGetIssueByDescription() throws Exception {
+
     }
 
     @Test

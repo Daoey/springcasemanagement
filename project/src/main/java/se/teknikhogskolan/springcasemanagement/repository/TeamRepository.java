@@ -6,4 +6,5 @@ import se.teknikhogskolan.springcasemanagement.model.Team;
 
 public interface TeamRepository extends CrudRepository<Team, Long> {
 
+    Team findByName(String name);
 }

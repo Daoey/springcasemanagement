@@ -15,6 +15,14 @@ public class IssueService {
         this.issueRepository = issueRepository;
     }
 
+    public Issue getIssueById(Long id) {
+        return issueRepository.findOne(id);
+    }
+
+    public Issue getIssueByDescription(String description) {
+        return issueRepository.findByDescription(description);
+    }
+
     public Issue updateIssueDescription(Long id, String description) {
         Issue issue = issueRepository.findOne(id);
         if (issue != null) {

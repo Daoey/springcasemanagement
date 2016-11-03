@@ -1,6 +1,5 @@
 package se.teknikhogskolan.springcasemanagement.service;
 
-import org.hibernate.service.spi.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import se.teknikhogskolan.springcasemanagement.model.Team;
@@ -20,15 +19,27 @@ public class TeamService {
         this.userRepository = userRepository;
     }
 
-    public Team createTeam(String name) {
-        return teamRepository.save(new Team(name));
+    public Team getTeamById(Long id) {
+        return teamRepository.findOne(id);
     }
 
-    public Team updateTeam(Long id, String name) {
+    public Team getTeamByName(String name) {
+        return teamRepository.findByName(name);
+    }
+
+    public Team saveTeam(Team team) {
+        return teamRepository.save(team);
+    }
+
+    public Team updateTeamName(Long id, String name) {
         Team team = teamRepository.findOne(id);
         if (team != null) {
-            team.setName(name);
-            return teamRepository.save(team);
+            if (team.isActive()) {
+                team.setName(name);
+                return teamRepository.save(team);
+            } else
+                throw new ServiceException("Could not update "
+                        + "name on team with id '" + id + "' since it's inactive.");
         } else
             throw new ServiceException("Team with id '" + id + "' did not exist.");
     }

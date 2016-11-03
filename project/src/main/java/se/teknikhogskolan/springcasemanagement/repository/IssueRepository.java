@@ -5,4 +5,5 @@ import se.teknikhogskolan.springcasemanagement.model.Issue;
 
 public interface IssueRepository extends CrudRepository<Issue, Long> {
 
+    Issue findByDescription(String description);
 }
