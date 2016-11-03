@@ -31,13 +31,22 @@ public final class TestIssueService {
     }
 
     @Test
-    public void canGetIssueById() throws Exception {
+    public void canGetIssueById() throws ServiceException {
+        when(issueRepository.findOne(issueId)).thenReturn(issueInDb);
+        Issue issueFromDb = issueService.getIssueById(issueId);
 
+        verify(issueRepository).findOne(issueId);
+        assertEquals(issueFromDb, issueInDb);
     }
 
     @Test
-    public void canGetIssueByDescription() throws Exception {
+    public void canGetIssueByDescription() throws ServiceException {
+        String desc = "Test";
+        when(issueRepository.findByDescription(desc)).thenReturn(issueInDb);
+        Issue issueFromDb = issueService.getIssueByDescription(desc);
 
+        verify(issueRepository).findByDescription(desc);
+        assertEquals(issueFromDb, issueInDb);
     }
 
     @Test
