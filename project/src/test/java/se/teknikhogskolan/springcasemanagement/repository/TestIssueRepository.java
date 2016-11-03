@@ -4,6 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import se.teknikhogskolan.springcasemanagement.model.Issue;
+import se.teknikhogskolan.springcasemanagement.service.ServiceException;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -16,18 +17,18 @@ public final class TestIssueRepository {
     private Issue issue;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         this.issue = new Issue("No time");
     }
 
     @Test
-    public void canSaveIssue() throws Exception {
+    public void canSaveIssue() throws ServiceException {
         executeVoid(issueRepository -> issueRepository.save(issue));
         deleteIssue(issue);
     }
 
     @Test
-    public void canGetIssue() throws Exception {
+    public void canGetIssue() throws ServiceException {
         Issue issueFromDb = execute(issueRepository -> {
             issueRepository.save(issue);
             return issueRepository.findOne(issue.getId());

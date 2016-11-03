@@ -1,6 +1,5 @@
 package se.teknikhogskolan.springcasemanagement.service;
 
-import org.hibernate.service.spi.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import se.teknikhogskolan.springcasemanagement.model.Issue;

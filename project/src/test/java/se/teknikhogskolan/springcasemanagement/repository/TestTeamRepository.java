@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.model.Team;
+import se.teknikhogskolan.springcasemanagement.service.ServiceException;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -18,18 +19,18 @@ public final class TestTeamRepository {
     private Team team;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         this.team = new Team("Test");
     }
 
     @Test
-    public void canSaveTeam() throws Exception {
+    public void canSaveTeam() throws ServiceException {
         executeVoid(teamRepository -> teamRepository.save(team));
         deleteTeam(team);
     }
 
     @Test
-    public void canGetTeam() throws Exception {
+    public void canGetTeam() throws ServiceException {
         Team teamFromDb = execute(teamRepository -> {
             team.setName("new test team");
             teamRepository.save(team);

@@ -54,7 +54,7 @@ public class Issue extends AbstractEntity {
         }
         if (obj instanceof Issue) {
             Issue otherIssue = (Issue) obj;
-            return getId().equals(otherIssue.getId()) && description.equals(otherIssue.description);
+            return (isActive() == otherIssue.isActive()) && description.equals(otherIssue.getDescription());
         }
         return false;
     }
