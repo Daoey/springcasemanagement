@@ -28,12 +28,25 @@ public final class TestIssueRepository {
     }
 
     @Test
-    public void canGetIssue() throws ServiceException {
+    public void canGetIssueById() throws ServiceException {
         Issue issueFromDb = execute(issueRepository -> {
-            issueRepository.save(issue);
+            issue = issueRepository.save(issue);
             return issueRepository.findOne(issue.getId());
         });
-        assertEquals(issue, issueFromDb);
+        assertEquals(issueFromDb, issue);
+        deleteIssue(issue);
+    }
+
+    @Test
+    public void canGetIssueByDescription() throws ServiceException {
+        String desc = "Description";
+        issue.setDescription(desc);
+        Issue issueFromDb = execute(issueRepository -> {
+            issue = issueRepository.save(issue);
+            return issueRepository.findByDescription(desc);
+        });
+
+        assertEquals(issueFromDb, issue);
         deleteIssue(issue);
     }
 
