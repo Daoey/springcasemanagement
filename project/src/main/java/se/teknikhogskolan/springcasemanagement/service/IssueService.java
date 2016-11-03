@@ -16,11 +16,19 @@ public class IssueService {
     }
 
     public Issue getIssueById(Long id) {
-        return issueRepository.findOne(id);
+        Issue issue = issueRepository.findOne(id);
+        if (issue != null) {
+            return issue;
+        } else
+            throw new ServiceException("Issue with id '" + id + "' do not exist");
     }
 
     public Issue getIssueByDescription(String description) {
-        return issueRepository.findByDescription(description);
+        Issue issue = issueRepository.findByDescription(description);
+        if (issue != null) {
+            return issue;
+        } else
+            throw new ServiceException("Issue with description '" + description + "' do not exist");
     }
 
     public Issue updateIssueDescription(Long id, String description) {

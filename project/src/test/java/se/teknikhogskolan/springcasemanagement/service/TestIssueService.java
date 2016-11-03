@@ -39,6 +39,12 @@ public final class TestIssueService {
         assertEquals(issueFromDb, issueInDb);
     }
 
+    @Test(expected = ServiceException.class)
+    public void shouldThrowExceptionWhenGettingIssueByIdThatDoNotExist() throws Exception {
+        when(issueRepository.findOne(issueId)).thenReturn(null);
+        issueService.getIssueById(issueId);
+    }
+
     @Test
     public void canGetIssueByDescription() throws ServiceException {
         String desc = "Test";
@@ -47,6 +53,13 @@ public final class TestIssueService {
 
         verify(issueRepository).findByDescription(desc);
         assertEquals(issueFromDb, issueInDb);
+    }
+
+    @Test(expected = ServiceException.class)
+    public void shouldThrowExceptionWhenGettingIssueByDescriptionThatDoNotExist() throws Exception {
+        String desc = "Test";
+        when(issueRepository.findByDescription(desc)).thenReturn(null);
+        issueService.getIssueByDescription(desc);
     }
 
     @Test
@@ -66,6 +79,12 @@ public final class TestIssueService {
         issueService.updateIssueDescription(issueId, "test");
     }
 
+    @Test(expected = ServiceException.class)
+    public void shouldThrowExceptionWhenUpdatingDescriptionOnNonExistingIssue() throws Exception {
+        when(issueRepository.findOne(issueId)).thenReturn(null);
+        issueService.updateIssueDescription(issueId, "test");
+    }
+
     @Test
     public void canInactiveIssue() throws ServiceException {
         issueInDb.setActive(true);
@@ -76,6 +95,13 @@ public final class TestIssueService {
         assertFalse(issueFromDb.isActive());
     }
 
+    @Test(expected = ServiceException.class)
+    public void throwsExceptionWhenInactivatingAUserThatDoNotExist() throws Exception {
+        issueInDb.setActive(true);
+        when(issueRepository.findOne(issueId)).thenReturn(null);
+        issueService.inactiveIssue(issueId);
+    }
+
     @Test
     public void canActiveIssue() throws ServiceException {
         issueInDb.setActive(false);
@@ -84,5 +110,12 @@ public final class TestIssueService {
         Issue issueFromDb = issueService.activateIssue(issueId);
         verify(issueRepository).save(issueInDb);
         assertTrue(issueFromDb.isActive());
+    }
+
+    @Test(expected = ServiceException.class)
+    public void throwsExceptionWhenActivatingAUserThatDoNotExist() throws Exception {
+        issueInDb.setActive(false);
+        when(issueRepository.findOne(issueId)).thenReturn(null);
+        issueService.activateIssue(issueId);
     }
 }
