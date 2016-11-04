@@ -9,18 +9,40 @@ import java.util.Collection;
 import org.junit.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+import se.teknikhogskolan.springcasemanagement.model.Team;
 import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
+import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 
 public final class TestWorkItemService {
     private final String projectPackage = "se.teknikhogskolan.springcasemanagement";
 
-    // @Test
-    // public void canFindByTeamId() {
-    // fail("Not implemented, use TeamRepo in WorkItemService");
-    // }
 
+    @Test
+    public void canFindByTeamId() {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.scan(projectPackage);
+            context.refresh();
+
+            WorkItemService workItemService = context.getBean(WorkItemService.class);
+            UserService userService = context.getBean(UserService.class);
+            TeamService teamService = context.getBean(TeamService.class);
+            
+            Team team = teamService.saveTeam(new Team("Team finding workitems"));
+            User user = new User(656989L, "usernamesadfasdf", "firstName", "lastName", team);
+            WorkItem workItem = workItemService.createWorkItem("Find all by team id!");
+            user = userService.saveUser(user);
+            workItem = workItemService.setUserToWorkItem(user.getUserNumber(), workItem);
+            teamService.addUserToTeam(team.getId(), user.getId());
+            
+            Collection<WorkItem> result = workItemService.getByTeamId(team.getId());
+            
+            result.forEach(System.out::println);
+//            result.forEach(item -> assertEquals(true, item.getDescription().contains(text)));
+        }
+    }
+    
     @Test
     public void canFindByUserId() {
         try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
