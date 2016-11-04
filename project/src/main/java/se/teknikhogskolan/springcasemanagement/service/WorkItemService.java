@@ -30,9 +30,9 @@ public class WorkItemService {
     
     //TODO fetch WorkItems without fetching Users and trim down data returned
     public Collection<WorkItem> getByTeamId(Long teamId){
-    	Collection<User> usersInTeam = userRepository.findByTeamId(teamId);
+    	Team team = teamRepository.findOne(teamId);
     	Collection<WorkItem> workItemsInTeam = new ArrayList();
-    	usersInTeam.forEach(t -> workItemsInTeam.addAll(t.getWorkItems()));
+    	team.getUsers().forEach(t -> workItemsInTeam.addAll(t.getWorkItems()));
     	return workItemsInTeam;
     }
 
