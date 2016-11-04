@@ -4,18 +4,30 @@ package se.teknikhogskolan.springcasemanagement.repository;
 import static org.junit.Assert.*;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Function;
 
 import org.junit.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+import se.teknikhogskolan.springcasemanagement.model.Team;
+import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
+import se.teknikhogskolan.springcasemanagement.service.TeamService;
 
 public final class TestWorkItemRepository {
     private final String projectPackage = "se.teknikhogskolan.springcasemanagement";
     
     @Test
+    public void canGetWorkItemsByTeamId(){
+    	Collection<WorkItem> result = executeMany(repo -> {
+    		return repo.FindAllWithDescriptionQuery(5L);
+    	});
+    	System.out.println(result);
+    }
+
+	@Test
     public void canRemoveWorkItem(){
     	execute(repo -> {
     		
