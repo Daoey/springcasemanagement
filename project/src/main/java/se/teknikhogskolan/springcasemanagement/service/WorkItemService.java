@@ -28,7 +28,7 @@ public class WorkItemService {
         this.teamRepository = teamRepository;
     }
     
-    //TODO fetch WorkItems without fetching Users and trim down data returned
+    //TODO change implementation to use repo method with query
     public Collection<WorkItem> getByTeamId(Long teamId){
     	Team team = teamRepository.findOne(teamId);
     	Collection<WorkItem> workItemsInTeam = new ArrayList();

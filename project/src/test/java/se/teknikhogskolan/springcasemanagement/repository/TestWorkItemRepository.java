@@ -1,30 +1,34 @@
 package se.teknikhogskolan.springcasemanagement.repository;
 
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.function.Function;
 
 import org.junit.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-import se.teknikhogskolan.springcasemanagement.model.Team;
-import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
-import se.teknikhogskolan.springcasemanagement.service.TeamService;
 
 public final class TestWorkItemRepository {
     private final String projectPackage = "se.teknikhogskolan.springcasemanagement";
     
     @Test
     public void canGetWorkItemsByTeamId(){
+    	Long teamIdInDB = 5L;
+    	
     	Collection<WorkItem> result = executeMany(repo -> {
-    		return repo.FindAllWithDescriptionQuery(5L);
+    		return repo.FindAllWithDescriptionQuery(teamIdInDB);
     	});
-    	System.out.println(result);
+    	
+    	result.forEach(workItem -> {
+    		Long teamId = workItem.getUser().getTeam().getId();
+    		assertEquals(teamIdInDB, teamId);
+    	});
     }
 
 	@Test
