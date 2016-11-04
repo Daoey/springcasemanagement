@@ -62,7 +62,7 @@ public final class TestIssueRepository {
             context.refresh();
             IssueRepository issueRepository = context.getBean(IssueRepository.class);
 
-            Slice<Issue> issueSlice = issueRepository.findAllByPage(new PageRequest(0, 7));
+            Slice<Issue> issueSlice = issueRepository.findAll(new PageRequest(0, 7));
             issueSlice.forEach(issue -> System.out.println(issue.getId()));
         }
         deleteManyIssues(issuesInDb);

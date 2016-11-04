@@ -66,6 +66,6 @@ public class IssueService {
     }
 
     public Slice<Issue> getAllIssuesByPage(int page, int pageSize) {
-        return issueRepository.findAllByPage(new PageRequest(page, pageSize));
+        return issueRepository.findAll(new PageRequest(page, pageSize));
     }
 }

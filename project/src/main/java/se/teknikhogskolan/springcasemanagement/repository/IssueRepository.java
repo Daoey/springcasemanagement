@@ -9,5 +9,5 @@ public interface IssueRepository extends CrudRepository<Issue, Long> {
 
     Issue findByDescription(String description);
 
-    Slice<Issue> findAllByPage(Pageable pageable);
+    Slice<Issue> findAll(Pageable pageable);
 }

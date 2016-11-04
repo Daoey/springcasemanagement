@@ -123,6 +123,6 @@ public final class TestIssueService {
     @Test
     public void canGetAllIssuesByPage() throws Exception {
         issueService.getAllIssuesByPage(0, 6);
-        verify(issueRepository).findAllByPage(new PageRequest(0, 6));
+        verify(issueRepository).findAll(new PageRequest(0, 6));
     }
 }
