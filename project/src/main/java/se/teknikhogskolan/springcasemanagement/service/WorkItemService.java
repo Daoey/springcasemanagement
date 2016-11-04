@@ -1,10 +1,12 @@
 package se.teknikhogskolan.springcasemanagement.service;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import se.teknikhogskolan.springcasemanagement.model.Team;
 import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
 import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
@@ -24,6 +26,14 @@ public class WorkItemService {
         this.workItemRepository = workItemRepository;
         this.userRepository = userRepository;
         this.teamRepository = teamRepository;
+    }
+    
+    //TODO fetch WorkItems without fetching Users and trim down data returned
+    public Collection<WorkItem> getByTeamId(Long teamId){
+    	Collection<User> usersInTeam = userRepository.findByTeamId(teamId);
+    	Collection<WorkItem> workItemsInTeam = new ArrayList();
+    	usersInTeam.forEach(t -> workItemsInTeam.addAll(t.getWorkItems()));
+    	return workItemsInTeam;
     }
 
     public WorkItem createWorkItem(String description) {
