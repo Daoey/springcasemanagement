@@ -77,8 +77,9 @@ public class User extends AbstractEntity {
         return team;
     }
 
-    public void setTeam(Team team) {
+    public User setTeam(Team team) {
         this.team = team;
+        return this;
     }
     
     public Collection<WorkItem> getWorkItems() {

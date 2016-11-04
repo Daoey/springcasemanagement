@@ -4,9 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.data.repository.CrudRepository;
-import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.model.Team;
-import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.service.ServiceException;
 
 import java.util.ArrayList;
@@ -15,7 +13,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 public final class TestTeamRepository {
 
@@ -103,7 +100,7 @@ public final class TestTeamRepository {
         executeVoid(teamRepository -> teamRepository.delete(team));
     }
 
-    private void deleteTeams(List<Team> teams){
+    private void deleteTeams(List<Team> teams) {
         executeVoid(teamRepository -> teamRepository.delete(teams));
     }
 }

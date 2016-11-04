@@ -6,6 +6,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.data.domain.PageRequest;
 import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
 
@@ -117,5 +118,11 @@ public final class TestIssueService {
         issueInDb.setActive(false);
         when(issueRepository.findOne(issueId)).thenReturn(null);
         issueService.activateIssue(issueId);
+    }
+
+    @Test
+    public void canGetAllIssuesByPage() throws Exception {
+        issueService.getAllIssuesByPage(0, 6);
+        verify(issueRepository).findAllByPage(new PageRequest(0, 6));
     }
 }

@@ -1,6 +1,8 @@
 package se.teknikhogskolan.springcasemanagement.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
@@ -61,5 +63,9 @@ public class IssueService {
             return issueRepository.save(issue);
         } else
             throw new ServiceException("Issue with id '" + id + "' did not exist.");
+    }
+
+    public Slice<Issue> getAllIssuesByPage(int page, int pageSize) {
+        return issueRepository.findAllByPage(new PageRequest(page, pageSize));
     }
 }

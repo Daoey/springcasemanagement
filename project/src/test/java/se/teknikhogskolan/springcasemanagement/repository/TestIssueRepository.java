@@ -3,9 +3,13 @@ package se.teknikhogskolan.springcasemanagement.repository;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.service.ServiceException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -24,7 +28,7 @@ public final class TestIssueRepository {
     @Test
     public void canSaveIssue() throws ServiceException {
         executeVoid(issueRepository -> issueRepository.save(issue));
-        deleteIssue(issue);
+        deleteOneIssue(issue);
     }
 
     @Test
@@ -34,7 +38,7 @@ public final class TestIssueRepository {
             return issueRepository.findOne(issue.getId());
         });
         assertEquals(issueFromDb, issue);
-        deleteIssue(issue);
+        deleteOneIssue(issue);
     }
 
     @Test
@@ -47,7 +51,21 @@ public final class TestIssueRepository {
         });
 
         assertEquals(issueFromDb, issue);
-        deleteIssue(issue);
+        deleteOneIssue(issue);
+    }
+
+    @Test
+    public void canGetIssueByPage() throws Exception {
+        List<Issue> issuesInDb = addIssuesToDb(10);
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.scan(projectPackage);
+            context.refresh();
+            IssueRepository issueRepository = context.getBean(IssueRepository.class);
+
+            Slice<Issue> issueSlice = issueRepository.findAllByPage(new PageRequest(0, 7));
+            issueSlice.forEach(issue -> System.out.println(issue.getId()));
+        }
+        deleteManyIssues(issuesInDb);
     }
 
     private Issue execute(Function<IssueRepository, Issue> operation) {
@@ -68,7 +86,23 @@ public final class TestIssueRepository {
         }
     }
 
-    private void deleteIssue(Issue issue) {
+    private void deleteOneIssue(Issue issue) {
         executeVoid(issueRepository -> issueRepository.delete(issue));
+    }
+
+    private void deleteManyIssues(List<Issue> issues) {
+        executeVoid(issueRepository -> issueRepository.delete(issues));
+    }
+
+    private List<Issue> addIssuesToDb(int amount) {
+        List<Issue> issuesInDb = new ArrayList<>();
+        executeVoid(issueRepository -> {
+            for (int i = 0; i < amount; i++) {
+                Issue issue = new Issue("test");
+                issuesInDb.add(issue);
+                issueRepository.save(issue);
+            }
+        });
+        return issuesInDb;
     }
 }
