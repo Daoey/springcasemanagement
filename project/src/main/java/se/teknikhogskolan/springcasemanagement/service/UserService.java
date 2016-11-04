@@ -28,6 +28,10 @@ public class UserService {
     @Transactional
     public User saveUser(User user) {
 
+        if (user.getId() != null) {
+            throw new ServiceException("User has already been saved");
+        }
+        
         if (user.getTeam().getId() == null) {
             teamRepository.save(user.getTeam());
         }
@@ -36,16 +40,12 @@ public class UserService {
             throw new ServiceException("Can not save inactive user");
         }
 
-        if (user.getId() != null) {
-            throw new ServiceException("User has already been saved.");
-        }
-
         if (!usernameLongEnough(user.getUsername())) {
-            throw new ServiceException("Username too short.");
+            throw new ServiceException("Username too short");
         }
 
         if (teamIsFull(user.getTeam())) {
-            throw new ServiceException("Team is full.");
+            throw new ServiceException("Team is full");
         }
 
         return userRepository.save(user);
@@ -94,7 +94,7 @@ public class UserService {
                 user.setUsername(username);
                 return userRepository.save(user);
             } else {
-                throw new ServiceException("Username too short.");
+                throw new ServiceException("Username too short");
             }
 
         } else {
