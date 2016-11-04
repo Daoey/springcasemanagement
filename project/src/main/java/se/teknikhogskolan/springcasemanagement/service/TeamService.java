@@ -20,11 +20,19 @@ public class TeamService {
     }
 
     public Team getTeamById(Long id) {
-        return teamRepository.findOne(id);
+        Team team = teamRepository.findOne(id);
+        if (team != null) {
+            return team;
+        } else
+            throw new ServiceException("Team with id '" + id + "' do not exist");
     }
 
     public Team getTeamByName(String name) {
-        return teamRepository.findByName(name);
+        Team team = teamRepository.findByName(name);
+        if (team != null) {
+            return team;
+        } else
+            throw new ServiceException("Team with name '" + name + "' do not exist");
     }
 
     public Team saveTeam(Team team) {

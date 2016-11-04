@@ -10,6 +10,7 @@ import se.teknikhogskolan.springcasemanagement.model.Team;
 import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -35,12 +36,29 @@ public final class TestTeamService {
 
     @Test
     public void canGetTeamByName() throws Exception {
+        String name = teamInDb.getName();
+        when(teamRepository.findByName(name)).thenReturn(teamInDb);
+        teamService.getTeamByName(name);
+        verify(teamRepository).findByName(name);
+    }
 
+    @Test(expected = ServiceException.class)
+    public void canNotGetTeamByNameIfTeamDoNotExist() throws Exception {
+        when(teamRepository.findByName(team.getName())).thenReturn(null);
+        teamService.getTeamByName(team.getName());
     }
 
     @Test
     public void canGetTeamById() throws Exception {
+        when(teamRepository.findOne(teamId)).thenReturn(teamInDb);
+        teamService.getTeamById(teamId);
+        verify(teamRepository).findOne(teamId);
+    }
 
+    @Test(expected = ServiceException.class)
+    public void canNotGetTeamByIdIfTeamDoNotExist() throws Exception {
+        when(teamRepository.findOne(teamId)).thenReturn(null);
+        teamService.getTeamById(teamId);
     }
 
     @Test
@@ -71,6 +89,17 @@ public final class TestTeamService {
 
     @Test
     public void canInactivateTeam() throws Exception {
+        teamInDb.setActive(true);
+        when(teamRepository.findOne(teamId)).thenReturn(teamInDb);
+        when(teamRepository.save(teamInDb)).thenReturn(teamInDb);
+        Team teamFromDb = teamService.inactiveTeam(teamId);
+        verify(teamRepository).save(teamInDb);
+        assertFalse(teamFromDb.isActive());
+
+    }
+
+    @Test(expected = ServiceException.class)
+    public void canNotInactiveTeamIfTeamDoNotExist() throws Exception {
 
     }
 
@@ -79,22 +108,27 @@ public final class TestTeamService {
 
     }
 
+    @Test(expected = ServiceException.class)
+    public void canNotActiveTeamIfTeamDoNotExist() throws Exception {
+
+    }
+
     @Test
     public void canGetAllTeams() throws Exception {
 
     }
 
-    @Test
+    @Test(expected = ServiceException.class)
     public void throwExceptionIfTeamIdOrUserIdIsNull() throws Exception {
 
     }
 
-    @Test
+    @Test(expected = ServiceException.class)
     public void throwExceptionIfTeamOrUserIsInactive() throws Exception {
 
     }
 
-    @Test
+    @Test(expected = ServiceException.class)
     public void canNotAddUserToTeamIfTeamIsFull() throws Exception {
 
     }
