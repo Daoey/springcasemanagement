@@ -6,9 +6,12 @@ import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.model.Team;
 import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
+import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
+import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
 import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 import se.teknikhogskolan.springcasemanagement.repository.WorkItemRepository;
@@ -19,21 +22,37 @@ public class WorkItemService {
     private final WorkItemRepository workItemRepository;
     private final UserRepository userRepository;
     private final TeamRepository teamRepository;
+    private final IssueRepository issueRepository;
 
     @Autowired
     public WorkItemService(WorkItemRepository workItemRepository, UserRepository userRepository,
-            TeamRepository teamRepository) {
+            TeamRepository teamRepository, IssueRepository issueRepository) {
         this.workItemRepository = workItemRepository;
         this.userRepository = userRepository;
         this.teamRepository = teamRepository;
+        this.issueRepository = issueRepository;
     }
-    
-    //TODO change implementation to use repo method with query
-    public Collection<WorkItem> getByTeamId(Long teamId){
-    	Team team = teamRepository.findOne(teamId);
-    	Collection<WorkItem> workItemsInTeam = new ArrayList();
-    	team.getUsers().forEach(t -> workItemsInTeam.addAll(t.getWorkItems()));
-    	return workItemsInTeam;
+
+    public WorkItem addIssueToWorkItem(Issue issue, WorkItem workItem) {
+        if (workItem.getStatus() == Status.DONE) {
+            workItem.setStatus(Status.UNSTARTED);
+            workItem.setIssue(issue);
+            return workItemRepository.save(workItem);
+        } else
+            throw new ServiceException(
+                    "Issue can only be added to WorkItem with Status DONE, Status was " + workItem.getStatus());
+    }
+
+    public Issue createIssue(String description) {
+        return issueRepository.save(new Issue(description));
+    }
+
+    // TODO change implementation to use repo method with query
+    public Collection<WorkItem> getByTeamId(Long teamId) {
+        Team team = teamRepository.findOne(teamId);
+        Collection<WorkItem> workItemsInTeam = new ArrayList();
+        team.getUsers().forEach(t -> workItemsInTeam.addAll(t.getWorkItems()));
+        return workItemsInTeam;
     }
 
     public WorkItem createWorkItem(String description) {

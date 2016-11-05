@@ -1,6 +1,5 @@
 package se.teknikhogskolan.springcasemanagement.repository;
 
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -16,72 +15,74 @@ import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
 
 public final class TestWorkItemRepository {
     private final String projectPackage = "se.teknikhogskolan.springcasemanagement";
-    
+
     @Test
-    public void canGetWorkItemsByTeamId(){
-    	Long teamIdInDB = 5L;
-    	
-    	Collection<WorkItem> result = executeMany(repo -> {
-    		return repo.FindAllWithDescriptionQuery(teamIdInDB);
-    	});
-    	
-    	result.forEach(workItem -> {
-    		Long teamId = workItem.getUser().getTeam().getId();
-    		assertEquals(teamIdInDB, teamId);
-    	});
+    public void canGetWorkItemsByTeamId() {
+        Long teamIdInDb = 5L;
+
+        Collection<WorkItem> result = executeMany(repo -> {
+            return repo.FindAllWithDescriptionQuery(teamIdInDb);
+        });
+
+        result.forEach(workItem -> {
+            Long teamId = workItem.getUser().getTeam().getId();
+            assertEquals(teamIdInDb, teamId);
+        });
     }
 
-	@Test
-    public void canRemoveWorkItem(){
-    	execute(repo -> {
-    		
-    		WorkItem workItem = repo.save(new WorkItem("Show us how to remove!"));
-    		assertNotNull(repo.findOne(workItem.getId()));
-    		
-    		repo.delete(workItem.getId());
-    		assertNull(repo.findOne(workItem.getId()));
-    		
-    		return null;
-    	});
+    @Test
+    public void canRemoveWorkItem() {
+        execute(repo -> {
+
+            WorkItem workItem = repo.save(new WorkItem("Show us how to remove!"));
+            assertNotNull(repo.findOne(workItem.getId()));
+
+            repo.delete(workItem.getId());
+            assertNull(repo.findOne(workItem.getId()));
+
+            return null;
+        });
     }
 
     @Test
     public void canChangeWorkItemStatus() {
-    	Status changedStatus = Status.DONE;
-    	
+        Status changedStatus = Status.DONE;
+
         WorkItem result = execute(repo -> {
-        	
-        	WorkItem workItem = repo.save(new WorkItem("Change the status on WorkItem"));
-            assertEquals(Status.UNSTARTED, workItem.getStatus()); // UNSTARTED = default status
-            
+
+            WorkItem workItem = repo.save(new WorkItem("Change the status on WorkItem"));
+            assertEquals(Status.UNSTARTED, workItem.getStatus()); // UNSTARTED =
+                                                                  // default
+                                                                  // status
+
             workItem.setStatus(changedStatus);
             workItem = repo.save(workItem);
-            
-        	return repo.findOne(workItem.getId());
+
+            return repo.findOne(workItem.getId());
         });
-        
+
         assertEquals(changedStatus, result.getStatus());
     }
 
     @Test
     public void canGetWorkItemsByStatus() {
-    	Status status = Status.STARTED;
+        Status status = Status.STARTED;
         WorkItem workItem = new WorkItem("Do laundry");
         workItem.setStatus(status);
         Collection<WorkItem> result = executeMany(repo -> {
-        	repo.save(workItem);
-        	return repo.findByStatus(status);
+            repo.save(workItem);
+            return repo.findByStatus(status);
         });
         result.forEach(item -> assertEquals(status, item.getStatus()));
     }
 
     @Test
     public void canSaveWorkItemWithStatus() {
-    	Status status = Status.DONE;
+        Status status = Status.DONE;
         WorkItem workItem = new WorkItem("Do the vacuumer");
         workItem.setStatus(status);
         WorkItem result = execute(repo -> {
-        	return repo.save(workItem);
+            return repo.save(workItem);
         });
         assertEquals(status, result.getStatus());
     }

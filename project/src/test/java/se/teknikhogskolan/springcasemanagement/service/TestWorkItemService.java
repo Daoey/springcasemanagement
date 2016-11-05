@@ -9,15 +9,19 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Random;
 
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.model.Team;
 import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
+import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
+import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
 import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 import se.teknikhogskolan.springcasemanagement.repository.WorkItemRepository;
@@ -30,10 +34,50 @@ public final class TestWorkItemService {
     TeamRepository teamRepository;
     @Mock
     UserRepository userRepository;
+    @Mock
+    IssueRepository issueRepository;
     @InjectMocks
     WorkItemService workItemService;
 
     @Test
+    public void canFindByUserId() {
+        // TODO implement with mock
+    }
+    
+    @Test
+    public void canAddIssueToWorkItem() {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.scan(projectPackage);
+            context.refresh();
+
+            WorkItemService workItemService = context.getBean(WorkItemService.class);
+            Issue issue = workItemService.createIssue("Issue must be added to WorkItem");
+            WorkItem workItem = workItemService.createWorkItem("WorkItem with an Issue");
+            workItem = workItemService.setWorkItemStatus(workItem, Status.DONE);
+            workItem = workItemService.addIssueToWorkItem(issue, workItem);
+
+            assertEquals(Status.UNSTARTED, workItem.getStatus());
+            assertEquals(issue, workItem.getIssue());
+        }
+    }
+
+    @Test
+    public void canPersistIssue() {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.scan(projectPackage);
+            context.refresh();
+
+            WorkItemService workItemService = context.getBean(WorkItemService.class);
+
+            Issue issue = workItemService.createIssue("Issue created by service");
+
+            assertNotNull(issue);
+            assertNotNull(issue.getId());
+        }
+    }
+
+    @Test // Only runs once, unique values in db crashes second run, drop and
+    // create db
     public void canFindByTeamId() {
         try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
             context.scan(projectPackage);
@@ -43,23 +87,30 @@ public final class TestWorkItemService {
             UserService userService = context.getBean(UserService.class);
             TeamService teamService = context.getBean(TeamService.class);
             
-            Team team = teamService.saveTeam(new Team("Team finding workitems"));
-            User user = new User(656989L, "usernamesadfasdf", "firstName", "lastName", team);
-            WorkItem workItem = workItemService.createWorkItem("Find all by team id!");
+            Long uniqueUserNumber = getRandomLong();
+            String uniqueUsername = "username_" + getRandomLong().toString();
+            String uniqueTeamName = "Team finding workitems" + getRandomLong().toString();
+            String uniqueWorkItemDescription = "Find all by team id!" + getRandomLong().toString();
+            
+            Team team = teamService.saveTeam(new Team(uniqueTeamName));
+            User user = new User(uniqueUserNumber, uniqueUsername, "firstName", "lastName", team);
+            WorkItem workItem = workItemService.createWorkItem(uniqueWorkItemDescription);
             user = userService.saveUser(user);
             workItem = workItemService.setUserToWorkItem(user.getUserNumber(), workItem);
             teamService.addUserToTeam(team.getId(), user.getId());
-            
+
             Collection<WorkItem> result = workItemService.getByTeamId(team.getId());
-            
-            result.forEach(System.out::println);
-//            result.forEach(item -> assertEquals(true, item.getDescription().contains(text)));
+
+            result.forEach(item -> assertEquals(team.getId(), item.getUser().getTeam().getId()));
         }
     }
-    
-    @Test
-    public void canFindByUserId() {
-    	// TODO implement with mock
+
+    private Long getRandomLong() {
+        long loverRange = 0;
+        long upperRange = 1000000;
+        Random random = new Random();
+        long randomValue = loverRange + (long) (random.nextDouble() * (upperRange - loverRange));
+        return new Long(randomValue);
     }
 
     @Test
