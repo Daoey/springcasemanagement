@@ -55,6 +55,36 @@ public final class TestWorkItemService {
     }
 
     @Test
+    public void canGetAllWithIssue() {
+        
+        persistOneWorkItemWithIssue();
+        
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.scan(projectPackage);
+            context.refresh();
+            
+            WorkItemService workItemService = context.getBean(WorkItemService.class);
+            
+            Collection<WorkItem> workItems = workItemService.getAllWithIssue();
+            workItems.forEach(item -> {
+                assertNotNull(item.getIssue());
+            });
+        }
+    }
+
+    private void persistOneWorkItemWithIssue() {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.scan(projectPackage);
+            context.refresh();
+            WorkItemService workItemService = context.getBean(WorkItemService.class);
+            Issue issue = workItemService.createIssue("Issue must be added to WorkItem");
+            WorkItem workItem = workItemService.createWorkItem("WorkItem with an Issue");
+            workItem = workItemService.setWorkItemStatus(workItem, Status.DONE);
+            workItem = workItemService.addIssueToWorkItem(issue, workItem);
+        }
+    }
+
+    @Test
     public void addingIssueToWorkItemWithWrongStatusShouldThrowException() {
         Status status = Status.STARTED;
         exception.expect(ServiceException.class);

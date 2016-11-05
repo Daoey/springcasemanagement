@@ -32,6 +32,10 @@ public class WorkItemService {
         this.teamRepository = teamRepository;
         this.issueRepository = issueRepository;
     }
+    
+    public Collection<WorkItem> getAllWithIssue(){
+        return workItemRepository.findByIssueIsNotNull();
+    }
 
     public WorkItem addIssueToWorkItem(Issue issue, WorkItem workItem) {
         if (workItem.getStatus() == Status.DONE) {
