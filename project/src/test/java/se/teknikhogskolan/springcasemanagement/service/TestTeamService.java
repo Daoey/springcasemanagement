@@ -1,5 +1,11 @@
 package se.teknikhogskolan.springcasemanagement.service;
 
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -13,12 +19,6 @@ import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 @RunWith(MockitoJUnitRunner.class)
 public final class TestTeamService {
 
@@ -26,13 +26,13 @@ public final class TestTeamService {
     public ExpectedException thrown = ExpectedException.none();
 
     @Mock
-    TeamRepository teamRepository;
+    private TeamRepository teamRepository;
 
     @Mock
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
     @InjectMocks
-    TeamService teamService;
+    private TeamService teamService;
 
     private Team teamInDb;
     private Team team;
@@ -84,10 +84,10 @@ public final class TestTeamService {
 
     @Test
     public void canUpdateTeamName() throws ServiceException {
-        String newName = "New name";
         when(teamRepository.findOne(teamId)).thenReturn(teamInDb);
         when(teamRepository.save(teamInDb)).thenReturn(teamInDb);
         teamInDb.setName("Old name");
+        String newName = "New name";
         Team team = teamService.updateTeamName(teamId, newName);
 
         verify(teamRepository).save(teamInDb);
