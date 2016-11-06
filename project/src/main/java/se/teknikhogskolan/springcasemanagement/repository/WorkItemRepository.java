@@ -19,7 +19,6 @@ public interface WorkItemRepository extends CrudRepository<WorkItem, Long> {
 
     Collection<WorkItem> findByIssueIsNotNull();
     
-    // TODO rename
     @Query("Select w from WorkItem w left join User u on w.user.id = u.id WHERE u.team.id = :teamId")
     List<WorkItem> findByTeamId(@Param("teamId") Long teamId);
 }
