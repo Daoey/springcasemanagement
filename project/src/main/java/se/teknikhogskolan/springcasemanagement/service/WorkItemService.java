@@ -58,12 +58,8 @@ public class WorkItemService {
         return issueRepository.save(new Issue(description));
     }
 
-    // TODO change implementation to use repo method with query
     public Collection<WorkItem> getByTeamId(Long teamId) {
-        Team team = teamRepository.findOne(teamId);
-        Collection<WorkItem> workItemsInTeam = new ArrayList();
-        team.getUsers().forEach(t -> workItemsInTeam.addAll(t.getWorkItems()));
-        return workItemsInTeam;
+        return workItemRepository.findByTeamId(teamId);
     }
 
     public WorkItem createWorkItem(String description) {
