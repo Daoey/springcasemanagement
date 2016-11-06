@@ -13,7 +13,7 @@ public interface WorkItemRepository extends CrudRepository<WorkItem, Long> {
 
     Collection<WorkItem> findByStatus(WorkItem.Status status);
 
-    Collection<WorkItem> findByUserId(Long id);
+    Collection<WorkItem> findByUserId(Long userId);
 
     Collection<WorkItem> findByDescriptionContains(String text);
 
