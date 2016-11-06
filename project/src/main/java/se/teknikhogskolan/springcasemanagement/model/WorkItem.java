@@ -1,6 +1,5 @@
 package se.teknikhogskolan.springcasemanagement.model;
 
-
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -81,9 +80,12 @@ public class WorkItem extends AbstractEntity {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
         WorkItem other = (WorkItem) obj;
         if (description == null) {
             if (other.description != null)
@@ -96,5 +98,16 @@ public class WorkItem extends AbstractEntity {
     @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.JSON_STYLE);
+    }
+
+    public int compareTo(WorkItem other) {
+        if (null != getId() && null != other.getId()) {
+            if (getId() > other.getId()) return 1;
+            if (getId() < other.getId()) return -1;
+        }
+        int result = getDescription().compareTo(other.getDescription());
+        if (result < 0) return -1;
+        if (result == 0) return 0;
+        return 1;
     }
 }

@@ -42,7 +42,10 @@ public class TestWorkItem {
     }
     
     @Test
-    public void testingCompateTo(){
-        
+    public void testingCompareTo() {
+        assertEquals(0, workItem1.compareTo(workItem1));
+        assertEquals(0, workItem1.compareTo(workItem1WithValues));
+        assertEquals(-1, workItem1.compareTo(workItem2));
+        assertEquals(1, workItem2.compareTo(workItem1));
     }
 }
