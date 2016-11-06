@@ -13,7 +13,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 @Entity
 public class WorkItem extends AbstractEntity {
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String description;
 
     private Status status = Status.UNSTARTED;
@@ -76,25 +76,19 @@ public class WorkItem extends AbstractEntity {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((description == null) ? 0 : description.hashCode());
-        result = prime * result + ((status == null) ? 0 : status.hashCode());
         return result;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         WorkItem other = (WorkItem) obj;
         if (description == null) {
             if (other.description != null)
                 return false;
         } else if (!description.equals(other.description))
-            return false;
-        if (status != other.status)
             return false;
         return true;
     }
