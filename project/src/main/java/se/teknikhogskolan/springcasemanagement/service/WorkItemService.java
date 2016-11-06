@@ -33,7 +33,14 @@ public class WorkItemService {
         this.issueRepository = issueRepository;
     }
     
-    public Collection<WorkItem> getAllWithIssue(){
+    public WorkItem removeIssueFromWorkItem(WorkItem workItem) {
+        Issue issue = workItem.getIssue();
+        workItem = workItemRepository.save(workItem.setIssue(null));
+        issueRepository.delete(issue.getId());
+        return workItem;
+    }
+    
+    public Collection<WorkItem> getAllWithIssue() {
         return workItemRepository.findByIssueIsNotNull();
     }
 

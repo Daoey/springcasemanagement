@@ -1,14 +1,10 @@
 package se.teknikhogskolan.springcasemanagement.service;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertNull;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Random;
 
 import org.junit.Rule;
@@ -29,29 +25,52 @@ import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 import se.teknikhogskolan.springcasemanagement.repository.WorkItemRepository;
 
 public final class TestWorkItemService {
-    private final String projectPackage = "se.teknikhogskolan.springcasemanagement";
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
+    
+    private final String projectPackage = "se.teknikhogskolan.springcasemanagement";
 
     @Mock
-    WorkItemRepository workItemRepository;
+    private WorkItemRepository workItemRepository;
 
     @Mock
-    TeamRepository teamRepository;
+    private TeamRepository teamRepository;
 
     @Mock
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
     @Mock
-    IssueRepository issueRepository;
+    private IssueRepository issueRepository;
 
     @InjectMocks
-    WorkItemService workItemService;
+    private WorkItemService workItemService;
 
     @Test
     public void canFindByUserId() {
         // TODO implement with mock
+    }
+    
+    @Test
+    public void canRemoveIssue() {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.scan(projectPackage);
+            context.refresh();
+            WorkItemService workItemService = context.getBean(WorkItemService.class);
+            Issue issue = workItemService.createIssue("Issue must be added to WorkItem");
+            WorkItem workItem = workItemService.createWorkItem("WorkItem with an Issue");
+            workItem = workItemService.setWorkItemStatus(workItem, Status.DONE);
+            workItem = workItemService.addIssueToWorkItem(issue, workItem);
+            
+            workItem = workItemService.getById(workItem.getId());
+            assertNotNull(workItem.getIssue());
+            
+            System.out.println("WorkItem: " + workItem.getId() + ", Issue: " + workItem.getIssue().getId());
+            
+            workItem = workItemService.removeIssueFromWorkItem(workItem);
+            
+            assertNull(workItem.getIssue());
+        }
     }
 
     @Test

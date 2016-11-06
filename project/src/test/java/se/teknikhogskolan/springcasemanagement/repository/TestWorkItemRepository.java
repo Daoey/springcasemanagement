@@ -17,11 +17,16 @@ public final class TestWorkItemRepository {
     private final String projectPackage = "se.teknikhogskolan.springcasemanagement";
 
     @Test
+    public void canRemoveIssue() {
+
+    }
+
+    @Test
     public void canGetWorkItemsByTeamId() {
         Long teamIdInDb = 5L;
 
         Collection<WorkItem> result = executeMany(repo -> {
-            return repo.FindAllWithDescriptionQuery(teamIdInDb);
+            return repo.findByTeamId(teamIdInDb);
         });
 
         result.forEach(workItem -> {
@@ -46,14 +51,13 @@ public final class TestWorkItemRepository {
 
     @Test
     public void canChangeWorkItemStatus() {
+        Status defaultStatus = Status.UNSTARTED;
         Status changedStatus = Status.DONE;
 
         WorkItem result = execute(repo -> {
 
             WorkItem workItem = repo.save(new WorkItem("Change the status on WorkItem"));
-            assertEquals(Status.UNSTARTED, workItem.getStatus()); // UNSTARTED =
-                                                                  // default
-                                                                  // status
+            assertEquals(defaultStatus, workItem.getStatus());
 
             workItem.setStatus(changedStatus);
             workItem = repo.save(workItem);

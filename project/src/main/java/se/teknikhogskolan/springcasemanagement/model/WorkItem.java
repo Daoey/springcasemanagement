@@ -39,32 +39,36 @@ public class WorkItem extends AbstractEntity {
         return description;
     }
 
-    public void setDescription(String description) {
+    public WorkItem setDescription(String description) {
         this.description = description;
+        return this;
     }
 
     public Status getStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public WorkItem setStatus(Status status) {
         this.status = status;
+        return this;
     }
 
     public Issue getIssue() {
         return issue;
     }
 
-    public void setIssue(Issue issue) {
+    public WorkItem setIssue(Issue issue) {
         this.issue = issue;
+        return this;
     }
 
     public User getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public WorkItem setUser(User user) {
         this.user = user;
+        return this;
     }
 
     @Override
