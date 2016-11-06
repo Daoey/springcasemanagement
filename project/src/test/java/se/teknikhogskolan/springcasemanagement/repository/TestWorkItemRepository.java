@@ -1,34 +1,73 @@
 package se.teknikhogskolan.springcasemanagement.repository;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.util.Collection;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+import se.teknikhogskolan.springcasemanagement.model.Team;
+import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
 
 public final class TestWorkItemRepository {
-    private final String projectPackage = "se.teknikhogskolan.springcasemanagement";
+    private static final String PROJECT_PACKAGE = "se.teknikhogskolan.springcasemanagement";
+    private static WorkItem workItem;
+    private static WorkItem workItemDone;
+    private static Team team;
+    private static User user;
 
-    @Test
-    public void canRemoveIssue() {
+    @BeforeClass
+    public static void masterSetup() {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.scan(PROJECT_PACKAGE);
+            context.refresh();
+            
+            team = context.getBean(TeamRepository.class).save(new Team("Team with WorkItems"));
+            user = context.getBean(UserRepository.class)
+                    .save(new User(23142134L, "Team_working_guy", "Test", "Tester", team));
+            
+            WorkItemRepository workItemRepository = context.getBean(WorkItemRepository.class);
+            workItem = workItemRepository.save(new WorkItem("Test getting all WorkItems from one Team").setUser(user));
+            
+            Status status = Status.DONE;
+            workItemDone = new WorkItem("Do the vacuumer");
+            workItemDone.setStatus(status);
+            workItemDone = workItemRepository.save(workItemDone);
+        }
+    }
 
+    @AfterClass
+    public static void masterTearDown() {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.scan(PROJECT_PACKAGE);
+            context.refresh();
+            WorkItemRepository workItemRepository = context.getBean(WorkItemRepository.class);
+            workItemRepository.delete(workItem.getId());
+            workItemRepository.delete(workItemDone.getId());
+            context.getBean(UserRepository.class).delete(user.getId());
+            context.getBean(TeamRepository.class).delete(team.getId());
+        }
     }
 
     @Test
     public void canGetWorkItemsByTeamId() {
-        Long teamIdInDb = 5L;
+        Long teamIdInDb = team.getId();
 
         Collection<WorkItem> result = executeMany(repo -> {
             return repo.findByTeamId(teamIdInDb);
         });
 
+        assertFalse(result.isEmpty());
         result.forEach(workItem -> {
             Long teamId = workItem.getUser().getTeam().getId();
             assertEquals(teamIdInDb, teamId);
@@ -37,15 +76,13 @@ public final class TestWorkItemRepository {
 
     @Test
     public void canRemoveWorkItem() {
-        execute(repo -> {
+        executeVoid(repo -> {
 
             WorkItem workItem = repo.save(new WorkItem("Show us how to remove!"));
             assertNotNull(repo.findOne(workItem.getId()));
 
             repo.delete(workItem.getId());
             assertNull(repo.findOne(workItem.getId()));
-
-            return null;
         });
     }
 
@@ -54,63 +91,43 @@ public final class TestWorkItemRepository {
         Status defaultStatus = Status.UNSTARTED;
         Status changedStatus = Status.DONE;
 
-        WorkItem result = execute(repo -> {
+        executeVoid(repo -> {
 
-            WorkItem workItem = repo.save(new WorkItem("Change the status on WorkItem"));
+            WorkItem workItem = repo.findOne(this.workItem.getId());
             assertEquals(defaultStatus, workItem.getStatus());
 
             workItem.setStatus(changedStatus);
             workItem = repo.save(workItem);
 
-            return repo.findOne(workItem.getId());
+            WorkItem result = repo.findOne(this.workItem.getId());
+            assertEquals(changedStatus, result.getStatus());
         });
-
-        assertEquals(changedStatus, result.getStatus());
     }
 
     @Test
     public void canGetWorkItemsByStatus() {
-        Status status = Status.STARTED;
-        WorkItem workItem = new WorkItem("Do laundry");
-        workItem.setStatus(status);
+        Status statusDone = workItemDone.getStatus();
+
         Collection<WorkItem> result = executeMany(repo -> {
-            repo.save(workItem);
-            return repo.findByStatus(status);
+            return repo.findByStatus(statusDone);
         });
-        result.forEach(item -> assertEquals(status, item.getStatus()));
+
+        assertFalse(result.isEmpty());
+        result.forEach(item -> assertEquals(statusDone, item.getStatus()));
     }
 
-    @Test
-    public void canSaveWorkItemWithStatus() {
-        Status status = Status.DONE;
-        WorkItem workItem = new WorkItem("Do the vacuumer");
-        workItem.setStatus(status);
-        WorkItem result = execute(repo -> {
-            return repo.save(workItem);
-        });
-        assertEquals(status, result.getStatus());
-    }
-
-    @Test
-    public void canPersistWorkItem() {
-        WorkItem workItem = execute(workItemRepository -> {
-            return workItemRepository.save(new WorkItem("Do dishes"));
-        });
-        assertNotNull(workItem.getId());
-    }
-
-    private WorkItem execute(Function<WorkItemRepository, WorkItem> operation) {
+    private void executeVoid(Consumer<WorkItemRepository> operation) {
         try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
-            context.scan(projectPackage);
+            context.scan(PROJECT_PACKAGE);
             context.refresh();
             WorkItemRepository workItemRepository = context.getBean(WorkItemRepository.class);
-            return operation.apply(workItemRepository);
+            operation.accept(workItemRepository);
         }
     }
 
     private Collection<WorkItem> executeMany(Function<WorkItemRepository, Collection<WorkItem>> operation) {
         try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
-            context.scan(projectPackage);
+            context.scan(PROJECT_PACKAGE);
             context.refresh();
             WorkItemRepository workItemRepository = context.getBean(WorkItemRepository.class);
             return operation.apply(workItemRepository);
