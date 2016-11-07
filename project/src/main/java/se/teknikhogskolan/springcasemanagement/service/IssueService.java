@@ -44,7 +44,7 @@ public class IssueService {
                         + "description on Issue with issueId '" + issueId + "' since it's inactivate.");
             }
         } else
-            throw new ServiceException("Issue with issueId '" + issueId + "' did not exist.");
+            throw new ServiceException("Failed to update issue with id '" + issueId + "' since it could not be found in the database");
     }
 
     public Issue inactivate(Long issueId) {
@@ -53,7 +53,7 @@ public class IssueService {
             issue.setActive(false);
             return issueRepository.save(issue);
         } else
-            throw new ServiceException("Issue with issueId '" + issueId + "' did not exist.");
+            throw new ServiceException("Failed to inactive issue with id '" + issueId + "' since it could not be found in the database");
     }
 
     public Issue activate(Long issueId) {
@@ -62,7 +62,7 @@ public class IssueService {
             issue.setActive(true);
             return issueRepository.save(issue);
         } else
-            throw new ServiceException("Issue with issueId '" + issueId + "' did not exist.");
+            throw new ServiceException("Failed to activate issue with id '" + issueId + "' since it could not be found in the database");
     }
 
     public Slice<Issue> getAllByPage(int page, int pageSize) {
