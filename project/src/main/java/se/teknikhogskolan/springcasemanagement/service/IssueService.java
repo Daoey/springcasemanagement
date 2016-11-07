@@ -17,15 +17,15 @@ public class IssueService {
         this.issueRepository = issueRepository;
     }
 
-    public Issue getIssueById(Long id) {
-        Issue issue = issueRepository.findOne(id);
+    public Issue getById(Long issueId) {
+        Issue issue = issueRepository.findOne(issueId);
         if (issue != null) {
             return issue;
         } else
-            throw new ServiceException("Issue with id '" + id + "' do not exist");
+            throw new ServiceException("Issue with issueId '" + issueId + "' do not exist");
     }
 
-    public Issue getIssueByDescription(String description) {
+    public Issue getByDescription(String description) {
         Issue issue = issueRepository.findByDescription(description);
         if (issue != null) {
             return issue;
@@ -33,39 +33,39 @@ public class IssueService {
             throw new ServiceException("Issue with description '" + description + "' do not exist");
     }
 
-    public Issue updateIssueDescription(Long id, String description) {
-        Issue issue = issueRepository.findOne(id);
+    public Issue updateDescription(Long issueId, String description) {
+        Issue issue = issueRepository.findOne(issueId);
         if (issue != null) {
             if (issue.isActive()) {
                 issue.setDescription(description);
                 return issueRepository.save(issue);
             } else {
                 throw new ServiceException("Could not update "
-                        + "description on Issue with id '" + id + "' since it's inactive.");
+                        + "description on Issue with issueId '" + issueId + "' since it's inactivate.");
             }
         } else
-            throw new ServiceException("Issue with id '" + id + "' did not exist.");
+            throw new ServiceException("Issue with issueId '" + issueId + "' did not exist.");
     }
 
-    public Issue inactiveIssue(Long id) {
-        Issue issue = issueRepository.findOne(id);
+    public Issue inactivate(Long issueId) {
+        Issue issue = issueRepository.findOne(issueId);
         if (issue != null) {
             issue.setActive(false);
             return issueRepository.save(issue);
         } else
-            throw new ServiceException("Issue with id '" + id + "' did not exist.");
+            throw new ServiceException("Issue with issueId '" + issueId + "' did not exist.");
     }
 
-    public Issue activateIssue(Long id) {
-        Issue issue = issueRepository.findOne(id);
+    public Issue activate(Long issueId) {
+        Issue issue = issueRepository.findOne(issueId);
         if (issue != null) {
             issue.setActive(true);
             return issueRepository.save(issue);
         } else
-            throw new ServiceException("Issue with id '" + id + "' did not exist.");
+            throw new ServiceException("Issue with issueId '" + issueId + "' did not exist.");
     }
 
-    public Slice<Issue> getAllIssuesByPage(int page, int pageSize) {
+    public Slice<Issue> getAllByPage(int page, int pageSize) {
         return issueRepository.findAll(new PageRequest(page, pageSize));
     }
 }

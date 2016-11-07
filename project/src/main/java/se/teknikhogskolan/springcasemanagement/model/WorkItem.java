@@ -69,6 +69,11 @@ public class WorkItem extends AbstractEntity {
         this.user = user;
         return this;
     }
+    
+    public boolean isDone() {
+        if (Status.DONE.ordinal() == this.status.ordinal()) return true;
+        return false;
+    }
 
     @Override
     public int hashCode() {
