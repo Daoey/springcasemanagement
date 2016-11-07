@@ -1,18 +1,17 @@
 package se.teknikhogskolan.springcasemanagement.service;
 
-import java.util.ArrayList;
+import static se.teknikhogskolan.springcasemanagement.model.WorkItem.Status.DONE;
+import static se.teknikhogskolan.springcasemanagement.model.WorkItem.Status.UNSTARTED;
+
 import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import se.teknikhogskolan.springcasemanagement.model.Issue;
-import se.teknikhogskolan.springcasemanagement.model.Team;
 import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
-import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
 import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
-import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 import se.teknikhogskolan.springcasemanagement.repository.WorkItemRepository;
 
@@ -21,19 +20,18 @@ public class WorkItemService {
 
     private final WorkItemRepository workItemRepository;
     private final UserRepository userRepository;
-    private final TeamRepository teamRepository;
     private final IssueRepository issueRepository;
 
     @Autowired
     public WorkItemService(WorkItemRepository workItemRepository, UserRepository userRepository,
-            TeamRepository teamRepository, IssueRepository issueRepository) {
+            IssueRepository issueRepository) {
         this.workItemRepository = workItemRepository;
         this.userRepository = userRepository;
-        this.teamRepository = teamRepository;
         this.issueRepository = issueRepository;
     }
     
-    public WorkItem removeIssueFromWorkItem(WorkItem workItem) {
+    public WorkItem removeIssueFromWorkItem(Long workItemId) {
+        WorkItem workItem = workItemRepository.findOne(workItemId);
         Issue issue = workItem.getIssue();
         workItem = workItemRepository.save(workItem.setIssue(null));
         issueRepository.delete(issue.getId());
@@ -44,9 +42,11 @@ public class WorkItemService {
         return workItemRepository.findByIssueIsNotNull();
     }
 
-    public WorkItem addIssueToWorkItem(Issue issue, WorkItem workItem) {
-        if (workItem.getStatus() == Status.DONE) {
-            workItem.setStatus(Status.UNSTARTED);
+    public WorkItem addIssueToWorkItem(Long issueId, Long workItemId) {
+        Issue issue = issueRepository.findOne(issueId);
+        WorkItem workItem = workItemRepository.findOne(workItemId);
+        if (DONE.equals(workItem.getStatus())) {
+            workItem.setStatus(UNSTARTED);
             workItem.setIssue(issue);
             return workItemRepository.save(workItem);
         } else
@@ -62,11 +62,12 @@ public class WorkItemService {
         return workItemRepository.findByTeamId(teamId);
     }
 
-    public WorkItem createWorkItem(String description) {
+    public WorkItem create(String description) {
         return workItemRepository.save(new WorkItem(description));
     }
 
-    public WorkItem setWorkItemStatus(WorkItem workItem, WorkItem.Status status) {
+    public WorkItem setStatus(Long workItemId, WorkItem.Status status) {
+        WorkItem workItem = workItemRepository.findOne(workItemId);
         workItem.setStatus(status);
         return workItemRepository.save(workItem);
     }
@@ -85,22 +86,23 @@ public class WorkItemService {
         return workItemRepository.findByStatus(status);
     }
 
-    public Collection<WorkItem> getByUserId(Long userId) {
-        return workItemRepository.findByUserId(userId);
-    }
-
     public Collection<WorkItem> getByUserNumber(Long userNumber) {
         User user = userRepository.findByUserNumber(userNumber);
         return getByUserId(user.getId());
+    }
+
+    private Collection<WorkItem> getByUserId(Long userId) {
+        return workItemRepository.findByUserId(userId);
     }
 
     public Collection<WorkItem> getByDescriptionContains(String text) {
         return workItemRepository.findByDescriptionContains(text);
     }
 
-    public WorkItem setUserToWorkItem(Long userNumber, WorkItem workItem) {
+    public WorkItem setUser(Long userNumber, Long workItemId) {
         User user = userRepository.findByUserNumber(userNumber);
         if (userCanHaveOneMoreWorkItem(user)) {
+            WorkItem workItem = workItemRepository.findOne(workItemId);
             workItem.setUser(user);
             return workItemRepository.save(workItem);
         } else
@@ -108,7 +110,8 @@ public class WorkItemService {
     }
 
     private boolean userCanHaveOneMoreWorkItem(User user) {
-        if (user.isActive() & getByUserId(user.getId()).size() < 5) {
+        final int maxAllowedWorkItemsPerUser = 5;
+        if (user.isActive() & getByUserId(user.getId()).size() < maxAllowedWorkItemsPerUser) {
             return true;
         }
         return false;

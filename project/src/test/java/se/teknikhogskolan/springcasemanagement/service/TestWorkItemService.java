@@ -45,9 +45,6 @@ public final class TestWorkItemService {
     private WorkItemRepository workItemRepository;
 
     @Mock
-    private TeamRepository teamRepository;
-
-    @Mock
     private UserRepository userRepository;
 
     @Mock
@@ -68,11 +65,14 @@ public final class TestWorkItemService {
         Collection<WorkItem> workItemsWithOurUser = new ArrayList<>();
         workItemsWithOurUser.add(workItem);
         Long userId = 23424L;
+        Long userNumber = 23424L;
         
         when(user.getId()).thenReturn(userId);
+        when(user.getUserNumber()).thenReturn(userNumber);
+        when(userRepository.findByUserNumber(userNumber)).thenReturn(user);
         when(workItemRepository.findByUserId(userId)).thenReturn(workItemsWithOurUser);
         
-        Collection<WorkItem> result = workItemService.getByUserId(userId);
+        Collection<WorkItem> result = workItemService.getByUserNumber(userNumber);
         
         verify(workItemRepository).findByUserId(userId);
         assertEquals(workItemsWithOurUser, result);
@@ -84,12 +84,15 @@ public final class TestWorkItemService {
     @Test
     public void canRemoveIssue() {
         Long issueId = 32532L;
+        Long workItemId = 646532L;
         when(issue.getId()).thenReturn(issueId);
+        when(workItem.getId()).thenReturn(workItemId);
         when(workItem.getIssue()).thenReturn(issue);
         when(workItem.setIssue(null)).thenReturn(workItem);
         when(workItemRepository.save(workItem)).thenReturn(workItem);
+        when(workItemRepository.findOne(workItemId)).thenReturn(workItem);
         
-        WorkItem result = workItemService.removeIssueFromWorkItem(workItem);
+        WorkItem result = workItemService.removeIssueFromWorkItem(workItemId);
         
         assertEquals(workItem, result);
         verify(workItem).setIssue(null);
@@ -119,14 +122,18 @@ public final class TestWorkItemService {
         exception.expect(ServiceException.class);
         exception.expectMessage("Issue can only be added to WorkItem with Status DONE, Status was " + wrongStatus);
         when(workItem.getStatus()).thenReturn(wrongStatus);
-        workItemService.addIssueToWorkItem(issue, workItem);
+        when(issueRepository.findOne(issue.getId())).thenReturn(issue);
+        when(workItemRepository.findOne(workItem.getId())).thenReturn(workItem);
+        workItemService.addIssueToWorkItem(issue.getId(), workItem.getId());
     }
 
     @Test
     public void addingIssueToWorkItemShouldChangeWorkItemStatus() {
         when(workItem.getStatus()).thenReturn(Status.DONE);
+        when(issueRepository.findOne(issue.getId())).thenReturn(issue);
+        when(workItemRepository.findOne(workItem.getId())).thenReturn(workItem);
         
-        workItemService.addIssueToWorkItem(issue, workItem);
+        workItemService.addIssueToWorkItem(issue.getId(), workItem.getId());
 
         verify(workItem).setStatus(Status.UNSTARTED);
         verify(workItem).setIssue(issue);
@@ -172,7 +179,8 @@ public final class TestWorkItemService {
     @Test
     public void canChangeWorkItemStatus() {
         Status newStatus = Status.DONE;
-        workItemService.setWorkItemStatus(workItem, newStatus);
+        when(workItemRepository.findOne(workItem.getId())).thenReturn(workItem);
+        workItemService.setStatus(workItem.getId(), newStatus);// TODO workItemId
         verify(workItem).setStatus(newStatus);
         verify(workItemRepository).save(workItem);
     }
@@ -181,7 +189,7 @@ public final class TestWorkItemService {
     public void canCreatePersistedWorkItem() {
         String workItemDescription = "Do something!";
         when(workItemRepository.save(new WorkItem(workItemDescription))).thenReturn(workItem);
-        WorkItem result = workItemService.createWorkItem(workItemDescription);
+        WorkItem result = workItemService.create(workItemDescription);
         verify(workItemRepository).save(new WorkItem(workItemDescription));
         assertEquals(workItem, result);
     }
