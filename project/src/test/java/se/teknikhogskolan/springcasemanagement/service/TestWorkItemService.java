@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.hibernate.boot.registry.classloading.spi.ClassLoaderService.Work;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -50,21 +51,62 @@ public final class TestWorkItemService {
     @InjectMocks
     private WorkItemService workItemService;
 
+    private Long workItemId = 235235L;
+    private Long userNumber = 23553L;
+    private Long userId = 589L;
+
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
     }
     
     @Test
-    public void canSetUserToWorkItem() { //TODO also exception * 2
-        Long userNumber = 23553L;
-        Long userId = 589L;
-        Long workItemId = 12312L;
+    public void canGetById() {
+        when(workItemRepository.findOne(workItemId)).thenReturn(workItem);
+        WorkItem result = workItemService.getById(workItemId);
+        assertEquals(workItem, result);
+    }
+    
+    @Test
+    public void settingInactiveUserToWorkItemShouldThrowException() {
+        exception.expect(ServiceException.class);
+        exception.expectMessage("Cannot set User to WorkItem. User is inactive or have 5 WorkItems");
+        when(userRepository.findByUserNumber(userNumber)).thenReturn(user);
+        when(user.isActive()).thenReturn(false);
+        workItemService.setUser(userNumber, workItemId);
+    }
+    
+    @Test
+    public void settingUserWithFiveWorkItemToSixthWorkItemShouldThrowException() {
+        exception.expect(ServiceException.class);
+        exception.expectMessage("Cannot set User to WorkItem. User is inactive or have 5 WorkItems");
         when(userRepository.findByUserNumber(userNumber)).thenReturn(user);
         when(user.isActive()).thenReturn(true);
         when(user.getId()).thenReturn(userId);
         when(workItemRepository.findOne(workItemId)).thenReturn(workItem);
+        Collection<WorkItem> fiveWorkItems = createListWithWorkItems(5);
+        when(workItemService.getByUserNumber(userNumber)).thenReturn(fiveWorkItems);
         workItemService.setUser(userNumber, workItemId);
+    }
+    
+    private Collection<WorkItem> createListWithWorkItems(int amountOfItems) {
+        Collection<WorkItem> items = new ArrayList<>();
+        for (int i = 0; i < amountOfItems; i++) items.add(new WorkItem("WorkItem #" + i));
+        return items;
+    }
+
+    @Test
+    public void canSetUserToWorkItem() {
+        when(userRepository.findByUserNumber(userNumber)).thenReturn(user);
+        when(user.isActive()).thenReturn(true);
+        when(user.getUserNumber()).thenReturn(userNumber);
+        Collection<WorkItem> workItems = createListWithWorkItems(4);
+        when(user.getId()).thenReturn(userId);
+        when(workItemRepository.findByUserId(userId)).thenReturn(workItems);
+        when(workItemRepository.findOne(workItemId)).thenReturn(workItem);
+        workItemService.setUser(userNumber, workItemId);
+        verify(workItem).setUser(user);
+        verify(workItemRepository).save(workItem);
     }
     
     @Test
@@ -73,8 +115,6 @@ public final class TestWorkItemService {
         workItem.setUser(user);
         Collection<WorkItem> workItemsWithOurUser = new ArrayList<>();
         workItemsWithOurUser.add(workItem);
-        Long userId = 23424L;
-        Long userNumber = 23424L;
         
         when(user.getId()).thenReturn(userId);
         when(user.getUserNumber()).thenReturn(userNumber);
@@ -93,7 +133,6 @@ public final class TestWorkItemService {
     @Test
     public void canRemoveIssue() {
         Long issueId = 32532L;
-        Long workItemId = 646532L;
         when(issue.getId()).thenReturn(issueId);
         when(workItem.getId()).thenReturn(workItemId);
         when(workItem.getIssue()).thenReturn(issue);
@@ -179,7 +218,6 @@ public final class TestWorkItemService {
 
     @Test
     public void canRemoveWorkItem() {
-        Long workItemId = 233690L;
         when(workItemRepository.findOne(workItemId)).thenReturn(workItem);
         workItemService.removeById(workItemId);
         verify(workItemRepository).delete(workItem);

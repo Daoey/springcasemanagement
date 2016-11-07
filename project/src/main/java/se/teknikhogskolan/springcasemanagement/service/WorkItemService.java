@@ -88,11 +88,7 @@ public class WorkItemService {
 
     public Collection<WorkItem> getByUserNumber(Long userNumber) {
         User user = userRepository.findByUserNumber(userNumber);
-        return getByUserId(user.getId());
-    }
-
-    private Collection<WorkItem> getByUserId(Long userId) {
-        return workItemRepository.findByUserId(userId);
+        return workItemRepository.findByUserId(user.getId());
     }
 
     public Collection<WorkItem> getByDescriptionContains(String text) {
@@ -110,15 +106,16 @@ public class WorkItemService {
     }
 
     private boolean userCanHaveOneMoreWorkItem(User user) {
-        if (user.isActive() & userHasRoomForOneMoreWorkItem(user)) {
+        if (user.isActive() && userHasRoomForOneMoreWorkItem(user)) {
             return true;
         }
         return false;
     }
 
     private boolean userHasRoomForOneMoreWorkItem(User user) {
-        Collection<WorkItem> workItemsToThisUser = getByUserId(user.getId());
+        Collection<WorkItem> workItemsToThisUser = workItemRepository.findByUserId(user.getId());
         final int maxAllowedWorkItemsPerUser = 5;
-        return workItemsToThisUser.size() < maxAllowedWorkItemsPerUser;
+        if (workItemsToThisUser.size() < maxAllowedWorkItemsPerUser) return true;
+        return false;
     }
 }
