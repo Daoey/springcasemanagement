@@ -110,10 +110,15 @@ public class WorkItemService {
     }
 
     private boolean userCanHaveOneMoreWorkItem(User user) {
-        final int maxAllowedWorkItemsPerUser = 5;
-        if (user.isActive() & getByUserId(user.getId()).size() < maxAllowedWorkItemsPerUser) {
+        if (user.isActive() & userHasRoomForOneMoreWorkItem(user)) {
             return true;
         }
         return false;
+    }
+
+    private boolean userHasRoomForOneMoreWorkItem(User user) {
+        Collection<WorkItem> workItemsToThisUser = getByUserId(user.getId());
+        final int maxAllowedWorkItemsPerUser = 5;
+        return workItemsToThisUser.size() < maxAllowedWorkItemsPerUser;
     }
 }

@@ -21,7 +21,6 @@ import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
 import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
-import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 import se.teknikhogskolan.springcasemanagement.repository.WorkItemRepository;
 
@@ -29,9 +28,7 @@ public final class TestWorkItemService {
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
-    
-    private final String projectPackage = "se.teknikhogskolan.springcasemanagement";
-    
+        
     @Mock
     private WorkItem workItem;
     
@@ -59,8 +56,20 @@ public final class TestWorkItemService {
     }
     
     @Test
+    public void canSetUserToWorkItem() { //TODO also exception * 2
+        Long userNumber = 23553L;
+        Long userId = 589L;
+        Long workItemId = 12312L;
+        when(userRepository.findByUserNumber(userNumber)).thenReturn(user);
+        when(user.isActive()).thenReturn(true);
+        when(user.getId()).thenReturn(userId);
+        when(workItemRepository.findOne(workItemId)).thenReturn(workItem);
+        workItemService.setUser(userNumber, workItemId);
+    }
+    
+    @Test
     public void canGetWorkItemsByUserId() {
-        WorkItem workItem = new WorkItem("sdfgsdfgdsfg");
+        WorkItem workItem = new WorkItem("Get by User");
         workItem.setUser(user);
         Collection<WorkItem> workItemsWithOurUser = new ArrayList<>();
         workItemsWithOurUser.add(workItem);

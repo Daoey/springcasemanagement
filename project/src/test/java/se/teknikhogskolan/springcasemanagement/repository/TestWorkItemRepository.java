@@ -33,8 +33,11 @@ public final class TestWorkItemRepository {
             context.refresh();
             
             team = context.getBean(TeamRepository.class).save(new Team("Team with WorkItems"));
-            user = context.getBean(UserRepository.class)
-                    .save(new User(23142134L, "Team_working_guy", "Test", "Tester", team));
+            
+            UserRepository userRepository = context.getBean(UserRepository.class);
+            user = userRepository.save(new User(23142134L, "Team_working_guy", "Test", "Tester"));
+            user.setTeam(team);
+            user = userRepository.save(user);
             
             WorkItemRepository workItemRepository = context.getBean(WorkItemRepository.class);
             workItem = workItemRepository.save(new WorkItem("Test getting all WorkItems from one Team").setUser(user));

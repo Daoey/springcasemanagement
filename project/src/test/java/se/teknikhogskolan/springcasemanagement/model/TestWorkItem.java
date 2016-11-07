@@ -19,7 +19,7 @@ public class TestWorkItem {
         workItem1WithValues = new WorkItem("First WorkItem");
         workItem1WithValues.setStatus(Status.STARTED);
         workItem1WithValues.setIssue(new Issue("This is an issue"));
-        workItem1WithValues.setUser(new User(1L, "username", "firstName", "lastName", null));
+        workItem1WithValues.setUser(new User(1L, "username", "firstName", "lastName"));
         workItem2 = new WorkItem("Second WorkItem");
     }
 
