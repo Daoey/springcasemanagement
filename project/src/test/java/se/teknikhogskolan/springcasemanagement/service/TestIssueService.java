@@ -34,7 +34,7 @@ public final class TestIssueService {
     @Test
     public void canGetIssueById() throws ServiceException {
         when(issueRepository.findOne(issueId)).thenReturn(issueInDb);
-        Issue issueFromDb = issueService.getIssueById(issueId);
+        Issue issueFromDb = issueService.getById(issueId);
 
         verify(issueRepository).findOne(issueId);
         assertEquals(issueFromDb, issueInDb);
@@ -43,14 +43,14 @@ public final class TestIssueService {
     @Test(expected = ServiceException.class)
     public void shouldThrowExceptionWhenGettingIssueByIdThatDoNotExist() throws Exception {
         when(issueRepository.findOne(issueId)).thenReturn(null);
-        issueService.getIssueById(issueId);
+        issueService.getById(issueId);
     }
 
     @Test
     public void canGetIssueByDescription() throws ServiceException {
         String desc = "Test";
         when(issueRepository.findByDescription(desc)).thenReturn(issueInDb);
-        Issue issueFromDb = issueService.getIssueByDescription(desc);
+        Issue issueFromDb = issueService.getByDescription(desc);
 
         verify(issueRepository).findByDescription(desc);
         assertEquals(issueFromDb, issueInDb);
@@ -60,7 +60,7 @@ public final class TestIssueService {
     public void shouldThrowExceptionWhenGettingIssueByDescriptionThatDoNotExist() throws Exception {
         String desc = "Test";
         when(issueRepository.findByDescription(desc)).thenReturn(null);
-        issueService.getIssueByDescription(desc);
+        issueService.getByDescription(desc);
     }
 
     @Test
@@ -68,7 +68,7 @@ public final class TestIssueService {
         String newDesc = "New desc";
         when(issueRepository.findOne(issueId)).thenReturn(issueInDb);
         when(issueRepository.save(issueInDb)).thenReturn(issueInDb);
-        Issue issueFromDb = issueService.updateIssueDescription(issueId, newDesc);
+        Issue issueFromDb = issueService.updateDescription(issueId, newDesc);
         verify(issueRepository).save(new Issue(newDesc));
         assertEquals(issueFromDb.getDescription(), newDesc);
     }
@@ -77,13 +77,13 @@ public final class TestIssueService {
     public void canNotUpdateIssueDescriptionIfInactive() throws ServiceException {
         issueInDb.setActive(false);
         when(issueRepository.findOne(issueId)).thenReturn(issueInDb);
-        issueService.updateIssueDescription(issueId, "test");
+        issueService.updateDescription(issueId, "test");
     }
 
     @Test(expected = ServiceException.class)
     public void shouldThrowExceptionWhenUpdatingDescriptionOnNonExistingIssue() throws Exception {
         when(issueRepository.findOne(issueId)).thenReturn(null);
-        issueService.updateIssueDescription(issueId, "test");
+        issueService.updateDescription(issueId, "test");
     }
 
     @Test
@@ -91,7 +91,7 @@ public final class TestIssueService {
         issueInDb.setActive(true);
         when(issueRepository.findOne(issueId)).thenReturn(issueInDb);
         when(issueRepository.save(issueInDb)).thenReturn(issueInDb);
-        Issue issueFromDb = issueService.inactiveIssue(issueId);
+        Issue issueFromDb = issueService.inactivate(issueId);
         verify(issueRepository).save(issueInDb);
         assertFalse(issueFromDb.isActive());
     }
@@ -100,7 +100,7 @@ public final class TestIssueService {
     public void throwsExceptionWhenInactivatingAUserThatDoNotExist() throws Exception {
         issueInDb.setActive(true);
         when(issueRepository.findOne(issueId)).thenReturn(null);
-        issueService.inactiveIssue(issueId);
+        issueService.inactivate(issueId);
     }
 
     @Test
@@ -108,7 +108,7 @@ public final class TestIssueService {
         issueInDb.setActive(false);
         when(issueRepository.findOne(issueId)).thenReturn(issueInDb);
         when(issueRepository.save(issueInDb)).thenReturn(issueInDb);
-        Issue issueFromDb = issueService.activateIssue(issueId);
+        Issue issueFromDb = issueService.activate(issueId);
         verify(issueRepository).save(issueInDb);
         assertTrue(issueFromDb.isActive());
     }
@@ -117,12 +117,12 @@ public final class TestIssueService {
     public void throwsExceptionWhenActivatingAUserThatDoNotExist() throws Exception {
         issueInDb.setActive(false);
         when(issueRepository.findOne(issueId)).thenReturn(null);
-        issueService.activateIssue(issueId);
+        issueService.activate(issueId);
     }
 
     @Test
     public void canGetAllIssuesByPage() throws Exception {
-        issueService.getAllIssuesByPage(0, 6);
+        issueService.getAllByPage(0, 6);
         verify(issueRepository).findAll(new PageRequest(0, 6));
     }
 }

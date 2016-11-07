@@ -1,5 +1,6 @@
 package se.teknikhogskolan.springcasemanagement.service;
 
+import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -14,10 +15,17 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.model.Team;
 import se.teknikhogskolan.springcasemanagement.model.User;
+import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
 import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 
 @RunWith(MockitoJUnitRunner.class)
 public final class TestTeamService {
@@ -34,6 +42,7 @@ public final class TestTeamService {
     @InjectMocks
     private TeamService teamService;
 
+    private final String projectPackage = "se.teknikhogskolan.springcasemanagement";
     private Team teamInDb;
     private Team team;
     private User user;
@@ -53,32 +62,32 @@ public final class TestTeamService {
     public void canGetTeamByName() throws ServiceException {
         String name = teamInDb.getName();
         when(teamRepository.findByName(name)).thenReturn(teamInDb);
-        teamService.getTeamByName(name);
+        teamService.getByName(name);
         verify(teamRepository).findByName(name);
     }
 
     @Test(expected = ServiceException.class)
     public void canNotGetTeamByNameIfTeamDoNotExist() throws ServiceException {
         when(teamRepository.findByName(team.getName())).thenReturn(null);
-        teamService.getTeamByName(team.getName());
+        teamService.getByName(team.getName());
     }
 
     @Test
     public void canGetTeamById() throws ServiceException {
         when(teamRepository.findOne(teamId)).thenReturn(teamInDb);
-        teamService.getTeamById(teamId);
+        teamService.getById(teamId);
         verify(teamRepository).findOne(teamId);
     }
 
     @Test(expected = ServiceException.class)
     public void canNotGetTeamByIdIfTeamDoNotExist() throws ServiceException {
         when(teamRepository.findOne(teamId)).thenReturn(null);
-        teamService.getTeamById(teamId);
+        teamService.getById(teamId);
     }
 
     @Test
-    public void canSaveTeam() throws ServiceException {
-        teamService.saveTeam(team);
+    public void canCreateTeam() throws ServiceException {
+        teamService.create(team.getName());
         verify(teamRepository).save(team);
     }
 
@@ -88,7 +97,7 @@ public final class TestTeamService {
         when(teamRepository.save(teamInDb)).thenReturn(teamInDb);
         teamInDb.setName("Old name");
         String newName = "New name";
-        Team team = teamService.updateTeamName(teamId, newName);
+        Team team = teamService.updateName(teamId, newName);
 
         verify(teamRepository).save(teamInDb);
         assertEquals(team.getName(), newName);
@@ -99,14 +108,14 @@ public final class TestTeamService {
         String newName = "New name";
         when(teamRepository.findOne(teamId)).thenReturn(teamInDb);
         teamInDb.setActive(false);
-        teamService.updateTeamName(teamId, newName);
+        teamService.updateName(teamId, newName);
     }
 
     @Test(expected = ServiceException.class)
     public void canNotUpdateTeamNameIfTeamDoNotExist() throws ServiceException {
         String newName = "New name";
         when(teamRepository.findOne(teamId)).thenReturn(null);
-        teamService.updateTeamName(teamId, newName);
+        teamService.updateName(teamId, newName);
     }
 
     @Test
@@ -114,7 +123,7 @@ public final class TestTeamService {
         teamInDb.setActive(true);
         when(teamRepository.findOne(teamId)).thenReturn(teamInDb);
         when(teamRepository.save(teamInDb)).thenReturn(teamInDb);
-        Team teamFromDb = teamService.inactiveTeam(teamId);
+        Team teamFromDb = teamService.inactive(teamId);
         verify(teamRepository).save(teamInDb);
         assertFalse(teamFromDb.isActive());
 
@@ -124,7 +133,7 @@ public final class TestTeamService {
     public void canNotInactiveTeamIfTeamDoNotExist() throws ServiceException {
         teamInDb.setActive(true);
         when(teamRepository.findOne(teamId)).thenReturn(null);
-        teamService.inactiveTeam(teamId);
+        teamService.inactive(teamId);
     }
 
     @Test
@@ -132,7 +141,7 @@ public final class TestTeamService {
         teamInDb.setActive(false);
         when(teamRepository.findOne(teamId)).thenReturn(teamInDb);
         when(teamRepository.save(teamInDb)).thenReturn(teamInDb);
-        Team teamFromDb = teamService.activateTeam(teamId);
+        Team teamFromDb = teamService.activate(teamId);
         verify(teamRepository).save(teamInDb);
         assertTrue(teamFromDb.isActive());
     }
@@ -141,12 +150,12 @@ public final class TestTeamService {
     public void canNotActiveTeamIfTeamDoNotExist() throws ServiceException {
         teamInDb.setActive(false);
         when(teamRepository.findOne(teamId)).thenReturn(null);
-        teamService.activateTeam(teamId);
+        teamService.activate(teamId);
     }
 
     @Test
     public void canGetAllTeams() throws ServiceException {
-        teamService.getAllTeams();
+        teamService.getAll();
         verify(teamRepository).findAll();
     }
 
@@ -188,19 +197,55 @@ public final class TestTeamService {
         teamService.addUserToTeam(teamId, userId);
     }
 
-    @Test
+   /* @Test
     public void canNotAddUserToTeamIfTeamIsFull() throws ServiceException {
-        //TODO find out how to test this.
-    }
+        thrown.expect(ServiceException.class);
+        thrown.expectMessage("Team with id '" + teamId + "' already contains 10 users");
+        int maxAmountOfUsers = 10;
+        addUserToDb(maxAmountOfUsers);
+        when(teamRepository.findOne(teamId)).thenReturn(team);
+        when(userRepository.findOne(userId)).thenReturn(user);
+        teamService.addUserToTeam(teamId, userId);
+    }*/
 
     @Test
     public void canAddUserToTeam() throws ServiceException {
         when(teamRepository.findOne(teamId)).thenReturn(team);
         when(userRepository.findOne(userId)).thenReturn(user);
-
         teamService.addUserToTeam(teamId, userId);
 
         verify(userRepository).save(user);
-        //TODO test this correctly
+    }
+
+    @Test
+    public void canDeleteUserFromTeam() throws Exception {
+        when(teamRepository.findOne(teamId)).thenReturn(team);
+        when(userRepository.findOne(userId)).thenReturn(user);
+        teamService.removeUserFromTeam(teamId, userId);
+
+        verify(userRepository).save(user);
+        assertNull(user.getTeam());
+    }
+
+
+    private List<User> addUserToDb(int amount) {
+        List<User> usersInDb = new ArrayList<>();
+        executeVoid(UserRepository -> {
+            for (int i = 0; i < amount; i++) {
+                User user = new User(1L + i, "username" + i, "first", "last", team);
+                usersInDb.add(user);
+                userRepository.save(user);
+            }
+        });
+        return usersInDb;
+    }
+
+    private void executeVoid(Consumer<UserRepository> operation) {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.scan(projectPackage);
+            context.refresh();
+            UserRepository userRepository = context.getBean(UserRepository.class);
+            operation.accept(userRepository);
+        }
     }
 }
