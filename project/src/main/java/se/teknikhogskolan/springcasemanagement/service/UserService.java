@@ -17,52 +17,28 @@ import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final TeamRepository teamRepository;
 
     @Autowired
     public UserService(UserRepository userRepository, TeamRepository teamRepository) {
         this.userRepository = userRepository;
-        this.teamRepository = teamRepository;
     }
 
     @Transactional
-    public User saveUser(User user) {
+    public User create(Long userNumber, String username, String firstName, String lastName) {
 
-        if (user.getId() != null) {
-            throw new ServiceException("User has already been saved");
-        }
-        
-        if (user.getTeam().getId() == null) {
-            teamRepository.save(user.getTeam());
-        }
-
-        if (!user.isActive()) {
-            throw new ServiceException("Can not save inactive user");
-        }
-
-        if (!usernameLongEnough(user.getUsername())) {
+        if (!usernameLongEnough(username)) {
             throw new ServiceException("Username too short");
         }
 
-        if (teamIsFull(user.getTeam())) {
-            throw new ServiceException("Team is full");
-        }
-
+        User user = new User(userNumber, username, firstName, lastName);
         return userRepository.save(user);
     }
 
-    // TODO Remove later?
-    public User deleteUser(Long userNumber) {
-        User user = userRepository.findByUserNumber(userNumber);
-        userRepository.delete(user);
-        return user;
+    public User getById(Long userId) {
+        return userRepository.findOne(userId);
     }
 
-    public User getUserById(Long id) {
-        return userRepository.findOne(id);
-    }
-
-    public User getUserByUserNumber(Long userNumber) {
+    public User getByUserNumber(Long userNumber) {
         return userRepository.findByUserNumber(userNumber);
     }
 
@@ -102,36 +78,30 @@ public class UserService {
         }
     }
 
-    public User activateUser(Long userNumber) {
+    public User activate(Long userNumber) {
         User user = userRepository.findByUserNumber(userNumber);
         user.setActive(true);
         return userRepository.save(user);
     }
 
-    public User inacctivateUser(Long userNumber) {
+    public User inactivate(Long userNumber) {
         User user = userRepository.findByUserNumber(userNumber);
         user.getWorkItems().forEach(workItem -> workItem.setStatus(Status.UNSTARTED));
         user.setActive(false);
         return userRepository.save(user);
     }
 
-    public List<User> searchUsers(String firstName, String lastName, String username) {
+    public List<User> getAllByTeamId(Long teamId) {
+        return userRepository.findByTeamId(teamId);
+    }
+
+    public List<User> search(String firstName, String lastName, String username) {
         return userRepository.findByFirstNameContainingAndLastNameContainingAndUsernameContaining(firstName, lastName,
                 username);
     }
-    
+
     private boolean usernameLongEnough(String username) {
-        int maxTeamSize = 10;
-        return username.length() >= maxTeamSize;
+        final int minimumLengthUsername = 10;
+        return username.length() >= minimumLengthUsername;
     }
-    
-    private boolean teamIsFull(Team team) {
-        int maxTeamSize = 10;
-        if (team.getUsers().size() > maxTeamSize) {
-            return true;
-        }
-        return false;
-    }
-
-
 }
