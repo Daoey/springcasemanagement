@@ -1,13 +1,11 @@
 package se.teknikhogskolan.springcasemanagement.service;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.junit.Before;
@@ -20,7 +18,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import se.teknikhogskolan.springcasemanagement.model.Team;
 import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
@@ -39,102 +36,45 @@ public final class TestUserService {
     private TeamRepository teamRepository;
     @Mock
     private User mockedUser;
-    @Mock
-    private Team mockedTeam;
 
     @InjectMocks
     private UserService userService;
 
-    private Team team;
     private User user;
 
     @Before
     public void init() {
-        team = new Team("Team name");
-        user = new User(1L, "Long enough name", "First", "Last", team);
+        user = new User(1L, "Long enough name", "First", "Last");
     }
 
     @Test
     public void saveUserThatFillsRequirements() {
-        userService.saveUser(user);
-        verify(teamRepository, times(1)).save(team);
+        userService.create(user.getUserNumber(), user.getUsername(), user.getFirstName(), user.getLastName());
         verify(userRepository, times(1)).save(user);
     }
 
     @Test
-    public void saveUserWithTeamAlreadySet() {
-        when(mockedUser.getId()).thenReturn(null);
-        when(mockedUser.getUsername()).thenReturn("Long enough username");
-        when(mockedUser.isActive()).thenReturn(true);
-        when(mockedUser.getTeam()).thenReturn(mockedTeam);
-        when(mockedTeam.getId()).thenReturn(1L);
-        userService.saveUser(mockedUser);
-        verify(teamRepository, never()).save(team);
-        verify(userRepository, times(1)).save(mockedUser);
-    }
-
-    @Test
-    public void saveUserWithIdAlreadySet() {
-        when(mockedUser.getId()).thenReturn(1L);
-        thrown.expect(ServiceException.class);
-        thrown.expectMessage("User has already been saved");
-        userService.saveUser(mockedUser);
-    }
-
-    @Test
-    public void saveUserTooShortUserName() {
+    public void saveUserTooShortUsername() {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Username too short");
-        user.setUsername("Too short");
-        userService.saveUser(user);
-    }
-
-    @Test
-    public void saveUserInactiveUser() {
-        thrown.expect(ServiceException.class);
-        thrown.expectMessage("Can not save inactive user");
-        user.setActive(false);
-        userService.saveUser(user);
-    }
-
-    @Test
-    public void saveUserTeamIsFull() {
-
-        // Creating a collection of users exceeding space limit
-        Collection<User> users = new ArrayList<User>();
-        int teamMaxSize = 10;
-        for (int i = 0; i < teamMaxSize + 1; i++) {
-            users.add(user);
-        }
-
-        when(mockedUser.getId()).thenReturn(null);
-        when(mockedUser.getUsername()).thenReturn("Long enough username");
-        when(mockedUser.isActive()).thenReturn(true);
-        when(mockedUser.getTeam()).thenReturn(mockedTeam);
-        when(mockedTeam.getId()).thenReturn(1L);
-        when(mockedTeam.getUsers()).thenReturn(users);
-
-        thrown.expect(ServiceException.class);
-        thrown.expectMessage("Team is full");
-
-        userService.saveUser(mockedUser);
+        userService.create(user.getUserNumber(), "Too short", user.getFirstName(), user.getLastName());
     }
 
     @Test
     public void getUserByIdCallsCorrectMethod() {
-        userService.getUserById(1L);
+        userService.getById(1L);
         verify(userRepository, times(1)).findOne(1L);
     }
 
     @Test
     public void getUserByUserNumberCallsCorrectMethod() {
-        userService.getUserByUserNumber(1L);
+        userService.getByUserNumber(1L);
         verify(userRepository, times(1)).findByUserNumber(1L);
     }
 
     @Test
     public void updateFirstNameCallsCorrectMethodWithNewFirstName() {
-        when(userService.getUserByUserNumber(1L)).thenReturn(user);
+        when(userService.getByUserNumber(1L)).thenReturn(user);
         String newFirstName = "New first name";
         userService.updateFirstName(1L, newFirstName);
         ArgumentCaptor<User> capturedUser = ArgumentCaptor.forClass(User.class);
@@ -145,7 +85,7 @@ public final class TestUserService {
     @Test
     public void updateFirstNameInactiveUserThrowsException() {
         user.setActive(false);
-        when(userService.getUserByUserNumber(1L)).thenReturn(user);
+        when(userService.getByUserNumber(1L)).thenReturn(user);
         thrown.expect(ServiceException.class);
         thrown.expectMessage("User is inactive");
         userService.updateFirstName(1L, "Some name");
@@ -153,7 +93,7 @@ public final class TestUserService {
 
     @Test
     public void updateLastNameCallsCorrectMethodWithNewLastName() {
-        when(userService.getUserByUserNumber(1L)).thenReturn(user);
+        when(userService.getByUserNumber(1L)).thenReturn(user);
         String newLastName = "New last name";
         userService.updateLastName(1L, newLastName);
         ArgumentCaptor<User> capturedUser = ArgumentCaptor.forClass(User.class);
@@ -201,7 +141,7 @@ public final class TestUserService {
     public void activateUserCallsCorrectMethod() {
         user.setActive(false);
         when(userRepository.findByUserNumber(1L)).thenReturn(user);
-        userService.activateUser(1L);
+        userService.activate(1L);
         ArgumentCaptor<User> capturedUser = ArgumentCaptor.forClass(User.class);
         verify(userRepository, times(1)).save(capturedUser.capture());
         assertEquals(true, capturedUser.getValue().isActive());
@@ -219,7 +159,7 @@ public final class TestUserService {
 
         when(userRepository.findByUserNumber(1L)).thenReturn(mockedUser);
         when(mockedUser.getWorkItems()).thenReturn(workItems);
-        userService.inacctivateUser(1L);
+        userService.inactivate(1L);
         ArgumentCaptor<User> capturedUser = ArgumentCaptor.forClass(User.class);
         verify(userRepository, times(1)).save(capturedUser.capture());
 
@@ -230,9 +170,16 @@ public final class TestUserService {
     }
 
     @Test
+    public void getAllByTeamIdCallsCorrectMethod() {
+        userService.getAllByTeamId(1L);
+        verify(userRepository, times(1)).findByTeamId(1L);
+        
+    }
+
+    @Test
     public void searchUsersCallsCorrectMethod() {
         String name = "some name";
-        userService.searchUsers(name, name, name);
+        userService.search(name, name, name);
         verify(userRepository, times(1)).findByFirstNameContainingAndLastNameContainingAndUsernameContaining(name, name,
                 name);
     }

@@ -9,13 +9,14 @@ import org.junit.After;
 import org.junit.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+import se.teknikhogskolan.springcasemanagement.model.Team;
 import se.teknikhogskolan.springcasemanagement.model.User;
 
 public final class TestUserRepository {
 
     private static final String PROJECT_PACKAGE = "se.teknikhogskolan.springcasemanagement";
 
-    private User user = new User(1000L, "Long enough name", "First", "Last", null);
+    private User user = new User(1000L, "Long enough name", "First", "Last");
 
     @After
     public void cleanTest() {
@@ -57,12 +58,12 @@ public final class TestUserRepository {
         for (long i = 0; i < numberOfUsersToAdd; i++) {
             Long index = i;
             executeVoid(userRepository -> userRepository.save(new User(user.getUserNumber() + index,
-                    user.getUsername() + index, user.getFirstName(), user.getLastName(), null)));
+                    user.getUsername() + index, user.getFirstName(), user.getLastName())));
         }
 
         // Adding a similar user that should not be found
         executeVoid(
-                userRepository -> userRepository.save(new User(100L, "username wrong", "firstNam", "llastname", null)));
+                userRepository -> userRepository.save(new User(100L, "username wrong", "firstNam", "llastname")));
 
         String firstName = user.getFirstName();
         String lastName = user.getLastName().substring(0, 2);
@@ -73,6 +74,45 @@ public final class TestUserRepository {
 
         long numberOfUsersFound = users.spliterator().getExactSizeIfKnown();
         assertEquals(numberOfUsersToAdd, numberOfUsersFound);
+    }
+
+    @Test
+    public void canGetAllByTeamId() {
+        
+        Team team;
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.scan(PROJECT_PACKAGE);
+            context.refresh();
+            TeamRepository teamRepository = context.getBean(TeamRepository.class);
+            team = teamRepository.save(new Team("New team"));
+        }
+
+        User tempUser1 = new User(2L, "long unique username1", "first", "last");
+        User tempUser2 = new User(3L, "long unique username2", "first", "last");
+        User tempUser3 = new User(4L, "long unique username3", "first", "last");
+        
+        tempUser1.setTeam(team);
+        tempUser2.setTeam(team);
+        tempUser3.setTeam(team);
+        
+        executeVoid(userRepository -> userRepository.save(tempUser1));
+        executeVoid(userRepository -> userRepository.save(tempUser2));
+        executeVoid(userRepository -> userRepository.save(tempUser3));
+        
+        Iterable<User> users = executeMultiple(
+                userRepository -> userRepository.findByTeamId(team.getId()));
+        long numberOfUsersFound = users.spliterator().getExactSizeIfKnown();
+        assertEquals(3, numberOfUsersFound);
+        
+        //Need to remove all users pointing to team before removing the team
+        removeAllUsers();
+        
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.scan(PROJECT_PACKAGE);
+            context.refresh();
+            TeamRepository teamRepository = context.getBean(TeamRepository.class);
+            teamRepository.delete(team.getId());
+        }
     }
 
     @Test
