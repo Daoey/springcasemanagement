@@ -32,12 +32,12 @@ public class User extends AbstractEntity {
     protected User() {
     }
 
-    public User(Long userNumber, String username, String firstName, String lastName, Team team) {
+    public User(Long userNumber, String username, String firstName, String lastName) {
         this.userNumber = userNumber;
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.team = team;
+        this.team = null;
         this.active = true;
     }
 
