@@ -43,7 +43,6 @@ public final class TestTeamService {
     @InjectMocks
     private TeamService teamService;
 
-    private final String projectPackage = "se.teknikhogskolan.springcasemanagement";
     private Team teamInDb;
     private Team team;
     private User user;
@@ -203,48 +202,15 @@ public final class TestTeamService {
         when(teamRepository.findOne(teamId)).thenReturn(team);
         when(userRepository.findOne(userId)).thenReturn(user);
         teamService.addUserToTeam(teamId, userId);
-
         verify(userRepository).save(user);
     }
 
     @Test
-    public void canDeleteUserFromTeam() throws Exception {
+    public void canDeleteUserFromTeam() throws ServiceException {
         when(teamRepository.findOne(teamId)).thenReturn(team);
         when(userRepository.findOne(userId)).thenReturn(user);
         teamService.removeUserFromTeam(teamId, userId);
-
         verify(userRepository).save(user);
         assertNull(user.getTeam());
-    }
-
-
-    private List<User> addUserToDb(int amount) {
-        List<User> usersInDb = new ArrayList<>();
-        executeVoid(UserRepository -> {
-            for (int i = 0; i < amount; i++) {
-                User user = new User(1L + i, "username" + i, "first", "last").setTeam(team);
-                usersInDb.add(user);
-                userRepository.save(user);
-            }
-        });
-        return usersInDb;
-    }
-
-    private void executeVoid(Consumer<UserRepository> operation) {
-        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
-            context.scan(projectPackage);
-            context.refresh();
-            UserRepository userRepository = context.getBean(UserRepository.class);
-            operation.accept(userRepository);
-        }
-    }
-
-    private Team execute(Function<TeamRepository, Team> operation) {
-        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
-            context.scan(projectPackage);
-            context.refresh();
-            TeamRepository teamRepository = context.getBean(TeamRepository.class);
-            return operation.apply(teamRepository);
-        }
     }
 }
