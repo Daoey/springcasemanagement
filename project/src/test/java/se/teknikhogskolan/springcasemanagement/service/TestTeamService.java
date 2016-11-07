@@ -26,6 +26,7 @@ import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 @RunWith(MockitoJUnitRunner.class)
 public final class TestTeamService {
@@ -42,7 +43,6 @@ public final class TestTeamService {
     @InjectMocks
     private TeamService teamService;
 
-    private final String projectPackage = "se.teknikhogskolan.springcasemanagement";
     private Team teamInDb;
     private Team team;
     private User user;
@@ -53,7 +53,7 @@ public final class TestTeamService {
     public void setUp() {
         this.teamInDb = new Team("Team in db");
         this.team = new Team("Team");
-        this.user = new User(4L, "test", "test", "test", team);
+        this.user = new User(4L, "test", "test", "test").setTeam(team);
         this.teamId = 5L;
         this.userId = 1L;
     }
@@ -197,55 +197,20 @@ public final class TestTeamService {
         teamService.addUserToTeam(teamId, userId);
     }
 
-   /* @Test
-    public void canNotAddUserToTeamIfTeamIsFull() throws ServiceException {
-        thrown.expect(ServiceException.class);
-        thrown.expectMessage("Team with id '" + teamId + "' already contains 10 users");
-        int maxAmountOfUsers = 10;
-        addUserToDb(maxAmountOfUsers);
-        when(teamRepository.findOne(teamId)).thenReturn(team);
-        when(userRepository.findOne(userId)).thenReturn(user);
-        teamService.addUserToTeam(teamId, userId);
-    }*/
-
     @Test
     public void canAddUserToTeam() throws ServiceException {
         when(teamRepository.findOne(teamId)).thenReturn(team);
         when(userRepository.findOne(userId)).thenReturn(user);
         teamService.addUserToTeam(teamId, userId);
-
         verify(userRepository).save(user);
     }
 
     @Test
-    public void canDeleteUserFromTeam() throws Exception {
+    public void canDeleteUserFromTeam() throws ServiceException {
         when(teamRepository.findOne(teamId)).thenReturn(team);
         when(userRepository.findOne(userId)).thenReturn(user);
         teamService.removeUserFromTeam(teamId, userId);
-
         verify(userRepository).save(user);
         assertNull(user.getTeam());
-    }
-
-
-    private List<User> addUserToDb(int amount) {
-        List<User> usersInDb = new ArrayList<>();
-        executeVoid(UserRepository -> {
-            for (int i = 0; i < amount; i++) {
-                User user = new User(1L + i, "username" + i, "first", "last", team);
-                usersInDb.add(user);
-                userRepository.save(user);
-            }
-        });
-        return usersInDb;
-    }
-
-    private void executeVoid(Consumer<UserRepository> operation) {
-        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
-            context.scan(projectPackage);
-            context.refresh();
-            UserRepository userRepository = context.getBean(UserRepository.class);
-            operation.accept(userRepository);
-        }
     }
 }

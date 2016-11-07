@@ -2,12 +2,9 @@ package se.teknikhogskolan.springcasemanagement.service;
 
 import java.util.List;
 
-import javax.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import se.teknikhogskolan.springcasemanagement.model.Team;
 import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
 import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
@@ -23,7 +20,6 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    @Transactional
     public User create(Long userNumber, String username, String firstName, String lastName) {
 
         if (!usernameLongEnough(username)) {
