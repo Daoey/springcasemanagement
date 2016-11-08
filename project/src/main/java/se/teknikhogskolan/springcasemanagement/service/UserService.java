@@ -1,9 +1,9 @@
 package se.teknikhogskolan.springcasemanagement.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import se.teknikhogskolan.springcasemanagement.model.User;
@@ -22,131 +22,143 @@ public class UserService {
     }
 
     public User create(Long userNumber, String username, String firstName, String lastName) {
-
         if (!usernameLongEnough(username)) {
             throw new ServiceException("Username too short");
         }
         User user = new User(userNumber, username, firstName, lastName);
         try {
             return userRepository.save(user);
-        } catch (DataAccessException e) {
-            throw new ServiceException("Could not create user: " + user, e);
+        } catch (Exception e) {
+            throw new ServiceException("Failed to create user: " + user, e);
         }
     }
 
     public User getById(Long userId) {
         try {
             return userRepository.findOne(userId);
-        } catch (DataAccessException e) {
-            throw new NoSearchResultException("Could not find user with id: " + userId, e);
+        } catch (Exception e) {
+            throw new ServiceException("Failed to get user with id: " + userId, e);
         }
     }
 
     public User getByUserNumber(Long userNumber) {
         try {
             return userRepository.findByUserNumber(userNumber);
-        } catch (DataAccessException e) {
-            throw new NoSearchResultException("Could not find user with user number: " + userNumber, e);
+        } catch (Exception e) {
+            throw new ServiceException("Failed to get user with user number: " + userNumber, e);
         }
     }
 
     public User updateFirstName(Long userNumber, String firstName) {
-        User user;
         try {
-            user = userRepository.findByUserNumber(userNumber);
-        } catch (DataAccessException e) {
-            throw new NoSearchResultException("Could not find user with user number: " + userNumber, e);
-        }
-        if (user.isActive()) {
-            user.setFirstName(firstName);
-            try {
+            User user = userRepository.findByUserNumber(userNumber);
+            if (user.isActive()) {
+                user.setFirstName(firstName);
                 return userRepository.save(user);
-            } catch (DataAccessException e) {
-                throw new ServiceException("Could not update first name of user: " + user, e);
+            } else {
+                throw new ServiceException("User is inactive");
             }
-        } else {
-            throw new ServiceException("User is inactive");
+        } catch (ServiceException e) {
+            throw e;
+        } catch (NullPointerException e) {
+            throw new NoSearchResultException("No user with user number: " + userNumber + " found", e);
+        } catch (Exception e) {
+            throw new ServiceException("Failed to update firstName on user with user number: " + userNumber, e);
         }
     }
 
     public User updateLastName(Long userNumber, String lastName) {
-        User user;
         try {
-            user = userRepository.findByUserNumber(userNumber);
-        } catch (DataAccessException e) {
-            throw new NoSearchResultException("Could not find user with user number: " + userNumber, e);
-        }
-        if (user.isActive()) {
-            user.setLastName(lastName);
-            try {
+            User user = userRepository.findByUserNumber(userNumber);
+            if (user.isActive()) {
+                user.setLastName(lastName);
                 return userRepository.save(user);
-            } catch (DataAccessException e) {
-                throw new ServiceException("Could not update last name of user: " + user, e);
+            } else {
+                throw new ServiceException("User is inactive");
             }
-        } else {
-            throw new ServiceException("User is inactive");
+        } catch (ServiceException e) {
+            throw e;
+        } catch (NullPointerException e) {
+            throw new NoSearchResultException("No user with user number: " + userNumber + " found", e);
+        } catch (Exception e) {
+            throw new ServiceException("Failed to update lastName on user with user number: " + userNumber, e);
         }
     }
 
     public User updateUsername(Long userNumber, String username) {
-        User user;
         try {
-            user = userRepository.findByUserNumber(userNumber);
-        } catch (DataAccessException e) {
-            throw new NoSearchResultException("Could not find user with user number: " + userNumber, e);
-        }
-        if (user.isActive()) {
-            if (usernameLongEnough(username)) {
-                user.setUsername(username);
-                try {
+            User user = userRepository.findByUserNumber(userNumber);
+            if (user.isActive()) {
+                if (usernameLongEnough(username)) {
+                    user.setUsername(username);
                     return userRepository.save(user);
-                } catch (DataAccessException e) {
-                    throw new ServiceException("Could not update username of user: " + user, e);
+                } else {
+                    throw new ServiceException("Username too short");
                 }
             } else {
-                throw new ServiceException("Username too short");
+                throw new ServiceException("User is inactive");
             }
-        } else {
-            throw new ServiceException("User is inactive");
+        }  catch (ServiceException e) {
+            throw e;
+        } catch (NullPointerException e) {
+            throw new NoSearchResultException("No user with user number: " + userNumber + " found", e);
+        } catch (Exception e) {
+            throw new ServiceException("Failed to update username on user with user number: " + userNumber, e);
         }
     }
 
     public User activate(Long userNumber) {
-        User user;
         try {
-            user = userRepository.findByUserNumber(userNumber);
-        } catch (DataAccessException e) {
-            throw new NoSearchResultException("Could not find user with user number: " + userNumber, e);
+            User user = userRepository.findByUserNumber(userNumber);
+            user.setActive(true);
+            return userRepository.save(user);
+        } catch (NullPointerException e) {
+            throw new NoSearchResultException("No user with user number: " + userNumber + " found", e);
+        } catch (Exception e) {
+            throw new ServiceException("Failed to activate user with user number: " + userNumber, e);
         }
-        user.setActive(true);
-        // Should never throw exception since only activity is changed
-        return userRepository.save(user);
     }
 
     public User inactivate(Long userNumber) {
-        User user;
         try {
-            user = userRepository.findByUserNumber(userNumber);
-        } catch (DataAccessException e) {
-            throw new NoSearchResultException("Could not find user with user number: " + userNumber, e);
+            User user = userRepository.findByUserNumber(userNumber);
+            if (user.getWorkItems() != null) {
+                user.getWorkItems().forEach(workItem -> workItem.setStatus(Status.UNSTARTED));
+            }
+            user.setActive(false);
+            return userRepository.save(user);
+        } catch (NullPointerException e) {
+            throw new NoSearchResultException("No user with user number: " + userNumber + " found", e);
+        } catch (Exception e) {
+            throw new ServiceException("Failed to inactivate user with user number: " + userNumber, e);
         }
-        user.getWorkItems().forEach(workItem -> workItem.setStatus(Status.UNSTARTED));
-        user.setActive(false);
-        // Should never throw exception since only activity and status are
-        // changed
-        return userRepository.save(user);
     }
 
     public List<User> getAllByTeamId(Long teamId) {
-        // Returns empty list if no users found with teamId
-        return userRepository.findByTeamId(teamId);
+        try {
+            List<User> users = userRepository.findByTeamId(teamId);
+            if (users == null) {
+                return new ArrayList<User>();
+            } else {
+                return users;
+            }
+        } catch (Exception e) {
+            throw new ServiceException("Failed to get all users with team id: " + teamId, e);
+        }
     }
 
     public List<User> search(String firstName, String lastName, String username) {
-        // Returns empty list if no users found matching search criteria
-        return userRepository.findByFirstNameContainingAndLastNameContainingAndUsernameContaining(firstName, lastName,
-                username);
-
+        try {
+            List<User> users = userRepository
+                    .findByFirstNameContainingAndLastNameContainingAndUsernameContaining(firstName, lastName, username);
+            if (users == null) {
+                return new ArrayList<User>();
+            }
+            return users;
+        } catch (Exception e) {
+            throw new ServiceException("Failed to get users matching search criteria: firstName = " + firstName
+                    + ", lastName = " + lastName + " and username = " + username, e);
+        }
     }
 
     private boolean usernameLongEnough(String username) {
