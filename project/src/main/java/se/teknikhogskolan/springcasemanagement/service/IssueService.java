@@ -56,7 +56,8 @@ public class IssueService {
                         + "description on Issue with issueId '" + issueId + "' since it's inactivate.");
             }
         } catch (NullPointerException e) {
-            throw new NoSearchResultException("Failed to update issue with id '" + issueId + "' since it could not be found in the database", e);
+            throw new NoSearchResultException("Failed to update issue with id '"
+                    + issueId + "' since it could not be found in the database", e);
         } catch (Exception e) {
             throw new ServiceException("Could not update description on issue with id: " + issueId, e);
         }
@@ -90,9 +91,9 @@ public class IssueService {
 
     public Slice<Issue> getAllByPage(int page, int pageSize) {
         Slice<Issue> slice;
-        try{
-            slice =  issueRepository.findAll(new PageRequest(page, pageSize));
-        }catch (Exception e){
+        try {
+            slice = issueRepository.findAll(new PageRequest(page, pageSize));
+        } catch (Exception e) {
             throw new ServiceException("Could not get issues by page", e);
         }
 
