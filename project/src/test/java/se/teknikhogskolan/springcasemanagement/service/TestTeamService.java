@@ -24,6 +24,7 @@ import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -155,6 +156,7 @@ public final class TestTeamService {
 
     @Test
     public void canGetAllTeams() throws ServiceException {
+        when(teamRepository.findAll()).thenReturn(new ArrayList<>());
         teamService.getAll();
         verify(teamRepository).findAll();
     }

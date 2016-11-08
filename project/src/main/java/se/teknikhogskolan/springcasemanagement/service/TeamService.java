@@ -108,13 +108,12 @@ public class TeamService {
         Iterable<Team> teams;
         try {
             teams = teamRepository.findAll();
-            if (teams.spliterator().getExactSizeIfKnown() > 0) {
-                return teams;
-            } else
+            if (teams == null)
                 throw new NoSearchResultException("No teams were found in the database");
+            return teams;
         } catch (NoSearchResultException e) {
             throw e;
-        } catch (ServiceException e) {
+        } catch (Exception e) {
             throw new ServiceException("Could not get all teams", e);
         }
     }
