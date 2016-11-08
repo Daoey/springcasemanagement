@@ -44,11 +44,16 @@ public final class TestUserService {
     private UserService userService;
 
     private User user;
+    private List<User> users;
     private final DataAccessException dataAccessException = new RecoverableDataAccessException("Exception");
 
     @Before
     public void init() {
         user = new User(1L, "Long enough name", "First", "Last");
+        users = new ArrayList<User>();
+        for (int i = 0; i < 5; i++) {
+            users.add(user);
+        }
     }
 
     @Test
@@ -65,7 +70,7 @@ public final class TestUserService {
     }
 
     @Test
-    public void createUserDataAccessExceptionThrown() {
+    public void createUserThrowsDataAccessException() {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Failed to create user: " + user);
         doThrow(dataAccessException).when(userRepository).save(user);
@@ -73,20 +78,38 @@ public final class TestUserService {
     }
 
     @Test
-    public void getUserByIdCallsCorrectMethod() {
-        userService.getById(1L);
-        verify(userRepository, times(1)).findOne(1L);
+    public void getUserByIdReturnsCorrectUser() {
+        when(userRepository.findOne(1L)).thenReturn(user);
+        User userFromDatabase = userService.getById(1L);
+        assertEquals(user, userFromDatabase);
     }
 
     @Test
-    public void getUserByUserNumberCallsCorrectMethod() {
+    public void getUserByIdThrowsDataAccessException() {
+        thrown.expect(ServiceException.class);
+        thrown.expectMessage("Failed to get user with id: 1");
+        doThrow(dataAccessException).when(userRepository).findOne(1L);
+        userService.getById(1L);
+    }
+
+    @Test
+    public void getUserByUserNumberReturnsCorrectUser() {
+        when(userRepository.findByUserNumber(1L)).thenReturn(user);
+        User userFromDatabase = userService.getByUserNumber(1L);
+        assertEquals(user, userFromDatabase);
+    }
+
+    @Test
+    public void getUserByNumberThrowsDataAccessException() {
+        thrown.expect(ServiceException.class);
+        thrown.expectMessage("Failed to get user with user number: 1");
+        doThrow(dataAccessException).when(userRepository).findByUserNumber(1L);
         userService.getByUserNumber(1L);
-        verify(userRepository, times(1)).findByUserNumber(1L);
     }
 
     @Test
     public void updateFirstNameCallsCorrectMethodWithNewFirstName() {
-        when(userService.getByUserNumber(1L)).thenReturn(user);
+        when(userRepository.findByUserNumber(1L)).thenReturn(user);
         String newFirstName = "New first name";
         userService.updateFirstName(1L, newFirstName);
         ArgumentCaptor<User> capturedUser = ArgumentCaptor.forClass(User.class);
@@ -97,7 +120,7 @@ public final class TestUserService {
     @Test
     public void updateFirstNameInactiveUserThrowsException() {
         user.setActive(false);
-        when(userService.getByUserNumber(1L)).thenReturn(user);
+        when(userRepository.findByUserNumber(1L)).thenReturn(user);
         thrown.expect(ServiceException.class);
         thrown.expectMessage("User is inactive");
         userService.updateFirstName(1L, "Some name");
@@ -105,7 +128,7 @@ public final class TestUserService {
 
     @Test
     public void updateLastNameCallsCorrectMethodWithNewLastName() {
-        when(userService.getByUserNumber(1L)).thenReturn(user);
+        when(userRepository.findByUserNumber(1L)).thenReturn(user);
         String newLastName = "New last name";
         userService.updateLastName(1L, newLastName);
         ArgumentCaptor<User> capturedUser = ArgumentCaptor.forClass(User.class);
@@ -183,16 +206,20 @@ public final class TestUserService {
 
     @Test
     public void getAllByTeamIdCallsCorrectMethod() {
-        userService.getAllByTeamId(1L);
+        when(userRepository.findByTeamId(1L)).thenReturn(users);
+        List<User> usersFromDatabase = userService.getAllByTeamId(1L);
         verify(userRepository, times(1)).findByTeamId(1L);
-
+        assertEquals(users, usersFromDatabase);
     }
 
     @Test
     public void searchUsersCallsCorrectMethod() {
         String name = "some name";
-        userService.search(name, name, name);
+        when(userRepository.findByFirstNameContainingAndLastNameContainingAndUsernameContaining(name, name, name))
+                .thenReturn(users);
+        List<User> usersFromDatabase = userService.search(name, name, name);
         verify(userRepository, times(1)).findByFirstNameContainingAndLastNameContainingAndUsernameContaining(name, name,
                 name);
+        assertEquals(users, usersFromDatabase);
     }
 }
