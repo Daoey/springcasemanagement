@@ -11,4 +11,8 @@ public class NoSearchResultException extends ServiceException {
     protected NoSearchResultException(String message) {
         super(message);
     }
+
+    protected NoSearchResultException() {
+        super();
+    }
 }
