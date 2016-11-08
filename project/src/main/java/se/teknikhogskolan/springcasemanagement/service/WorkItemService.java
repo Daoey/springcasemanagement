@@ -7,7 +7,6 @@ import java.util.Collection;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import se.teknikhogskolan.springcasemanagement.model.Issue;
@@ -127,7 +126,9 @@ public class WorkItemService {
                 throw new NoSearchResultException(exceptionMessage);
             }
             return workItem;
-        } catch (DataAccessException e) {
+        } catch (NoSearchResultException e) {
+            throw e;
+        } catch (Exception e) {
             throw new ServiceException(exceptionMessage, e);
         }
     }
@@ -139,7 +140,7 @@ public class WorkItemService {
             return workItemRepository.save(workItem);
         } catch (NullPointerException e) {
             throw new NoSearchResultException(String.format("Cannot set %s on %s", status, workItemId), e);
-        } catch (DataAccessException e) {
+        } catch (Exception e) {
             throw new ServiceException(String.format("Cannot set %s on %s", status, workItemId), e);
         }
     }
@@ -151,7 +152,9 @@ public class WorkItemService {
                 throw new NoSearchResultException(String.format("Cannot find WorkItem with id %d", workItemId));
             }
             return workItem;
-        } catch (DataAccessException e) {
+        } catch (NoSearchResultException e) {
+            throw e;
+        } catch (Exception e) {
             throw new ServiceException(String.format("Cannot get WorkItem with id %d", workItemId), e);
         }
     }
@@ -164,7 +167,9 @@ public class WorkItemService {
             }
             workItemRepository.delete(workItem);
             return workItem;
-        } catch (DataAccessException e) {
+        } catch (NoSearchResultException e) {
+            throw e;
+        } catch (Exception e) {
             throw new ServiceException(String.format("Cannot remove WorkItem with id %d", workItemId), e);
         }
     }
