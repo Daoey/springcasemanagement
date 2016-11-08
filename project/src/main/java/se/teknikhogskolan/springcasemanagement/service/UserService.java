@@ -50,7 +50,7 @@ public class UserService {
         try {
             User user = userRepository.findByUserNumber(userNumber);
             if (user == null) {
-                throw new NoSearchResultException("No user with userNumber: " + userNumber + " found");
+                throw new NoSearchResultException("No user with user number: " + userNumber + " found");
             } else {
                 return user;
             }
@@ -150,7 +150,7 @@ public class UserService {
         try {
             List<User> users = userRepository.findByTeamId(teamId);
             if (users == null || users.size() == 0) {
-                throw new NoSearchResultException("No users with teamId: " + teamId + " found");
+                throw new NoSearchResultException("No users with team id: " + teamId + " found");
             } else {
                 return users;
             }
@@ -167,7 +167,7 @@ public class UserService {
                     .findByFirstNameContainingAndLastNameContainingAndUsernameContaining(firstName, lastName, username);
             if (users == null || users.size() == 0) {
                 throw new NoSearchResultException("No users fulfilling criteria: " + "firstName = " + firstName
-                        + ", lastName = " + lastName + " and username = " + username);
+                        + ", lastName = " + lastName + ", username = " + username);
             } else {
                 return users;
             }
@@ -175,7 +175,7 @@ public class UserService {
             throw e;
         } catch (Exception e) {
             throw new ServiceException("Failed to get users with criteria: firstName = " + firstName + ", lastName = "
-                    + lastName + " and username = " + username, e);
+                    + lastName + ", username = " + username, e);
         }
     }
 
