@@ -1,6 +1,7 @@
 package se.teknikhogskolan.springcasemanagement.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -17,6 +18,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.RecoverableDataAccessException;
 
 import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
@@ -41,6 +44,7 @@ public final class TestUserService {
     private UserService userService;
 
     private User user;
+    private final DataAccessException dataAccessException = new RecoverableDataAccessException("Exception");
 
     @Before
     public void init() {
@@ -48,16 +52,24 @@ public final class TestUserService {
     }
 
     @Test
-    public void saveUserThatFillsRequirements() {
+    public void createUserThatFillsRequirements() {
         userService.create(user.getUserNumber(), user.getUsername(), user.getFirstName(), user.getLastName());
         verify(userRepository, times(1)).save(user);
     }
 
     @Test
-    public void saveUserTooShortUsername() {
+    public void createUserTooShortUsername() {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Username too short");
         userService.create(user.getUserNumber(), "Too short", user.getFirstName(), user.getLastName());
+    }
+
+    @Test
+    public void createUserDataAccessExceptionThrown() {
+        thrown.expect(ServiceException.class);
+        thrown.expectMessage("Failed to create user: " + user);
+        doThrow(dataAccessException).when(userRepository).save(user);
+        userService.create(user.getUserNumber(), user.getUsername(), user.getFirstName(), user.getLastName());
     }
 
     @Test
@@ -173,7 +185,7 @@ public final class TestUserService {
     public void getAllByTeamIdCallsCorrectMethod() {
         userService.getAllByTeamId(1L);
         verify(userRepository, times(1)).findByTeamId(1L);
-        
+
     }
 
     @Test
