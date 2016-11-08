@@ -50,8 +50,8 @@ public class TeamService {
     }
 
     public Team create(String teamName) {
+        Team team = new Team(teamName);
         try {
-            Team team = new Team(teamName);
             return teamRepository.save(team);
         } catch (DuplicateKeyException e) {
             throw new ServiceException("Team wit name '" + teamName + "' already exist", e);
@@ -69,6 +69,8 @@ public class TeamService {
             } else
                 throw new ServiceException("Could not update "
                         + "name on team with id '" + teamId + "' since it's inactive.");
+        } catch (ServiceException e) {
+            throw e;
         } catch (NullPointerException e) {
             throw new ServiceException("Team with id '" + teamId + "' do not exist.");
         } catch (Exception e) {
@@ -131,6 +133,8 @@ public class TeamService {
                     throw new ServiceException("Team with id '" + teamId + "' already contains 10 users");
                 }
             }
+        } catch (ServiceException e) {
+            throw e;
         } catch (Exception e) {
             throw new ServiceException("Could not add user with id '" + userId
                     + "' to team with id '" + teamId, e);
@@ -153,6 +157,8 @@ public class TeamService {
                 userRepository.save(user);
                 return teamRepository.findOne(teamId);
             }
+        } catch (ServiceException e) {
+            throw e;
         } catch (Exception e) {
             throw new ServiceException("Could not remove user with id '" + userId
                     + "' from team with id '" + teamId, e);

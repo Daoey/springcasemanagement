@@ -55,6 +55,8 @@ public class IssueService {
                 throw new ServiceException("Could not update "
                         + "description on Issue with issueId '" + issueId + "' since it's inactivate.");
             }
+        } catch (ServiceException e) {
+            throw e;
         } catch (NullPointerException e) {
             throw new NoSearchResultException("Failed to update issue with id '"
                     + issueId + "' since it could not be found in the database", e);
