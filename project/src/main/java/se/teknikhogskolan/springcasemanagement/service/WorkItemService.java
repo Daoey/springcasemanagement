@@ -220,7 +220,7 @@ public class WorkItemService {
         try {
             return workItemRepository.findOne(workItemId);
         } catch (Exception e) {
-            throw new ServiceException(String.format("Cannot find WorkItem %d", workItemId));
+            throw new ServiceException(String.format("Cannot find WorkItem '%d'", workItemId));
         }
     }
 
@@ -232,7 +232,7 @@ public class WorkItemService {
             throw new ServiceException(String.format("Cannot get User by userNumber '%d'", userNumber), e);
         }
         if (null == user) {
-            throw new NoSearchResultException(String.format("Cannot find User %d", userNumber));
+            throw new NoSearchResultException(String.format("Cannot find User '%d'", userNumber));
         }
         return user;
     }
