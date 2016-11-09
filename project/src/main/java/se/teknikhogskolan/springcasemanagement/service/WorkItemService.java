@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -35,8 +37,9 @@ public class WorkItemService {
         this.issueRepository = issueRepository;
     }
     
-    public Slice<WorkItem> getAll(Pageable pageable){
-    	return workItemRepository.findAll(pageable);
+    public Page<WorkItem> getAllByPage(int page, int pageSize){
+    	Page result = workItemRepository.findAll(new PageRequest(page, pageSize));
+    	return result;
     }
 
     public WorkItem removeIssueFromWorkItem(Long workItemId) {

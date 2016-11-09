@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.Query;
@@ -13,8 +14,8 @@ import org.springframework.data.repository.query.Param;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
 
 public interface WorkItemRepository extends CrudRepository<WorkItem, Long> {
-	
-	Slice<WorkItem> findAll(Pageable pageable);
+		
+	Page<WorkItem> findAll(Pageable pageable);
 
     Collection<WorkItem> findByStatus(WorkItem.Status status);
 

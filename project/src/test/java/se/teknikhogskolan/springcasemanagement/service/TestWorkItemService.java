@@ -90,8 +90,7 @@ public final class TestWorkItemService {
         	
         	for (int i = 0; i < 10; ++i) workItemService.create(String.format("description #%d", i));
         	
-        	Pageable pageable = new PageRequest(3, 2);
-        	Slice<WorkItem> result = workItemService.getAll(pageable);
+        	Slice<WorkItem> result = workItemService.getAllByPage(1, 2);
         	assertNotNull(result);
         	assertEquals(2, result.getSize());
         	
