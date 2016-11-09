@@ -1,6 +1,6 @@
 package se.teknikhogskolan.springcasemanagement.model;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
@@ -21,20 +21,20 @@ public abstract class AbstractEntity {
     private Long id;
 
     @CreatedDate
-    private Date created;
+    private LocalDate created;
 
     @LastModifiedDate
-    private Date lastModified;
+    private LocalDate lastModified;
 
     public Long getId() {
         return id;
     }
 
-    public Date getCreatedDate() {
+    public LocalDate getCreated() {
         return created;
     }
 
-    public Date getLastModifiedDate() {
+    public LocalDate getLastModified() {
         return lastModified;
     }
 

@@ -1,13 +1,21 @@
 package se.teknikhogskolan.springcasemanagement.model;
 
+import java.time.LocalDate;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
+
+
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+
+
 
 @Entity
 public class WorkItem extends AbstractEntity {
@@ -15,7 +23,10 @@ public class WorkItem extends AbstractEntity {
     @Column(nullable = false, unique = true)
     private String description;
 
+    @Enumerated(EnumType.STRING)
     private Status status = Status.UNSTARTED;
+
+    private LocalDate doneDate;
 
     @OneToOne(cascade = CascadeType.ALL)
     private Issue issue;
@@ -52,6 +63,15 @@ public class WorkItem extends AbstractEntity {
         return this;
     }
 
+    public LocalDate getDoneDate() {
+        return doneDate;
+    }
+
+    public WorkItem setDoneDate(LocalDate doneDate) {
+        this.doneDate = doneDate;
+        return this;
+    }
+
     public Issue getIssue() {
         return issue;
     }
@@ -69,7 +89,7 @@ public class WorkItem extends AbstractEntity {
         this.user = user;
         return this;
     }
-    
+
     public boolean isDone() {
         if (Status.DONE.ordinal() == this.status.ordinal()) return true;
         return false;

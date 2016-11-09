@@ -1,5 +1,6 @@
 package se.teknikhogskolan.springcasemanagement.repository;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 
@@ -21,4 +22,7 @@ public interface WorkItemRepository extends CrudRepository<WorkItem, Long> {
     
     @Query("Select w from WorkItem w left join User u on w.user.id = u.id WHERE u.team.id = :teamId")
     List<WorkItem> findByTeamId(@Param("teamId") Long teamId);
+
+    @Query("SELECT w FROM WorkItem w WHERE w.doneDate BETWEEN :startDate AND :endDate AND w.status = 'DONE'")
+    List<WorkItem> findByDateCompleted(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 }

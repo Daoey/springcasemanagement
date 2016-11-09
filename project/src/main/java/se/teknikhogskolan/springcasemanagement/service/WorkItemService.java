@@ -3,7 +3,9 @@ package se.teknikhogskolan.springcasemanagement.service;
 import static se.teknikhogskolan.springcasemanagement.model.WorkItem.Status.DONE;
 import static se.teknikhogskolan.springcasemanagement.model.WorkItem.Status.UNSTARTED;
 
+import java.time.LocalDate;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +27,7 @@ public class WorkItemService {
 
     @Autowired
     public WorkItemService(WorkItemRepository workItemRepository, UserRepository userRepository,
-            IssueRepository issueRepository) {
+                           IssueRepository issueRepository) {
         this.workItemRepository = workItemRepository;
         this.userRepository = userRepository;
         this.issueRepository = issueRepository;
@@ -110,7 +112,7 @@ public class WorkItemService {
     }
 
     private Collection<WorkItem> executeMany(Function<WorkItemRepository, Collection<WorkItem>> operation,
-            String exceptionMessage) {
+                                             String exceptionMessage) {
         Collection<WorkItem> result;
         try {
             result = operation.apply(workItemRepository);
@@ -138,6 +140,8 @@ public class WorkItemService {
         try {
             WorkItem workItem = workItemRepository.findOne(workItemId);
             workItem.setStatus(status);
+            if (status.equals(DONE))
+                workItem.setDoneDate(LocalDate.now());
             return workItemRepository.save(workItem);
         } catch (NullPointerException e) {
             throw new NoSearchResultException(

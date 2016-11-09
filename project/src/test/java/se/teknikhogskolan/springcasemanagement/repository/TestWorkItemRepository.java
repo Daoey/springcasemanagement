@@ -1,10 +1,6 @@
 package se.teknikhogskolan.springcasemanagement.repository;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -18,6 +14,8 @@ import se.teknikhogskolan.springcasemanagement.model.Team;
 import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
+
+import static org.junit.Assert.*;
 
 public final class TestWorkItemRepository {
     private static final String PROJECT_PACKAGE = "se.teknikhogskolan.springcasemanagement";
@@ -117,6 +115,30 @@ public final class TestWorkItemRepository {
 
         assertFalse(result.isEmpty());
         result.forEach(item -> assertEquals(statusDone, item.getStatus()));
+    }
+
+    @Test
+    public void canGetWorkItemsBetweenDates() throws Exception {
+        WorkItem workItemDone = new WorkItem("Perfect Date1").setStatus(Status.DONE).setDoneDate(LocalDate.now());
+        executeVoid(workItemRepository -> workItemRepository.save(workItemDone));
+        WorkItem workItemUnStarted = new WorkItem("Perfect Date2").setStatus(Status.UNSTARTED).setDoneDate(LocalDate.now());
+        executeVoid(workItemRepository -> workItemRepository.save(workItemUnStarted));
+        WorkItem workItemStarted = new WorkItem("Perfect Date3").setStatus(Status.STARTED);
+        executeVoid(workItemRepository -> workItemRepository.save(workItemStarted));
+
+        LocalDate startDate = LocalDate.now().minusDays(1);
+        LocalDate toDate = LocalDate.now().plusDays(1);
+        Collection<WorkItem> workItemList = executeMany(workItemRepository -> workItemRepository.findByDateCompleted(startDate, toDate));
+
+        assertTrue(workItemList.contains(workItemDone));
+        assertFalse(workItemList.contains(workItemUnStarted));
+        assertFalse(workItemList.contains(workItemStarted));
+
+        executeVoid(workItemRepository -> {
+            workItemRepository.delete(workItemDone);
+            workItemRepository.delete(workItemUnStarted);
+            workItemRepository.delete(workItemStarted);
+        });
     }
 
     private void executeVoid(Consumer<WorkItemRepository> operation) {
