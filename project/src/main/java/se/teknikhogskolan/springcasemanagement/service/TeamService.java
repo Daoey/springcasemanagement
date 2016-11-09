@@ -72,7 +72,7 @@ public class TeamService {
         } catch (ServiceException e) {
             throw e;
         } catch (NullPointerException e) {
-            throw new ServiceException("Team with id '" + teamId + "' do not exist.");
+            throw new NoSearchResultException("Team with id '" + teamId + "' do not exist.");
         } catch (Exception e) {
             throw new ServiceException("Could not update name on team with id: " + teamId, e);
         }
@@ -100,7 +100,7 @@ public class TeamService {
             throw new NoSearchResultException("Failed to activate team with id '"
                     + teamId + "' since it could not be found in the database", e);
         } catch (Exception e) {
-            throw new ServiceException("Could not active team with id: " + teamId, e);
+            throw new ServiceException("Could not activate team with id: " + teamId, e);
         }
     }
 
@@ -109,7 +109,7 @@ public class TeamService {
         try {
             teams = teamRepository.findAll();
             if (teams == null)
-                throw new NoSearchResultException("No teams were found in the database");
+                 throw new NoSearchResultException("No teams were found in the database");
             return teams;
         } catch (NoSearchResultException e) {
             throw e;
