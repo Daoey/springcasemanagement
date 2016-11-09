@@ -24,7 +24,7 @@ import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
 
 @RunWith(MockitoJUnitRunner.class)
 public final class TestIssueService {
-    
+
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
@@ -45,7 +45,7 @@ public final class TestIssueService {
     }
 
     @Test
-    public void canGetIssueById() throws ServiceException {
+    public void canGetIssueById() {
         when(issueRepository.findOne(issueId)).thenReturn(issueInDb);
         Issue issueFromDb = issueService.getById(issueId);
         verify(issueRepository).findOne(issueId);
@@ -53,7 +53,7 @@ public final class TestIssueService {
     }
 
     @Test
-    public void shouldThrowNoSearchResultExceptionWhenGettingIssueByIdThatDoNotExist() throws Exception {
+    public void shouldThrowNoSearchResultExceptionWhenGettingIssueByIdThatDoNotExist() {
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage("Issue with issueId '" + issueId + "' do not exist");
         when(issueRepository.findOne(issueId)).thenReturn(null);
@@ -61,7 +61,7 @@ public final class TestIssueService {
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfErrorOccursWhenGettingIssueById() throws Exception {
+    public void shouldThrowServiceExceptionIfErrorOccursWhenGettingIssueById() {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Could not get issue with id: " + issueId);
         doThrow(dataAccessException).when(issueRepository).findOne(issueId);
@@ -69,7 +69,7 @@ public final class TestIssueService {
     }
 
     @Test
-    public void canGetIssueByDescription() throws ServiceException {
+    public void canGetIssueByDescription() {
         String desc = "Test";
         when(issueRepository.findByDescription(desc)).thenReturn(issueInDb);
         Issue issueFromDb = issueService.getByDescription(desc);
@@ -79,7 +79,7 @@ public final class TestIssueService {
     }
 
     @Test
-    public void shouldThrowNoSearchResultExceptionWhenGettingIssueByDescriptionThatDoNotExist() throws Exception {
+    public void shouldThrowNoSearchResultExceptionWhenGettingIssueByDescriptionThatDoNotExist() {
         String desc = "Test";
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage("Issue with description '" + desc + "' do not exist");
@@ -88,7 +88,7 @@ public final class TestIssueService {
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfErrorOccursWhenGettingIssueByDescription() throws Exception {
+    public void shouldThrowServiceExceptionIfErrorOccursWhenGettingIssueByDescription() {
         String desc = "Test";
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Could not get issue with description: " + desc);
@@ -97,7 +97,7 @@ public final class TestIssueService {
     }
 
     @Test
-    public void canUpdateIssueDescription() throws ServiceException {
+    public void canUpdateIssueDescription() {
         String newDesc = "New desc";
         when(issueRepository.findOne(issueId)).thenReturn(issueInDb);
         when(issueRepository.save(issueInDb)).thenReturn(issueInDb);
@@ -107,7 +107,7 @@ public final class TestIssueService {
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfIssueIsInactiveWhenUpdatingIssueDescription() throws ServiceException {
+    public void shouldThrowServiceExceptionIfIssueIsInactiveWhenUpdatingIssueDescription() {
         issueInDb.setActive(false);
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Could not update "
@@ -117,7 +117,7 @@ public final class TestIssueService {
     }
 
     @Test
-    public void shouldThrowNoSearchResultExceptionWhenUpdatingDescriptionOnANonExistingIssue() throws Exception {
+    public void shouldThrowNoSearchResultExceptionWhenUpdatingDescriptionOnANonExistingIssue() {
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage("Failed to update issue with id '"
                 + issueId + "' since it could not be found in the database");
@@ -126,7 +126,7 @@ public final class TestIssueService {
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfErrorOccursWhenUpdatingIssueDescription() throws Exception {
+    public void shouldThrowServiceExceptionIfErrorOccursWhenUpdatingIssueDescription() {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Could not update description on issue with id: " + issueId);
         doThrow(dataAccessException).when(issueRepository).findOne(issueId);
@@ -134,7 +134,7 @@ public final class TestIssueService {
     }
 
     @Test
-    public void canInactiveIssue() throws ServiceException {
+    public void canInactiveIssue() {
         issueInDb.setActive(true);
         when(issueRepository.findOne(issueId)).thenReturn(issueInDb);
         when(issueRepository.save(issueInDb)).thenReturn(issueInDb);
@@ -144,7 +144,7 @@ public final class TestIssueService {
     }
 
     @Test
-    public void shouldThrowNoSearchResultExceptionWhenInactivatingAnIssueThatDoNotExist() throws Exception {
+    public void shouldThrowNoSearchResultExceptionWhenInactivatingAnIssueThatDoNotExist() {
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage("Failed to inactive issue with id '"
                 + issueId + "' since it could not be found in the database");
@@ -154,7 +154,7 @@ public final class TestIssueService {
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfErrorOccursWhenInactivatingAnIssue() throws Exception {
+    public void shouldThrowServiceExceptionIfErrorOccursWhenInactivatingAnIssue() {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Could not inactive issue with id: " + issueId);
         issueInDb.setActive(true);
@@ -163,7 +163,7 @@ public final class TestIssueService {
     }
 
     @Test
-    public void canActiveIssue() throws ServiceException {
+    public void canActiveIssue() {
         issueInDb.setActive(false);
         when(issueRepository.findOne(issueId)).thenReturn(issueInDb);
         when(issueRepository.save(issueInDb)).thenReturn(issueInDb);
@@ -173,7 +173,7 @@ public final class TestIssueService {
     }
 
     @Test
-    public void shouldThrowNoSearchResultExceptionWhenActivatingAnIssueThatDoNotExist() throws Exception {
+    public void shouldThrowNoSearchResultExceptionWhenActivatingAnIssueThatDoNotExist() {
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage("Failed to activate issue with id '"
                 + issueId + "' since it could not be found in the database");
@@ -183,7 +183,7 @@ public final class TestIssueService {
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfErrorOccursWhenActivatingAnIssue() throws Exception {
+    public void shouldThrowServiceExceptionIfErrorOccursWhenActivatingAnIssue() {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Could not active issue with id: " + issueId);
         issueInDb.setActive(false);
@@ -192,13 +192,13 @@ public final class TestIssueService {
     }
 
     @Test
-    public void shouldThrowExceptionIfPageIsEmpty() throws Exception {
+    public void shouldThrowExceptionIfPageIsEmpty() {
         thrown.expect(NoSearchResultException.class);
         issueService.getAllByPage(0, 6);
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfErrorOccurredWhenGettingPage() throws Exception {
+    public void shouldThrowServiceExceptionIfErrorOccurredWhenGettingPage() {
         doThrow(dataAccessException).when(issueRepository).findAll(new PageRequest(0, 6));
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Could not get issues by page");

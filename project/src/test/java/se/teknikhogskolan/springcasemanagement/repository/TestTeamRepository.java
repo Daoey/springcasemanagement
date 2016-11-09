@@ -28,13 +28,13 @@ public final class TestTeamRepository {
     }
 
     @Test
-    public void canSaveTeam() throws ServiceException {
+    public void canSaveTeam() {
         executeVoid(teamRepository -> teamRepository.save(team));
         deleteTeam(team);
     }
 
     @Test
-    public void canGetTeamById() throws ServiceException {
+    public void canGetTeamById() {
         Team teamFromDb = execute(teamRepository -> {
             team = teamRepository.save(team);
             return teamRepository.findOne(team.getId());
@@ -45,7 +45,7 @@ public final class TestTeamRepository {
     }
 
     @Test
-    public void canGetTeamByName() throws Exception {
+    public void canGetTeamByName() {
         String name = "New name";
         Team teamFromDb = execute(teamRepository -> {
             team.setName(name);
@@ -58,7 +58,7 @@ public final class TestTeamRepository {
     }
 
     @Test
-    public void canGetAllTeams() throws Exception {
+    public void canGetAllTeams() {
         executeVoid(teamRepository -> {
             for (int i = 0; i < 5; i++) {
                 teamsInDb.add(teamRepository.save(new Team("test" + i)));

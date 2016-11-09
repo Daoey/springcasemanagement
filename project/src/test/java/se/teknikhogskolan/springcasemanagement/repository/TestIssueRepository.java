@@ -14,7 +14,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 
 import se.teknikhogskolan.springcasemanagement.model.Issue;
-import se.teknikhogskolan.springcasemanagement.service.ServiceException;
 
 public final class TestIssueRepository {
 
@@ -27,13 +26,13 @@ public final class TestIssueRepository {
     }
 
     @Test
-    public void canSaveIssue() throws ServiceException {
+    public void canSaveIssue() {
         executeVoid(issueRepository -> issueRepository.save(issue));
         deleteOneIssue(issue);
     }
 
     @Test
-    public void canGetIssueById() throws ServiceException {
+    public void canGetIssueById() {
         Issue issueFromDb = execute(issueRepository -> {
             issue = issueRepository.save(issue);
             return issueRepository.findOne(issue.getId());
@@ -43,7 +42,7 @@ public final class TestIssueRepository {
     }
 
     @Test
-    public void canGetIssueByDescription() throws ServiceException {
+    public void canGetIssueByDescription() {
         String desc = "Description";
         issue.setDescription(desc);
         Issue issueFromDb = execute(issueRepository -> {
@@ -56,7 +55,7 @@ public final class TestIssueRepository {
     }
 
     @Test
-    public void canGetIssueByPage() throws Exception {
+    public void canGetIssueByPage() {
         List<Issue> issuesInDb = addIssuesToDb(10);
         try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
             context.scan(projectPackage);
