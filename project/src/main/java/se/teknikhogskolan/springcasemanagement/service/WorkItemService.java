@@ -93,9 +93,9 @@ public class WorkItemService {
     public Collection<WorkItem> getByTeamId(Long teamId) {
         return executeMany(workItemRepository -> {
             return workItemRepository.findByTeamId(teamId);
-        }, String.format("Could not get WorkItems by Team id: &s", teamId));
+        }, String.format("Cannot not get WorkItems by Team id '%s'", teamId));
     }
-
+    
     private Collection<WorkItem> executeMany(Function<WorkItemRepository, Collection<WorkItem>> operation,
             String exceptionMessage) {
         Collection<WorkItem> result;
@@ -113,23 +113,10 @@ public class WorkItemService {
     }
 
     public WorkItem create(String description) {
-        return executeOne(workItemRepository -> {
-            return workItemRepository.save(new WorkItem(description));
-        }, String.format("Cannot create WorkItem with description: %s", description));
-    }
-
-    private WorkItem executeOne(Function<WorkItemRepository, WorkItem> operation,
-            String exceptionMessage) {
         try {
-            WorkItem workItem = operation.apply(workItemRepository);
-            if (null == workItem) {
-                throw new NoSearchResultException(exceptionMessage);
-            }
-            return workItem;
-        } catch (NoSearchResultException e) {
-            throw e;
+            return saveWorkItem(new WorkItem(description));
         } catch (Exception e) {
-            throw new ServiceException(exceptionMessage, e);
+            throw new ServiceException(String.format("Cannot create WorkItem with description: %s", description), e);
         }
     }
 
@@ -177,7 +164,7 @@ public class WorkItemService {
     public Collection<WorkItem> getByStatus(WorkItem.Status status) {
         return executeMany(workItemRepository -> {
             return workItemRepository.findByStatus(status);
-        }, String.format("Cannot get WorkItems by Status %s", status));
+        }, String.format("Cannot get WorkItems by Status '%s'", status));
     }
 
     public Collection<WorkItem> getByUserNumber(Long userNumber) {
@@ -193,7 +180,7 @@ public class WorkItemService {
     public Collection<WorkItem> getByDescriptionContains(String text) {
         return  executeMany(workItemRepository -> {
             return workItemRepository.findByDescriptionContains(text);
-        }, String.format("Cannot get WorkItems by description contains %d", text));
+        }, String.format("Cannot get WorkItems by description contains '%s'", text));
     }
 
     public WorkItem setUser(Long userNumber, Long workItemId) {
@@ -201,21 +188,25 @@ public class WorkItemService {
         if (userCanHaveOneMoreWorkItem(user)) {
             WorkItem workItem = getWorkItemById(workItemId);
             workItem.setUser(user);
-            return save(workItem);
+            return saveWorkItem(workItem);
         } else
             throw new ServiceException("Cannot set User to WorkItem. User is inactive or have 5 WorkItems");
     }
     
-    private WorkItem save(WorkItem workItem) {
-        return executeOne(workItemRepository -> {
+    private WorkItem saveWorkItem(WorkItem workItem) {
+        try {
             return workItemRepository.save(workItem);
-        }, String.format("Cannot save WorkItem %d", workItem.getId()));
+        } catch (Exception e) {
+            throw new ServiceException(String.format("Cannot save WorkItem %s", workItem), e);
+        }
     }
 
     private WorkItem getWorkItemById(Long workItemId) {
-        return executeOne(workItemRepository -> {
+        try {
             return workItemRepository.findOne(workItemId);
-        }, String.format("Cannot find WorkItem %d", workItemId));
+        } catch (Exception e) {
+            throw new ServiceException(String.format("Cannot find WorkItem %d", workItemId));
+        }
     }
 
     private User getUserByUsernumber(Long userNumber) {

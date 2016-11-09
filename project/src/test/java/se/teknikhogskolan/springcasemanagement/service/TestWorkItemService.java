@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService.Work;
 import org.junit.Before;
@@ -51,13 +52,16 @@ public final class TestWorkItemService {
     @InjectMocks
     private WorkItemService workItemService;
 
-    private Long workItemId = 235235L;
-    private Long userNumber = 23553L;
-    private Long userId = 589L;
+    private final Long workItemId = 235235L;
+    private final Long userNumber = 23553L;
+    private final Long userId = 589L;
+    private final Long teamId = 23353265L;
+    private Collection<WorkItem> workItems = new ArrayList<>();
 
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
+        workItems.clear();
     }
     
     @Test
@@ -84,8 +88,8 @@ public final class TestWorkItemService {
         when(user.isActive()).thenReturn(true);
         when(user.getId()).thenReturn(userId);
         when(workItemRepository.findOne(workItemId)).thenReturn(workItem);
-        Collection<WorkItem> fiveWorkItems = createListWithWorkItems(5);
-        when(workItemService.getByUserNumber(userNumber)).thenReturn(fiveWorkItems);
+        workItems = createListWithWorkItems(5);
+        when(workItemRepository.findByUserId(userId)).thenReturn(workItems);
         workItemService.setUser(userNumber, workItemId);
     }
     
@@ -100,7 +104,8 @@ public final class TestWorkItemService {
         when(userRepository.findByUserNumber(userNumber)).thenReturn(user);
         when(user.isActive()).thenReturn(true);
         when(user.getUserNumber()).thenReturn(userNumber);
-        Collection<WorkItem> workItems = createListWithWorkItems(4);
+        when(workItem.getId()).thenReturn(workItemId);
+        workItems = createListWithWorkItems(4);
         when(user.getId()).thenReturn(userId);
         when(workItemRepository.findByUserId(userId)).thenReturn(workItems);
         when(workItemRepository.findOne(workItemId)).thenReturn(workItem);
@@ -156,7 +161,7 @@ public final class TestWorkItemService {
         when(workItemRepository.findByIssueIsNotNull()).thenReturn(workItemsWithIssue);
         when(workItem.getIssue()).thenReturn(issue);
         
-        Collection<WorkItem> workItems = workItemService.getAllWithIssue();
+        workItems = workItemService.getAllWithIssue();
         
         verify(workItemRepository).findByIssueIsNotNull();
         workItems.forEach(item -> {
@@ -197,7 +202,16 @@ public final class TestWorkItemService {
 
     @Test
     public void canFindByTeamId() {
-        Long teamId = 23353265L;
+        workItems.add(workItem);
+        when(workItemRepository.findByTeamId(teamId)).thenReturn((List<WorkItem>) workItems);
+        workItemService.getByTeamId(teamId);
+        verify(workItemRepository).findByTeamId(teamId);
+    }
+
+    @Test
+    public void canFindByTeamIdReturnsWithoutResultShouldThrowException() {
+        exception.expect(ServiceException.class);
+        exception.expectMessage(String.format("Cannot not get WorkItems by Team id '%s'", teamId));
         workItemService.getByTeamId(teamId);
         verify(workItemRepository).findByTeamId(teamId);
     }
@@ -205,6 +219,29 @@ public final class TestWorkItemService {
     @Test
     public void canFindByDescriptionContains() {
         String searchText = "important";
+        workItems = new ArrayList<>();
+        workItems.add(workItem);
+        when(workItemRepository.findByDescriptionContains(searchText)).thenReturn(workItems);
+        workItemService.getByDescriptionContains(searchText);
+        verify(workItemRepository).findByDescriptionContains(searchText);
+    }
+    
+    @Test
+    public void canFindByDescriptionContainsWithNoMatchShouldThrowException() {
+        String searchText = "important";
+        exception.expect(ServiceException.class);
+        exception.expectMessage("Cannot get WorkItems by description contains '" + searchText + "'");
+        when(workItemRepository.findByDescriptionContains(searchText)).thenReturn(workItems);
+        workItemService.getByDescriptionContains(searchText);
+        verify(workItemRepository).findByDescriptionContains(searchText);
+    }
+    
+    @Test
+    public void canFindByDescriptionContainsReturnsNullShouldThrowException() {
+        String searchText = "important";
+        exception.expect(ServiceException.class);
+        exception.expectMessage("Cannot get WorkItems by description contains '" + searchText + "'");
+        when(workItemRepository.findByDescriptionContains(searchText)).thenReturn(null);
         workItemService.getByDescriptionContains(searchText);
         verify(workItemRepository).findByDescriptionContains(searchText);
     }
@@ -212,6 +249,17 @@ public final class TestWorkItemService {
     @Test
     public void canFindByStatus() {
         Status wantedStatus = Status.STARTED;
+        workItems.add(workItem);
+        when(workItemRepository.findByStatus(wantedStatus)).thenReturn(workItems);
+        workItemService.getByStatus(wantedStatus);
+        verify(workItemRepository).findByStatus(wantedStatus);
+    }
+
+    @Test
+    public void canFindByStatusShouldThrowExceptionIfNoWorkItemFound() {
+        Status wantedStatus = Status.STARTED;
+        exception.expect(ServiceException.class);
+        exception.expectMessage(String.format("Cannot get WorkItems by Status '%s'", wantedStatus));
         workItemService.getByStatus(wantedStatus);
         verify(workItemRepository).findByStatus(wantedStatus);
     }
