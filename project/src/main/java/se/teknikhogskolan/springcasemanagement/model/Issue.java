@@ -62,7 +62,6 @@ public class Issue extends AbstractEntity {
     @Override
     public int hashCode() {
         int result = 17;
-        result += 31 * getId();
         result += 31 * description.hashCode();
         return result;
     }

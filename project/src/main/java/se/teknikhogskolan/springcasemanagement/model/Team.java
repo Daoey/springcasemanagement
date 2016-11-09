@@ -52,7 +52,6 @@ public class Team extends AbstractEntity {
     @Override
     public int hashCode() {
         int result = 17;
-        result += 31 * getId().hashCode();
         result += 31 * name.hashCode();
         return result;
     }

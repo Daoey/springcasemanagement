@@ -8,6 +8,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -16,23 +18,14 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.RecoverableDataAccessException;
-import org.springframework.stereotype.Service;
-import se.teknikhogskolan.springcasemanagement.model.Issue;
+
 import se.teknikhogskolan.springcasemanagement.model.Team;
 import se.teknikhogskolan.springcasemanagement.model.User;
-import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
 import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 @RunWith(MockitoJUnitRunner.class)
 public final class TestTeamService {
@@ -67,14 +60,14 @@ public final class TestTeamService {
     }
 
     @Test
-    public void canGetTeamById() throws ServiceException {
+    public void canGetTeamById() {
         when(teamRepository.findOne(teamId)).thenReturn(teamInDb);
         teamService.getById(teamId);
         verify(teamRepository).findOne(teamId);
     }
 
     @Test
-    public void shouldThrowNoSearchResultExceptionWhenGettingTeamByIdThatDoNotExist() throws NoSearchResultException {
+    public void shouldThrowNoSearchResultExceptionWhenGettingTeamByIdThatDoNotExist() {
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage("Team with id '" + teamId + "' do not exist");
         when(teamRepository.findOne(teamId)).thenReturn(null);
@@ -82,7 +75,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfErrorOccursGettingTeamById() throws ServiceException {
+    public void shouldThrowServiceExceptionIfErrorOccursGettingTeamById() {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Could not get team with id: " + teamId);
         doThrow(dataAccessException).when(teamRepository).findOne(teamId);
@@ -90,7 +83,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void canGetTeamByName() throws ServiceException {
+    public void canGetTeamByName() {
         String name = teamInDb.getName();
         when(teamRepository.findByName(name)).thenReturn(teamInDb);
         teamService.getByName(name);
@@ -98,7 +91,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void shouldThrowNoSearchResultExceptionWhenGettingTeamByNameThatDoNotExist() throws NoSearchResultException {
+    public void shouldThrowNoSearchResultExceptionWhenGettingTeamByNameThatDoNotExist() {
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage("Team with name '" + team.getName() + "' do not exist");
         when(teamRepository.findByName(team.getName())).thenReturn(null);
@@ -106,7 +99,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfErrorOccursGettingTeamByName() throws ServiceException {
+    public void shouldThrowServiceExceptionIfErrorOccursGettingTeamByName() {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Could not get team with name: " + team.getName());
         doThrow(dataAccessException).when(teamRepository).findByName(team.getName());
@@ -114,13 +107,13 @@ public final class TestTeamService {
     }
 
     @Test
-    public void canCreateTeam() throws ServiceException {
+    public void canCreateTeam() {
         teamService.create(team.getName());
         verify(teamRepository).save(team);
     }
 
     @Test
-    public void shouldThrowServiceExceptionWhenCreatingTeamWithAnAlreadyExistingName() throws Exception {
+    public void shouldThrowServiceExceptionWhenCreatingTeamWithAnAlreadyExistingName() {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Team wit name '" + team.getName() + "' already exist");
         doThrow(DuplicateKeyException.class).when(teamRepository).save(team);
@@ -128,7 +121,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfErrorOccursWhenCreatingTeam() throws Exception {
+    public void shouldThrowServiceExceptionIfErrorOccursWhenCreatingTeam() {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Could not create team with name: " + team.getName());
         doThrow(dataAccessException).when(teamRepository).save(team);
@@ -136,7 +129,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void canUpdateTeamName() throws ServiceException {
+    public void canUpdateTeamName() {
         when(teamRepository.findOne(teamId)).thenReturn(teamInDb);
         when(teamRepository.save(teamInDb)).thenReturn(teamInDb);
         teamInDb.setName("Old name");
@@ -148,7 +141,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfTeamIsInactiveWhenUpdatingName() throws ServiceException {
+    public void shouldThrowServiceExceptionIfTeamIsInactiveWhenUpdatingName() {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Could not update "
                 + "name on team with id '" + teamId + "' since it's inactive.");
@@ -159,7 +152,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void shouldThrowNoSearchResultExceptionWhenUpdatingNameOnANonExistingTeam() throws Exception {
+    public void shouldThrowNoSearchResultExceptionWhenUpdatingNameOnANonExistingTeam() {
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage("Team with id '" + teamId + "' do not exist.");
         String newName = "New name";
@@ -169,7 +162,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfErrorOccursWhenUpdatingTeamName() throws Exception {
+    public void shouldThrowServiceExceptionIfErrorOccursWhenUpdatingTeamName() {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Could not update name on team with id: " + teamId);
         String newName = "New name";
@@ -179,7 +172,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void canInactivateTeam() throws ServiceException {
+    public void canInactivateTeam() {
         teamInDb.setActive(true);
         when(teamRepository.findOne(teamId)).thenReturn(teamInDb);
         when(teamRepository.save(teamInDb)).thenReturn(teamInDb);
@@ -190,7 +183,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void shouldThrowNoSearchResultExceptionWhenTryingToInactivateANonExistingTeam() throws ServiceException {
+    public void shouldThrowNoSearchResultExceptionWhenTryingToInactivateANonExistingTeam() {
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage("Failed to inactive team with id '"
                 + teamId + "' since it could not be found in the database");
@@ -200,7 +193,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfAnErrorOccursWhenInactivatingATeam() throws ServiceException {
+    public void shouldThrowServiceExceptionIfAnErrorOccursWhenInactivatingATeam() {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Could not inactive team with id: " + teamId);
         teamInDb.setActive(true);
@@ -209,7 +202,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void canActivateTeam() throws ServiceException {
+    public void canActivateTeam() {
         teamInDb.setActive(false);
         when(teamRepository.findOne(teamId)).thenReturn(teamInDb);
         when(teamRepository.save(teamInDb)).thenReturn(teamInDb);
@@ -219,7 +212,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void shouldThrowNoSearchResultExceptionWhenTryingToActivateANonExistingTeam() throws ServiceException {
+    public void shouldThrowNoSearchResultExceptionWhenTryingToActivateANonExistingTeam() {
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage("Failed to activate team with id '"
                 + teamId + "' since it could not be found in the database");
@@ -229,7 +222,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfAnErrorOccursWhenActivatingATeam() throws ServiceException {
+    public void shouldThrowServiceExceptionIfAnErrorOccursWhenActivatingATeam() {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Could not activate team with id: " + teamId);
         teamInDb.setActive(false);
@@ -238,14 +231,14 @@ public final class TestTeamService {
     }
 
     @Test
-    public void canGetAllTeams() throws ServiceException {
+    public void canGetAllTeams() {
         when(teamRepository.findAll()).thenReturn(new ArrayList<>());
         teamService.getAll();
         verify(teamRepository).findAll();
     }
 
     @Test
-    public void shouldThrowNoSearchResultExceptionWhenThereAreNoTeams() throws ServiceException {
+    public void shouldThrowNoSearchResultExceptionWhenThereAreNoTeams() {
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage("No teams were found in the database");
         when(teamRepository.findAll()).thenReturn(null);
@@ -253,7 +246,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfAnErrorOccursWhenGettingAllTeams() throws ServiceException {
+    public void shouldThrowServiceExceptionIfAnErrorOccursWhenGettingAllTeams() {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Could not get all teams");
         doThrow(dataAccessException).when(teamRepository).findAll();
@@ -262,7 +255,7 @@ public final class TestTeamService {
 
 
     @Test
-    public void canAddUserToTeam() throws ServiceException {
+    public void canAddUserToTeam() {
         when(teamRepository.findOne(teamId)).thenReturn(team);
         when(userRepository.findOne(userId)).thenReturn(user);
         teamService.addUserToTeam(teamId, userId);
@@ -270,7 +263,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void shouldThrowNoSearchResultExceptionIfUserIdIsNullWhenAddingUserToTeam() throws ServiceException {
+    public void shouldThrowNoSearchResultExceptionIfUserIdIsNullWhenAddingUserToTeam() {
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage("Team with id '" + teamId + "' or User with id '" + userId + "' did not exist.");
         when(teamRepository.findOne(teamId)).thenReturn(team);
@@ -279,7 +272,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void shouldThrowNoSearchResultExceptionIfTeamIdIsNullWhenAddingUserToTeam() throws ServiceException {
+    public void shouldThrowNoSearchResultExceptionIfTeamIdIsNullWhenAddingUserToTeam() {
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage("Team with id '" + teamId + "' or User with id '" + userId + "' did not exist.");
         when(teamRepository.findOne(teamId)).thenReturn(null);
@@ -288,7 +281,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfUserIsInactiveWhenAddingUserToTeam() throws ServiceException {
+    public void shouldThrowServiceExceptionIfUserIsInactiveWhenAddingUserToTeam() {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("User with id '" + userId + "' or Team with id '" + teamId + "' is inactive");
         when(teamRepository.findOne(teamId)).thenReturn(team);
@@ -298,7 +291,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfTeamIsInactiveWhenAddingUserToTeam() throws ServiceException {
+    public void shouldThrowServiceExceptionIfTeamIsInactiveWhenAddingUserToTeam() {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("User with id '" + userId + "' or Team with id '" + teamId + "' is inactive");
         when(teamRepository.findOne(teamId)).thenReturn(team);
@@ -308,7 +301,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfErrorOccursWhenAddingUserToTeam() throws ServiceException {
+    public void shouldThrowServiceExceptionIfErrorOccursWhenAddingUserToTeam() {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Could not add user with id '" + userId
                 + "' to team with id '" + teamId);
@@ -319,7 +312,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void canDeleteUserFromTeam() throws ServiceException {
+    public void canDeleteUserFromTeam() {
         when(teamRepository.findOne(teamId)).thenReturn(team);
         when(userRepository.findOne(userId)).thenReturn(user);
         teamService.removeUserFromTeam(teamId, userId);
@@ -328,7 +321,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void shouldThrowNoSearchResultExceptionIfUserIdIsNullWhenRemovingUserToTeam() throws ServiceException {
+    public void shouldThrowNoSearchResultExceptionIfUserIdIsNullWhenRemovingUserToTeam() {
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage("Team with id '" + teamId + "' or User with id '" + userId + "' did not exist.");
         when(teamRepository.findOne(teamId)).thenReturn(team);
@@ -337,7 +330,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void shouldThrowNoSearchResultExceptionIfTeamIdIsNullWhenRemovingUserToTeam() throws ServiceException {
+    public void shouldThrowNoSearchResultExceptionIfTeamIdIsNullWhenRemovingUserToTeam() {
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage("Team with id '" + teamId + "' or User with id '" + userId + "' did not exist.");
         when(teamRepository.findOne(teamId)).thenReturn(null);
@@ -346,7 +339,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void throwServiceExceptionIfUserIsInactiveWhenRemovingUserToTeam() throws ServiceException {
+    public void throwServiceExceptionIfUserIsInactiveWhenRemovingUserToTeam() {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("User with id '" + userId + "' or Team with id '" + teamId + "' is inactive");
         when(teamRepository.findOne(teamId)).thenReturn(team);
@@ -356,7 +349,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfTeamIsInactiveWhenRemovingUserToTeam() throws ServiceException {
+    public void shouldThrowServiceExceptionIfTeamIsInactiveWhenRemovingUserToTeam() {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("User with id '" + userId + "' or Team with id '" + teamId + "' is inactive");
         when(teamRepository.findOne(teamId)).thenReturn(team);
@@ -366,7 +359,7 @@ public final class TestTeamService {
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfErrorOccursWhenRemovingUserToTeam() throws ServiceException {
+    public void shouldThrowServiceExceptionIfErrorOccursWhenRemovingUserToTeam() {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Could not remove user with id '" + userId
                 + "' from team with id '" + teamId);

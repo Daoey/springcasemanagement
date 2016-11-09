@@ -1,18 +1,18 @@
 package se.teknikhogskolan.springcasemanagement.repository;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.data.repository.CrudRepository;
-import se.teknikhogskolan.springcasemanagement.model.Team;
-import se.teknikhogskolan.springcasemanagement.service.ServiceException;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.data.repository.CrudRepository;
+
+import se.teknikhogskolan.springcasemanagement.model.Team;
 
 public final class TestTeamRepository {
 
@@ -27,13 +27,13 @@ public final class TestTeamRepository {
     }
 
     @Test
-    public void canSaveTeam() throws ServiceException {
+    public void canSaveTeam() {
         executeVoid(teamRepository -> teamRepository.save(team));
         deleteTeam(team);
     }
 
     @Test
-    public void canGetTeamById() throws ServiceException {
+    public void canGetTeamById() {
         Team teamFromDb = execute(teamRepository -> {
             team = teamRepository.save(team);
             return teamRepository.findOne(team.getId());
@@ -44,7 +44,7 @@ public final class TestTeamRepository {
     }
 
     @Test
-    public void canGetTeamByName() throws Exception {
+    public void canGetTeamByName() {
         String name = "New name";
         Team teamFromDb = execute(teamRepository -> {
             team.setName(name);
@@ -57,7 +57,7 @@ public final class TestTeamRepository {
     }
 
     @Test
-    public void canGetAllTeams() throws Exception {
+    public void canGetAllTeams() {
         executeVoid(teamRepository -> {
             for (int i = 0; i < 5; i++) {
                 teamsInDb.add(teamRepository.save(new Team("test" + i)));
