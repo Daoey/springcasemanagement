@@ -3,6 +3,8 @@ package se.teknikhogskolan.springcasemanagement.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import se.teknikhogskolan.springcasemanagement.model.User;
@@ -177,6 +179,20 @@ public class UserService {
             throw new ServiceException("Failed to get users with criteria: firstName = " + firstName + ", lastName = "
                     + lastName + ", username = " + username, e);
         }
+    }
+    
+    public Slice<User> getAllByPage(int page, int pageSize) {
+        Slice<User> slice;
+        try {
+            slice = userRepository.findAll(new PageRequest(page, pageSize));
+        } catch (Exception e) {
+            throw new ServiceException("Failed to get users by page", e);
+        }
+
+        if (slice != null) {
+            return slice;
+        } else
+            throw new NoSearchResultException("No users on page: " + page);
     }
 
     private boolean usernameLongEnough(String username) {

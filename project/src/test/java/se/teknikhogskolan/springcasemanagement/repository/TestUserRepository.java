@@ -11,6 +11,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 
 import se.teknikhogskolan.springcasemanagement.model.Team;
 import se.teknikhogskolan.springcasemanagement.model.User;
@@ -142,6 +144,27 @@ public final class TestUserRepository {
         executeVoid(userRepository -> userRepository.save(user));
         User userFromDatabase = execute(userRepository -> userRepository.findByUserNumber(user.getUserNumber()));
         assertEquals(user, userFromDatabase);
+    }
+    
+    @Test
+    public void canGetUsersByPage() {
+        
+        long numberOfUsersToAdd = 5;
+        for (long i = 0; i < numberOfUsersToAdd; i++) {
+            Long index = i;
+            executeVoid(userRepository -> userRepository.save(new User(user.getUserNumber() + index,
+                    user.getUsername() + index, user.getFirstName(), user.getLastName())));
+        }
+        
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.scan(PROJECT_PACKAGE);
+            context.refresh();
+            UserRepository userRepository = context.getBean(UserRepository.class);
+
+            Slice<User> userSlice = userRepository.findAll(new PageRequest(0, 3));
+            assertEquals(3, userSlice.getSize());
+        }
+        
     }
 
     private void removeAllUsers() {
