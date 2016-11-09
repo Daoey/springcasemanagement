@@ -35,13 +35,20 @@ public class WorkItemService {
         try {
             WorkItem workItem = workItemRepository.findOne(workItemId);
             Issue issue = workItem.getIssue();
+            if (null == issue) {
+                throw new ServiceException(
+                        String.format("Cannot remove Issue from WorkItem %d, no Issue found in WorkItem", workItemId));
+            }
             workItem = workItemRepository.save(workItem.setIssue(null));
             issueRepository.delete(issue.getId());
             return workItem;
+        } catch (ServiceException e) {
+            throw e;
         } catch (NullPointerException e) {
-            throw new NoSearchResultException("Cannot find WorkItem with id: " + workItemId, e);
+            throw new NoSearchResultException(String.format("Cannot find WorkItem with id '%d'", workItemId), e);
         } catch (Exception e) {
-            throw new ServiceException("Cannot remove Issue from WorkItem. WorkItem id: " + workItemId, e);
+            throw new ServiceException(String.format("Cannot remove Issue from WorkItem. WorkItem id '%d'", workItemId),
+                    e);
         }
     }
 
@@ -65,20 +72,25 @@ public class WorkItemService {
     public WorkItem addIssueToWorkItem(Long issueId, Long workItemId) {
         try {
             Issue issue = issueRepository.findOne(issueId);
+            if (null == issue) {
+                throw new NoSearchResultException(String.format("Cannot find Issue with id '%d'", issueId));
+            }
             WorkItem workItem = workItemRepository.findOne(workItemId);
             if (DONE.equals(workItem.getStatus())) {
                 workItem.setStatus(UNSTARTED);
                 workItem.setIssue(issue);
                 return workItemRepository.save(workItem);
-            } else
-                throw new ServiceException(
-                        "Issue can only be added to WorkItem with Status DONE, Status was " + workItem.getStatus());
+            } else throw new ServiceException(
+                    String.format("Issue can only be added to WorkItem with Status 'DONE', Status was '%s'",
+                                workItem.getStatus()));
+        } catch (NoSearchResultException e) {
+            throw e;
         } catch (ServiceException e) {
             throw e;
         } catch (NullPointerException e) {
-            throw new NoSearchResultException("Cannot find WorkItem with id: " + workItemId, e);
+            throw new NoSearchResultException(String.format("Cannot find WorkItem with id '%d'", workItemId), e);
         } catch (Exception e) {
-            throw new ServiceException("Cannot add Issue to WorkItem. WorkItem id: " + workItemId, e);
+            throw new ServiceException(String.format("Cannot add Issue to WorkItem. WorkItem id '%d'", workItemId), e);
         }
     }
 
@@ -95,13 +107,14 @@ public class WorkItemService {
             return workItemRepository.findByTeamId(teamId);
         }, String.format("Cannot not get WorkItems by Team id '%s'", teamId));
     }
-    
+
     private Collection<WorkItem> executeMany(Function<WorkItemRepository, Collection<WorkItem>> operation,
             String exceptionMessage) {
         Collection<WorkItem> result;
         try {
             result = operation.apply(workItemRepository);
-            if (result.isEmpty()) throw new NoSearchResultException(exceptionMessage);
+            if (result.isEmpty())
+                throw new NoSearchResultException(exceptionMessage);
             return result;
         } catch (NoSearchResultException e) {
             throw e;
@@ -172,13 +185,13 @@ public class WorkItemService {
         if (null == user) {
             throw new NoSearchResultException(String.format("Cannot find User with usernNumber %d", userNumber));
         }
-        return  executeMany(workItemRepository -> {
+        return executeMany(workItemRepository -> {
             return workItemRepository.findByUserId(user.getId());
         }, String.format("Cannot get WorkItems by userNumber %d", userNumber));
     }
 
     public Collection<WorkItem> getByDescriptionContains(String text) {
-        return  executeMany(workItemRepository -> {
+        return executeMany(workItemRepository -> {
             return workItemRepository.findByDescriptionContains(text);
         }, String.format("Cannot get WorkItems by description contains '%s'", text));
     }
@@ -192,7 +205,7 @@ public class WorkItemService {
         } else
             throw new ServiceException("Cannot set User to WorkItem. User is inactive or have 5 WorkItems");
     }
-    
+
     private WorkItem saveWorkItem(WorkItem workItem) {
         try {
             return workItemRepository.save(workItem);
