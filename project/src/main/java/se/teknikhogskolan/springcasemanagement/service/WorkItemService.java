@@ -80,8 +80,9 @@ public class WorkItemService {
                 workItem.setStatus(UNSTARTED);
                 workItem.setIssue(issue);
                 return workItemRepository.save(workItem);
-            } else throw new ServiceException(
-                    String.format("Issue can only be added to WorkItem with Status 'DONE', Status was '%s'",
+            } else
+                throw new ServiceException(
+                        String.format("Issue can only be added to WorkItem with Status 'DONE', Status was '%s'",
                                 workItem.getStatus()));
         } catch (NoSearchResultException e) {
             throw e;
@@ -98,7 +99,7 @@ public class WorkItemService {
         try {
             return issueRepository.save(new Issue(description));
         } catch (Exception e) {
-            throw new ServiceException("Cannot create Issue with description: " + description, e);
+            throw new ServiceException(String.format("Cannot create Issue with description '%s'", description), e);
         }
     }
 
@@ -129,7 +130,7 @@ public class WorkItemService {
         try {
             return saveWorkItem(new WorkItem(description));
         } catch (Exception e) {
-            throw new ServiceException(String.format("Cannot create WorkItem with description: %s", description), e);
+            throw new ServiceException(String.format("Cannot create WorkItem with description '%s'", description), e);
         }
     }
 
@@ -139,9 +140,10 @@ public class WorkItemService {
             workItem.setStatus(status);
             return workItemRepository.save(workItem);
         } catch (NullPointerException e) {
-            throw new NoSearchResultException(String.format("Cannot set %s on %s", status, workItemId), e);
+            throw new NoSearchResultException(
+                    String.format("Cannot set Status '%s' on WorkItem '%s'", status, workItemId), e);
         } catch (Exception e) {
-            throw new ServiceException(String.format("Cannot set %s on %s", status, workItemId), e);
+            throw new ServiceException(String.format("Cannot set Status '%s' on WorkItem '%s'", status, workItemId), e);
         }
     }
 
@@ -170,7 +172,7 @@ public class WorkItemService {
         } catch (NoSearchResultException e) {
             throw e;
         } catch (Exception e) {
-            throw new ServiceException(String.format("Cannot remove WorkItem with id %d", workItemId), e);
+            throw new ServiceException(String.format("Cannot remove WorkItem with id '%d'", workItemId), e);
         }
     }
 
@@ -183,11 +185,11 @@ public class WorkItemService {
     public Collection<WorkItem> getByUserNumber(Long userNumber) {
         User user = userRepository.findByUserNumber(userNumber);
         if (null == user) {
-            throw new NoSearchResultException(String.format("Cannot find User with usernNumber %d", userNumber));
+            throw new NoSearchResultException(String.format("Cannot find User with usernNumber '%d'", userNumber));
         }
         return executeMany(workItemRepository -> {
             return workItemRepository.findByUserId(user.getId());
-        }, String.format("Cannot get WorkItems by userNumber %d", userNumber));
+        }, String.format("Cannot get WorkItems by userNumber '%d'", userNumber));
     }
 
     public Collection<WorkItem> getByDescriptionContains(String text) {
@@ -223,7 +225,12 @@ public class WorkItemService {
     }
 
     private User getUserByUsernumber(Long userNumber) {
-        User user = userRepository.findByUserNumber(userNumber);
+        User user;
+        try {
+            user = userRepository.findByUserNumber(userNumber);
+        } catch (Exception e) {
+            throw new ServiceException(String.format("Cannot get User by userNumber '%d'", userNumber), e);
+        }
         if (null == user) {
             throw new NoSearchResultException(String.format("Cannot find User %d", userNumber));
         }
