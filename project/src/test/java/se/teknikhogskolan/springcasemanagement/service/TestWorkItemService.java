@@ -2,6 +2,7 @@ package se.teknikhogskolan.springcasemanagement.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -9,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.hibernate.boot.registry.classloading.spi.ClassLoaderService.Work;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -17,6 +17,8 @@ import org.junit.rules.ExpectedException;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.RecoverableDataAccessException;
 
 import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.model.User;
@@ -30,13 +32,13 @@ public final class TestWorkItemService {
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
-        
+
     @Mock
     private WorkItem workItem;
-    
+
     @Mock
     private User user;
-    
+
     @Mock
     private Issue issue;
 
@@ -56,21 +58,23 @@ public final class TestWorkItemService {
     private final Long userNumber = 23553L;
     private final Long userId = 589L;
     private final Long teamId = 23353265L;
+    private final Long issueId = 23523L;
     private Collection<WorkItem> workItems = new ArrayList<>();
+    private final DataAccessException dataAccessException = new RecoverableDataAccessException("Exception");
 
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
         workItems.clear();
     }
-    
+
     @Test
     public void canGetById() {
         when(workItemRepository.findOne(workItemId)).thenReturn(workItem);
         WorkItem result = workItemService.getById(workItemId);
         assertEquals(workItem, result);
     }
-    
+
     @Test
     public void settingInactiveUserToWorkItemShouldThrowException() {
         exception.expect(ServiceException.class);
@@ -79,7 +83,7 @@ public final class TestWorkItemService {
         when(user.isActive()).thenReturn(false);
         workItemService.setUser(userNumber, workItemId);
     }
-    
+
     @Test
     public void settingUserWithFiveWorkItemToSixthWorkItemShouldThrowException() {
         exception.expect(ServiceException.class);
@@ -92,10 +96,11 @@ public final class TestWorkItemService {
         when(workItemRepository.findByUserId(userId)).thenReturn(workItems);
         workItemService.setUser(userNumber, workItemId);
     }
-    
+
     private Collection<WorkItem> createListWithWorkItems(int amountOfItems) {
         Collection<WorkItem> items = new ArrayList<>();
-        for (int i = 0; i < amountOfItems; i++) items.add(new WorkItem("WorkItem #" + i));
+        for (int i = 0; i < amountOfItems; i++)
+            items.add(new WorkItem("WorkItem #" + i));
         return items;
     }
 
@@ -113,28 +118,28 @@ public final class TestWorkItemService {
         verify(workItem).setUser(user);
         verify(workItemRepository).save(workItem);
     }
-    
+
     @Test
     public void canGetWorkItemsByUserId() {
         WorkItem workItem = new WorkItem("Get by User");
         workItem.setUser(user);
         Collection<WorkItem> workItemsWithOurUser = new ArrayList<>();
         workItemsWithOurUser.add(workItem);
-        
+
         when(user.getId()).thenReturn(userId);
         when(user.getUserNumber()).thenReturn(userNumber);
         when(userRepository.findByUserNumber(userNumber)).thenReturn(user);
         when(workItemRepository.findByUserId(userId)).thenReturn(workItemsWithOurUser);
-        
+
         Collection<WorkItem> result = workItemService.getByUserNumber(userNumber);
-        
+
         verify(workItemRepository).findByUserId(userId);
         assertEquals(workItemsWithOurUser, result);
         result.forEach(item -> {
             assertEquals(userId, item.getUser().getId());
         });
     }
-    
+
     @Test
     public void canRemoveIssue() {
         Long issueId = 32532L;
@@ -144,9 +149,9 @@ public final class TestWorkItemService {
         when(workItem.setIssue(null)).thenReturn(workItem);
         when(workItemRepository.save(workItem)).thenReturn(workItem);
         when(workItemRepository.findOne(workItemId)).thenReturn(workItem);
-        
+
         WorkItem result = workItemService.removeIssueFromWorkItem(workItemId);
-        
+
         assertEquals(workItem, result);
         verify(workItem).setIssue(null);
         verify(workItemRepository).save(workItem);
@@ -154,26 +159,74 @@ public final class TestWorkItemService {
     }
 
     @Test
+    public void removingIssueFromWorkItemWithoutIssueShouldThrowException() {
+        exception.expect(ServiceException.class);
+        exception.expectMessage(
+                String.format("Cannot remove Issue from WorkItem %d, no Issue found in WorkItem", workItemId));
+        when(workItemRepository.findOne(workItemId)).thenReturn(workItem);
+        when(workItem.getIssue()).thenReturn(null);
+        workItemService.removeIssueFromWorkItem(workItemId);
+    }
+
+    @Test
+    public void removingIssueFromWorkItemNotFoundInDatabaseShouldThrowException() {
+        exception.expect(ServiceException.class);
+        exception.expectMessage(String.format("Cannot find WorkItem with id '%d'", workItemId));
+        when(workItemRepository.findOne(workItemId)).thenReturn(null);
+        workItemService.removeIssueFromWorkItem(workItemId);
+    }
+
+    @Test
+    public void removingIssueFromWorkItemShouldCatchExceptionsAndThrowServiceException() {
+        exception.expect(ServiceException.class);
+        exception.expectMessage(String.format("Cannot remove Issue from WorkItem. WorkItem id '%d'", workItemId));
+        doThrow(dataAccessException).when(workItemRepository).findOne(workItemId);
+        workItemService.removeIssueFromWorkItem(workItemId);
+    }
+
+    @Test
     public void canGetAllWithIssue() {
         Collection<WorkItem> workItemsWithIssue = new ArrayList<>();
         workItemsWithIssue.add(workItem);
-        
+
         when(workItemRepository.findByIssueIsNotNull()).thenReturn(workItemsWithIssue);
         when(workItem.getIssue()).thenReturn(issue);
-        
+
         workItems = workItemService.getAllWithIssue();
-        
+
         verify(workItemRepository).findByIssueIsNotNull();
         workItems.forEach(item -> {
             assertNotNull(item.getIssue());
         });
     }
-    
+
+    @Test
+    public void canGetAllWithIssueWhenThereIsNoIssuesShouldThrowException() {
+        exception.expect(NoSearchResultException.class);
+        when(workItemRepository.findByIssueIsNotNull()).thenReturn(workItems);
+        workItems = workItemService.getAllWithIssue();
+    }
+
+    @Test
+    public void canGetAllWithIssueReturnsNullShouldThrowException() {
+        exception.expect(NoSearchResultException.class);
+        when(workItemRepository.findByIssueIsNotNull()).thenReturn(null);
+        workItems = workItemService.getAllWithIssue();
+    }
+
+    @Test
+    public void canGetAllWithIssueShouldCatchExceptionsAndThrowServiceException() {
+        exception.expect(ServiceException.class);
+        doThrow(dataAccessException).when(workItemRepository).findByIssueIsNotNull();
+        workItems = workItemService.getAllWithIssue();
+    }
+
     @Test
     public void addingIssueToWorkItemWithWrongStatusShouldThrowException() {
         Status wrongStatus = Status.STARTED;
         exception.expect(ServiceException.class);
-        exception.expectMessage("Issue can only be added to WorkItem with Status DONE, Status was " + wrongStatus);
+        exception.expectMessage(
+                String.format("Issue can only be added to WorkItem with Status 'DONE', Status was '%s'", wrongStatus));
         when(workItem.getStatus()).thenReturn(wrongStatus);
         when(issueRepository.findOne(issue.getId())).thenReturn(issue);
         when(workItemRepository.findOne(workItem.getId())).thenReturn(workItem);
@@ -185,12 +238,21 @@ public final class TestWorkItemService {
         when(workItem.getStatus()).thenReturn(Status.DONE);
         when(issueRepository.findOne(issue.getId())).thenReturn(issue);
         when(workItemRepository.findOne(workItem.getId())).thenReturn(workItem);
-        
+
         workItemService.addIssueToWorkItem(issue.getId(), workItem.getId());
 
         verify(workItem).setStatus(Status.UNSTARTED);
         verify(workItem).setIssue(issue);
         verify(workItemRepository).save(workItem);
+    }
+
+    @Test
+    public void addingNotFoundIssueToWorkItemWithShouldThrowException() {
+        exception.expect(NoSearchResultException.class);
+        exception.expectMessage(
+                String.format("Cannot find Issue with id '%d'", issueId));
+        when(issueRepository.findOne(issueId)).thenReturn(null);
+        workItemService.addIssueToWorkItem(issueId, workItemId);
     }
 
     @Test
@@ -215,7 +277,7 @@ public final class TestWorkItemService {
         workItemService.getByTeamId(teamId);
         verify(workItemRepository).findByTeamId(teamId);
     }
-    
+
     @Test
     public void canFindByDescriptionContains() {
         String searchText = "important";
@@ -225,7 +287,7 @@ public final class TestWorkItemService {
         workItemService.getByDescriptionContains(searchText);
         verify(workItemRepository).findByDescriptionContains(searchText);
     }
-    
+
     @Test
     public void canFindByDescriptionContainsWithNoMatchShouldThrowException() {
         String searchText = "important";
@@ -235,7 +297,7 @@ public final class TestWorkItemService {
         workItemService.getByDescriptionContains(searchText);
         verify(workItemRepository).findByDescriptionContains(searchText);
     }
-    
+
     @Test
     public void canFindByDescriptionContainsReturnsNullShouldThrowException() {
         String searchText = "important";
@@ -275,7 +337,7 @@ public final class TestWorkItemService {
     public void canChangeWorkItemStatus() {
         Status newStatus = Status.DONE;
         when(workItemRepository.findOne(workItem.getId())).thenReturn(workItem);
-        workItemService.setStatus(workItem.getId(), newStatus);// TODO workItemId
+        workItemService.setStatus(workItem.getId(), newStatus);
         verify(workItem).setStatus(newStatus);
         verify(workItemRepository).save(workItem);
     }
