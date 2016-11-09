@@ -1,5 +1,12 @@
 package se.teknikhogskolan.springcasemanagement.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -11,26 +18,21 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.domain.PageRequest;
+
 import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
 
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 @RunWith(MockitoJUnitRunner.class)
 public final class TestIssueService {
-
-    @Mock
-    IssueRepository issueRepository;
-
+    
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
+    @Mock
+    private IssueRepository issueRepository;
+
     @InjectMocks
-    IssueService issueService;
+    private IssueService issueService;
     private Long issueId;
     private Issue issueInDb;
 

@@ -8,6 +8,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -16,23 +18,14 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.RecoverableDataAccessException;
-import org.springframework.stereotype.Service;
-import se.teknikhogskolan.springcasemanagement.model.Issue;
+
 import se.teknikhogskolan.springcasemanagement.model.Team;
 import se.teknikhogskolan.springcasemanagement.model.User;
-import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
 import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 @RunWith(MockitoJUnitRunner.class)
 public final class TestTeamService {
