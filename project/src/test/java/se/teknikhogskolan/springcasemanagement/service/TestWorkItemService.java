@@ -18,14 +18,21 @@ import org.junit.rules.ExpectedException;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.RecoverableDataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 
 import se.teknikhogskolan.springcasemanagement.model.Issue;
+import se.teknikhogskolan.springcasemanagement.model.Team;
 import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
 import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
+import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 import se.teknikhogskolan.springcasemanagement.repository.WorkItemRepository;
 
@@ -62,11 +69,39 @@ public final class TestWorkItemService {
     private final Long issueId = 23523L;
     private Collection<WorkItem> workItems = new ArrayList<>();
     private final DataAccessException dataAccessException = new RecoverableDataAccessException("Exception");
+    private static final String PROJECT_PACKAGE = "se.teknikhogskolan.springcasemanagement";
 
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
         workItems.clear();
+    }
+    
+    @Test
+    public void canGetAllBySlices(){
+    	try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.scan(PROJECT_PACKAGE);
+            context.refresh();
+            
+            WorkItemRepository workItemRepository = context.getBean(WorkItemRepository.class);
+            UserRepository userRepository = context.getBean(UserRepository.class);
+            IssueRepository issueRepository = context.getBean(IssueRepository.class);
+        	WorkItemService workItemService = new WorkItemService(workItemRepository, userRepository, issueRepository);
+        	
+        	for (int i = 0; i < 10; ++i) workItemService.create(String.format("description #%d", i));
+        	
+        	Pageable pageable = new PageRequest(3, 2);
+        	Slice<WorkItem> result = workItemService.getAll(pageable);
+        	assertNotNull(result);
+        	assertEquals(2, result.getSize());
+        	
+        	List<WorkItem> items = new ArrayList<>();
+        	for (int i = 0; i < 10; ++i) {
+        		items.addAll(workItemService.getByDescriptionContains((String.format("description #%d", i))));
+        		workItemService.removeById(items.get(0).getId());
+        		items.clear();
+        	}
+    	}
     }
 
     @Test

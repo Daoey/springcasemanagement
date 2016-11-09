@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import se.teknikhogskolan.springcasemanagement.model.Issue;
@@ -31,6 +33,10 @@ public class WorkItemService {
         this.workItemRepository = workItemRepository;
         this.userRepository = userRepository;
         this.issueRepository = issueRepository;
+    }
+    
+    public Slice<WorkItem> getAll(Pageable pageable){
+    	return workItemRepository.findAll(pageable);
     }
 
     public WorkItem removeIssueFromWorkItem(Long workItemId) {
