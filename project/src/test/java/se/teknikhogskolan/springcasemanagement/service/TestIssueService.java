@@ -1,16 +1,22 @@
 package se.teknikhogskolan.springcasemanagement.service;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.domain.PageRequest;
 import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
 
+
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -20,10 +26,15 @@ public final class TestIssueService {
     @Mock
     IssueRepository issueRepository;
 
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
     @InjectMocks
     IssueService issueService;
     private Long issueId;
     private Issue issueInDb;
+
+    private final DataAccessException dataAccessException = new RecoverableDataAccessException("Exception");
 
     @Before
     public void setUp() {
@@ -35,14 +46,23 @@ public final class TestIssueService {
     public void canGetIssueById() throws ServiceException {
         when(issueRepository.findOne(issueId)).thenReturn(issueInDb);
         Issue issueFromDb = issueService.getById(issueId);
-
         verify(issueRepository).findOne(issueId);
         assertEquals(issueFromDb, issueInDb);
     }
 
-    @Test(expected = ServiceException.class)
-    public void shouldThrowExceptionWhenGettingIssueByIdThatDoNotExist() throws Exception {
+    @Test
+    public void shouldThrowNoSearchResultExceptionWhenGettingIssueByIdThatDoNotExist() throws Exception {
+        thrown.expect(NoSearchResultException.class);
+        thrown.expectMessage("Issue with issueId '" + issueId + "' do not exist");
         when(issueRepository.findOne(issueId)).thenReturn(null);
+        issueService.getById(issueId);
+    }
+
+    @Test
+    public void shouldThrowServiceExceptionIfErrorOccursWhenGettingIssueById() throws Exception {
+        thrown.expect(ServiceException.class);
+        thrown.expectMessage("Could not get issue with id: " + issueId);
+        doThrow(dataAccessException).when(issueRepository).findOne(issueId);
         issueService.getById(issueId);
     }
 
@@ -56,10 +76,21 @@ public final class TestIssueService {
         assertEquals(issueFromDb, issueInDb);
     }
 
-    @Test(expected = ServiceException.class)
-    public void shouldThrowExceptionWhenGettingIssueByDescriptionThatDoNotExist() throws Exception {
+    @Test
+    public void shouldThrowNoSearchResultExceptionWhenGettingIssueByDescriptionThatDoNotExist() throws Exception {
         String desc = "Test";
+        thrown.expect(NoSearchResultException.class);
+        thrown.expectMessage("Issue with description '" + desc + "' do not exist");
         when(issueRepository.findByDescription(desc)).thenReturn(null);
+        issueService.getByDescription(desc);
+    }
+
+    @Test
+    public void shouldThrowServiceExceptionIfErrorOccursWhenGettingIssueByDescription() throws Exception {
+        String desc = "Test";
+        thrown.expect(ServiceException.class);
+        thrown.expectMessage("Could not get issue with description: " + desc);
+        doThrow(dataAccessException).when(issueRepository).findByDescription(desc);
         issueService.getByDescription(desc);
     }
 
@@ -73,16 +104,30 @@ public final class TestIssueService {
         assertEquals(issueFromDb.getDescription(), newDesc);
     }
 
-    @Test(expected = ServiceException.class)
-    public void canNotUpdateIssueDescriptionIfInactive() throws ServiceException {
+    @Test
+    public void shouldThrowServiceExceptionIfIssueIsInactiveWhenUpdatingIssueDescription() throws ServiceException {
         issueInDb.setActive(false);
+        thrown.expect(ServiceException.class);
+        thrown.expectMessage("Could not update "
+                + "description on Issue with issueId '" + issueId + "' since it's inactivate.");
         when(issueRepository.findOne(issueId)).thenReturn(issueInDb);
         issueService.updateDescription(issueId, "test");
     }
 
-    @Test(expected = ServiceException.class)
-    public void shouldThrowExceptionWhenUpdatingDescriptionOnNonExistingIssue() throws Exception {
+    @Test
+    public void shouldThrowNoSearchResultExceptionWhenUpdatingDescriptionOnANonExistingIssue() throws Exception {
+        thrown.expect(NoSearchResultException.class);
+        thrown.expectMessage("Failed to update issue with id '"
+                + issueId + "' since it could not be found in the database");
         when(issueRepository.findOne(issueId)).thenReturn(null);
+        issueService.updateDescription(issueId, "test");
+    }
+
+    @Test
+    public void shouldThrowServiceExceptionIfErrorOccursWhenUpdatingIssueDescription() throws Exception {
+        thrown.expect(ServiceException.class);
+        thrown.expectMessage("Could not update description on issue with id: " + issueId);
+        doThrow(dataAccessException).when(issueRepository).findOne(issueId);
         issueService.updateDescription(issueId, "test");
     }
 
@@ -96,10 +141,22 @@ public final class TestIssueService {
         assertFalse(issueFromDb.isActive());
     }
 
-    @Test(expected = ServiceException.class)
-    public void throwsExceptionWhenInactivatingAUserThatDoNotExist() throws Exception {
+    @Test
+    public void shouldThrowNoSearchResultExceptionWhenInactivatingAnIssueThatDoNotExist() throws Exception {
+        thrown.expect(NoSearchResultException.class);
+        thrown.expectMessage("Failed to inactive issue with id '"
+                + issueId + "' since it could not be found in the database");
         issueInDb.setActive(true);
         when(issueRepository.findOne(issueId)).thenReturn(null);
+        issueService.inactivate(issueId);
+    }
+
+    @Test
+    public void shouldThrowServiceExceptionIfErrorOccursWhenInactivatingAnIssue() throws Exception {
+        thrown.expect(ServiceException.class);
+        thrown.expectMessage("Could not inactive issue with id: " + issueId);
+        issueInDb.setActive(true);
+        doThrow(dataAccessException).when(issueRepository).findOne(issueId);
         issueService.inactivate(issueId);
     }
 
@@ -113,17 +170,36 @@ public final class TestIssueService {
         assertTrue(issueFromDb.isActive());
     }
 
-    @Test(expected = ServiceException.class)
-    public void throwsExceptionWhenActivatingAUserThatDoNotExist() throws Exception {
+    @Test
+    public void shouldThrowNoSearchResultExceptionWhenActivatingAnIssueThatDoNotExist() throws Exception {
+        thrown.expect(NoSearchResultException.class);
+        thrown.expectMessage("Failed to activate issue with id '"
+                + issueId + "' since it could not be found in the database");
         issueInDb.setActive(false);
         when(issueRepository.findOne(issueId)).thenReturn(null);
         issueService.activate(issueId);
     }
 
-/*    @Test
-    public void canGetAllIssuesByPage() throws Exception {
-        when(issueRepository.findAll(new PageRequest(0, 6))).thenCallRealMethod()
+    @Test
+    public void shouldThrowServiceExceptionIfErrorOccursWhenActivatingAnIssue() throws Exception {
+        thrown.expect(ServiceException.class);
+        thrown.expectMessage("Could not active issue with id: " + issueId);
+        issueInDb.setActive(false);
+        doThrow(dataAccessException).when(issueRepository).findOne(issueId);
+        issueService.activate(issueId);
+    }
+
+    @Test
+    public void shouldThrowExceptionIfPageIsEmpty() throws Exception {
+        thrown.expect(NoSearchResultException.class);
         issueService.getAllByPage(0, 6);
-        verify(issueRepository).findAll(new PageRequest(0, 6));
-    }*/
+    }
+
+    @Test
+    public void shouldThrowServiceExceptionIfErrorOccurredWhenGettingPage() throws Exception {
+        doThrow(dataAccessException).when(issueRepository).findAll(new PageRequest(0, 6));
+        thrown.expect(ServiceException.class);
+        thrown.expectMessage("Could not get issues by page");
+        issueService.getAllByPage(0, 6);
+    }
 }
