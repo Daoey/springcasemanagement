@@ -24,7 +24,6 @@ import org.springframework.dao.RecoverableDataAccessException;
 import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
-import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -35,8 +34,7 @@ public final class TestUserService {
 
     @Mock
     private UserRepository userRepository;
-    @Mock
-    private TeamRepository teamRepository;
+
     @Mock
     private User mockedUser;
 
@@ -44,11 +42,16 @@ public final class TestUserService {
     private UserService userService;
 
     private User user;
+    private List<User> users;
     private final DataAccessException dataAccessException = new RecoverableDataAccessException("Exception");
 
     @Before
     public void init() {
         user = new User(1L, "Long enough name", "First", "Last");
+        users = new ArrayList<User>();
+        for (int i = 0; i < 5; i++) {
+            users.add(user);
+        }
     }
 
     @Test
@@ -65,7 +68,7 @@ public final class TestUserService {
     }
 
     @Test
-    public void createUserDataAccessExceptionThrown() {
+    public void createUserThrowsDataAccessException() {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Failed to create user: " + user);
         doThrow(dataAccessException).when(userRepository).save(user);
@@ -73,20 +76,54 @@ public final class TestUserService {
     }
 
     @Test
-    public void getUserByIdCallsCorrectMethod() {
-        userService.getById(1L);
-        verify(userRepository, times(1)).findOne(1L);
+    public void getUserByIdReturnsCorrectUser() {
+        when(userRepository.findOne(1L)).thenReturn(user);
+        User userFromDatabase = userService.getById(1L);
+        assertEquals(user, userFromDatabase);
     }
 
     @Test
-    public void getUserByUserNumberCallsCorrectMethod() {
+    public void getUserByIdThrowsServiceExceptionIfDataAccessException() {
+        thrown.expect(ServiceException.class);
+        thrown.expectMessage("Failed to get user with id: 1");
+        doThrow(dataAccessException).when(userRepository).findOne(1L);
+        userService.getById(1L);
+    }
+
+    @Test
+    public void getUserByIdThrowsNoSearchResultExceptionIfNoUserFound() {
+        thrown.expect(NoSearchResultException.class);
+        thrown.expectMessage("No user with id: 1 found");
+        when(userRepository.findOne(1L)).thenReturn(null);
+        userService.getById(1L);
+    }
+
+    @Test
+    public void getUserByUserNumberReturnsCorrectUser() {
+        when(userRepository.findByUserNumber(1L)).thenReturn(user);
+        User userFromDatabase = userService.getByUserNumber(1L);
+        assertEquals(user, userFromDatabase);
+    }
+
+    @Test
+    public void getUserByNumberThrowsServiceExceptionIfDataAccessException() {
+        thrown.expect(ServiceException.class);
+        thrown.expectMessage("Failed to get user with user number: 1");
+        doThrow(dataAccessException).when(userRepository).findByUserNumber(1L);
         userService.getByUserNumber(1L);
-        verify(userRepository, times(1)).findByUserNumber(1L);
+    }
+
+    @Test
+    public void getUserByNumberThrowsNoSearchResultExceptionIfNoUserFound() {
+        thrown.expect(NoSearchResultException.class);
+        thrown.expectMessage("No user with user number: 1 found");
+        when(userRepository.findByUserNumber(1L)).thenReturn(null);
+        userService.getByUserNumber(1L);
     }
 
     @Test
     public void updateFirstNameCallsCorrectMethodWithNewFirstName() {
-        when(userService.getByUserNumber(1L)).thenReturn(user);
+        when(userRepository.findByUserNumber(1L)).thenReturn(user);
         String newFirstName = "New first name";
         userService.updateFirstName(1L, newFirstName);
         ArgumentCaptor<User> capturedUser = ArgumentCaptor.forClass(User.class);
@@ -95,17 +132,33 @@ public final class TestUserService {
     }
 
     @Test
-    public void updateFirstNameInactiveUserThrowsException() {
+    public void updateFirstNameInactiveUserThrowsServiceException() {
         user.setActive(false);
-        when(userService.getByUserNumber(1L)).thenReturn(user);
+        when(userRepository.findByUserNumber(1L)).thenReturn(user);
         thrown.expect(ServiceException.class);
         thrown.expectMessage("User is inactive");
         userService.updateFirstName(1L, "Some name");
     }
 
     @Test
+    public void updateFirstNameThrowsNoSearchResultExceptionIfNoUserFound() {
+        thrown.expect(NoSearchResultException.class);
+        thrown.expectMessage("No user with user number: 1 found");
+        when(userRepository.findByUserNumber(1L)).thenReturn(null);
+        userService.updateFirstName(1L, "some name");
+    }
+
+    @Test
+    public void updateFirstNameThrowsServiceExceptionIfExceptionIsThrown() {
+        thrown.expect(ServiceException.class);
+        thrown.expectMessage("Failed to update firstName on user with user number: 1");
+        doThrow(dataAccessException).when(userRepository).findByUserNumber(1L);
+        userService.updateFirstName(1L, "some name");
+    }
+
+    @Test
     public void updateLastNameCallsCorrectMethodWithNewLastName() {
-        when(userService.getByUserNumber(1L)).thenReturn(user);
+        when(userRepository.findByUserNumber(1L)).thenReturn(user);
         String newLastName = "New last name";
         userService.updateLastName(1L, newLastName);
         ArgumentCaptor<User> capturedUser = ArgumentCaptor.forClass(User.class);
@@ -114,12 +167,28 @@ public final class TestUserService {
     }
 
     @Test
-    public void updateLastNameInactiveUserThrowsException() {
+    public void updateLastNameInactiveUserThrowsServiceException() {
         user.setActive(false);
         when(userRepository.findByUserNumber(1L)).thenReturn(user);
         thrown.expect(ServiceException.class);
         thrown.expectMessage("User is inactive");
         userService.updateLastName(1L, "Some name");
+    }
+
+    @Test
+    public void updateLastNameThrowsNoSearchResultIfNoUserFound() {
+        when(userRepository.findByUserNumber(1L)).thenReturn(null);
+        thrown.expect(NoSearchResultException.class);
+        thrown.expectMessage("No user with user number: 1 found");
+        userService.updateLastName(1L, "some name");
+    }
+
+    @Test
+    public void updateLastNameThrowsServiceExceptionIfExceptionIsThrown() {
+        doThrow(dataAccessException).when(userRepository).findByUserNumber(1L);
+        thrown.expect(ServiceException.class);
+        thrown.expectMessage("Failed to update lastName on user with user number: 1");
+        userService.updateLastName(1L, "some name");
     }
 
     @Test
@@ -133,7 +202,7 @@ public final class TestUserService {
     }
 
     @Test
-    public void updateUsernameInactiveUserThrowsException() {
+    public void updateUsernameInactiveUserThrowsServiceException() {
         user.setActive(false);
         when(userRepository.findByUserNumber(1L)).thenReturn(user);
         thrown.expect(ServiceException.class);
@@ -142,11 +211,27 @@ public final class TestUserService {
     }
 
     @Test
-    public void updateUsernameTooShortUsernameThrowsException() {
+    public void updateUsernameTooShortUsernameThrowsServiceException() {
         when(userRepository.findByUserNumber(1L)).thenReturn(user);
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Username too short");
         userService.updateUsername(1L, "Too short");
+    }
+
+    @Test
+    public void updateUsernameThrowsNoSearchResultExceptionIfNoUserFound() {
+        when(userRepository.findByUserNumber(1L)).thenReturn(null);
+        thrown.expect(NoSearchResultException.class);
+        thrown.expectMessage("No user with user number: 1 found");
+        userService.updateUsername(1L, "some long enough name");
+    }
+
+    @Test
+    public void updateUsernameThrowsServiceExceptionIfExceptionIsThrown() {
+        doThrow(dataAccessException).when(userRepository).findByUserNumber(1L);
+        thrown.expect(ServiceException.class);
+        thrown.expectMessage("Failed to update username on user with user number: 1");
+        userService.updateUsername(1L, "some long enough name");
     }
 
     @Test
@@ -157,6 +242,22 @@ public final class TestUserService {
         ArgumentCaptor<User> capturedUser = ArgumentCaptor.forClass(User.class);
         verify(userRepository, times(1)).save(capturedUser.capture());
         assertEquals(true, capturedUser.getValue().isActive());
+    }
+
+    @Test
+    public void activateUserThrowsNoSearchResultIfNoUserFound() {
+        when(userRepository.findByUserNumber(1L)).thenReturn(null);
+        thrown.expect(NoSearchResultException.class);
+        thrown.expectMessage("No user with user number: 1 found");
+        userService.activate(1L);
+    }
+
+    @Test
+    public void activateUserThrowsServiceExcptionIfExceptionIsThrown() {
+        doThrow(dataAccessException).when(userRepository).findByUserNumber(1L);
+        thrown.expect(ServiceException.class);
+        thrown.expectMessage("Failed to activate user with user number: 1");
+        userService.activate(1L);
     }
 
     @Test
@@ -182,17 +283,97 @@ public final class TestUserService {
     }
 
     @Test
-    public void getAllByTeamIdCallsCorrectMethod() {
-        userService.getAllByTeamId(1L);
-        verify(userRepository, times(1)).findByTeamId(1L);
+    public void inactivateUserNoWorkItemsAttachedStillInactivatesUser() {
+        when(userRepository.findByUserNumber(1L)).thenReturn(user);
+        userService.inactivate(1L);
+        ArgumentCaptor<User> capturedUser = ArgumentCaptor.forClass(User.class);
+        verify(userRepository, times(1)).save(capturedUser.capture());
+        assertEquals(false, capturedUser.getValue().isActive());
+    }
 
+    @Test
+    public void inactivateUserThrowsNoSearchResultExceptionIfNoUserFound() {
+        when(userRepository.findByUserNumber(1L)).thenReturn(null);
+        thrown.expect(NoSearchResultException.class);
+        thrown.expectMessage("No user with user number: 1 found");
+        userService.inactivate(1L);
+    }
+
+    @Test
+    public void inactivateUserThrowsServiceExceptionIfExceptionIsThrown() {
+        doThrow(dataAccessException).when(userRepository).findByUserNumber(1L);
+        thrown.expect(ServiceException.class);
+        thrown.expectMessage("Failed to inactivate user with user number: 1");
+        userService.inactivate(1L);
+    }
+
+    @Test
+    public void getAllByTeamIdCallsCorrectMethod() {
+        when(userRepository.findByTeamId(1L)).thenReturn(users);
+        List<User> usersFromDatabase = userService.getAllByTeamId(1L);
+        verify(userRepository, times(1)).findByTeamId(1L);
+        assertEquals(users, usersFromDatabase);
+    }
+
+    @Test
+    public void getAllByTeamIdThrowsNoSearchResultExceptionIfEmptyListReturned() {
+        when(userRepository.findByTeamId(1L)).thenReturn(new ArrayList<User>());
+        thrown.expect(NoSearchResultException.class);
+        thrown.expectMessage("No users with team id: 1 found");
+        userService.getAllByTeamId(1L);
+    }
+
+    @Test
+    public void getAllByTeamIdThrowsNoSearchResultExceptionIfNullReturned() {
+        when(userRepository.findByTeamId(1L)).thenReturn(null);
+        thrown.expect(NoSearchResultException.class);
+        thrown.expectMessage("No users with team id: 1 found");
+        userService.getAllByTeamId(1L);
+    }
+
+    @Test
+    public void getAllByTeamIdThrowsServiceExceptionIfExceptionThrown() {
+        doThrow(dataAccessException).when(userRepository).findByTeamId(1L);
+        thrown.expect(ServiceException.class);
+        thrown.expectMessage("Failed to get all users with team id: 1");
+        userService.getAllByTeamId(1L);
     }
 
     @Test
     public void searchUsersCallsCorrectMethod() {
         String name = "some name";
-        userService.search(name, name, name);
+        when(userRepository.findByFirstNameContainingAndLastNameContainingAndUsernameContaining(name, name, name))
+                .thenReturn(users);
+        List<User> usersFromDatabase = userService.search(name, name, name);
         verify(userRepository, times(1)).findByFirstNameContainingAndLastNameContainingAndUsernameContaining(name, name,
                 name);
+        assertEquals(users, usersFromDatabase);
+    }
+
+    @Test
+    public void searchUsersThrowsNoSearchResultExceptionIfEmptyListReturned() {
+        when(userRepository.findByFirstNameContainingAndLastNameContainingAndUsernameContaining("first", "last",
+                "user")).thenReturn(new ArrayList<User>());
+        thrown.expect(NoSearchResultException.class);
+        thrown.expectMessage("No users fulfilling criteria: firstName = first, lastName = last, username = user");
+        userService.search("first", "last", "user");
+    }
+
+    @Test
+    public void searchUsersThrowsNoSearchResultExceptionIfNullReturned() {
+        when(userRepository.findByFirstNameContainingAndLastNameContainingAndUsernameContaining("first", "last",
+                "user")).thenReturn(null);
+        thrown.expect(NoSearchResultException.class);
+        thrown.expectMessage("No users fulfilling criteria: firstName = first, lastName = last, username = user");
+        userService.search("first", "last", "user");
+    }
+
+    @Test
+    public void searchUsersThrowsServiceExceptionIfExceptionIsThrown() {
+        doThrow(dataAccessException).when(userRepository)
+                .findByFirstNameContainingAndLastNameContainingAndUsernameContaining("first", "last", "user");
+        thrown.expect(ServiceException.class);
+        thrown.expectMessage("Failed to get users with criteria: firstName = first, lastName = last, username = user");
+        userService.search("first", "last", "user");
     }
 }

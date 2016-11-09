@@ -1,6 +1,5 @@
 package se.teknikhogskolan.springcasemanagement.service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
-import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 
 @Service
@@ -17,7 +15,7 @@ public class UserService {
     private final UserRepository userRepository;
 
     @Autowired
-    public UserService(UserRepository userRepository, TeamRepository teamRepository) {
+    public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
@@ -35,7 +33,14 @@ public class UserService {
 
     public User getById(Long userId) {
         try {
-            return userRepository.findOne(userId);
+            User user = userRepository.findOne(userId);
+            if (user == null) {
+                throw new NoSearchResultException("No user with id: " + userId + " found");
+            } else {
+                return user;
+            }
+        } catch (NoSearchResultException e) {
+            throw e;
         } catch (Exception e) {
             throw new ServiceException("Failed to get user with id: " + userId, e);
         }
@@ -43,7 +48,14 @@ public class UserService {
 
     public User getByUserNumber(Long userNumber) {
         try {
-            return userRepository.findByUserNumber(userNumber);
+            User user = userRepository.findByUserNumber(userNumber);
+            if (user == null) {
+                throw new NoSearchResultException("No user with user number: " + userNumber + " found");
+            } else {
+                return user;
+            }
+        } catch (NoSearchResultException e) {
+            throw e;
         } catch (Exception e) {
             throw new ServiceException("Failed to get user with user number: " + userNumber, e);
         }
@@ -98,7 +110,7 @@ public class UserService {
             } else {
                 throw new ServiceException("User is inactive");
             }
-        }  catch (ServiceException e) {
+        } catch (ServiceException e) {
             throw e;
         } catch (NullPointerException e) {
             throw new NoSearchResultException("No user with user number: " + userNumber + " found", e);
@@ -137,11 +149,13 @@ public class UserService {
     public List<User> getAllByTeamId(Long teamId) {
         try {
             List<User> users = userRepository.findByTeamId(teamId);
-            if (users == null) {
-                return new ArrayList<User>();
+            if (users == null || users.size() == 0) {
+                throw new NoSearchResultException("No users with team id: " + teamId + " found");
             } else {
                 return users;
             }
+        } catch (NoSearchResultException e) {
+            throw e;
         } catch (Exception e) {
             throw new ServiceException("Failed to get all users with team id: " + teamId, e);
         }
@@ -151,13 +165,17 @@ public class UserService {
         try {
             List<User> users = userRepository
                     .findByFirstNameContainingAndLastNameContainingAndUsernameContaining(firstName, lastName, username);
-            if (users == null) {
-                return new ArrayList<User>();
+            if (users == null || users.size() == 0) {
+                throw new NoSearchResultException("No users fulfilling criteria: " + "firstName = " + firstName
+                        + ", lastName = " + lastName + ", username = " + username);
+            } else {
+                return users;
             }
-            return users;
+        } catch (NoSearchResultException e) {
+            throw e;
         } catch (Exception e) {
-            throw new ServiceException("Failed to get users matching search criteria: firstName = " + firstName
-                    + ", lastName = " + lastName + " and username = " + username, e);
+            throw new ServiceException("Failed to get users with criteria: firstName = " + firstName + ", lastName = "
+                    + lastName + ", username = " + username, e);
         }
     }
 
