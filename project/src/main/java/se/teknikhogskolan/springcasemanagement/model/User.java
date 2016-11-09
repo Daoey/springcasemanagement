@@ -113,7 +113,4 @@ public class User extends AbstractEntity {
         result += result * username.hashCode();
         return result;
     }
-
 }
-
-//TODO Testing
