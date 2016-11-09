@@ -20,6 +20,9 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.RecoverableDataAccessException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 
 import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
@@ -375,5 +378,30 @@ public final class TestUserService {
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Failed to get users with criteria: firstName = first, lastName = last, username = user");
         userService.search("first", "last", "user");
+    }
+    
+    @Test
+    public void getAllByPageCallsCorrectMethodAndReturnsCorrectSliceOfUsers() {
+        Slice<User> sliceUsers = new SliceImpl<User>(users);
+        PageRequest pageRequest = new PageRequest(0, 10);
+        when(userRepository.findAll(pageRequest)).thenReturn(sliceUsers);
+        Slice<User> sliceUsersFromDatabase = userService.getAllByPage(0, 10);
+        assertEquals(sliceUsers, sliceUsersFromDatabase);
+    }
+    
+    @Test
+    public void getAllByPageThrowsServiceExceptionIfExceptionThrown() {
+        doThrow(dataAccessException).when(userRepository).findAll(new PageRequest(4, 10));
+        thrown.expect(ServiceException.class);
+        thrown.expectMessage("Failed to get users by page");
+        userService.getAllByPage(4, 10);
+    }
+    
+    @Test
+    public void getAllByPageThrowsNoSearchResultExceptionIfNoUsersFound() {
+        when(userRepository.findAll(new PageRequest(4, 10))).thenReturn(null);
+        thrown.expect(NoSearchResultException.class);
+        thrown.expectMessage("No users on page: 4");
+        userService.getAllByPage(4, 10);
     }
 }
