@@ -128,7 +128,7 @@ public final class TestWorkItemRepository {
 
         LocalDate startDate = LocalDate.now().minusDays(1);
         LocalDate toDate = LocalDate.now().plusDays(1);
-        Collection<WorkItem> workItemList = executeMany(workItemRepository -> workItemRepository.findByDateCompleted(startDate, toDate));
+        Collection<WorkItem> workItemList = executeMany(workItemRepository -> workItemRepository.findByCompletionDate(startDate, toDate));
 
         assertTrue(workItemList.contains(workItemDone));
         assertFalse(workItemList.contains(workItemUnStarted));
