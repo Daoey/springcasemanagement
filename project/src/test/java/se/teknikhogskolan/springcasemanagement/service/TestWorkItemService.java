@@ -6,6 +6,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -76,31 +77,31 @@ public final class TestWorkItemService {
         MockitoAnnotations.initMocks(this);
         workItems.clear();
     }
-    
+
     @Test
-    public void canGetAllBySlices(){
-    	try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+    public void canGetAllBySlices() {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
             context.scan(PROJECT_PACKAGE);
             context.refresh();
-            
+
             WorkItemRepository workItemRepository = context.getBean(WorkItemRepository.class);
             UserRepository userRepository = context.getBean(UserRepository.class);
             IssueRepository issueRepository = context.getBean(IssueRepository.class);
-        	WorkItemService workItemService = new WorkItemService(workItemRepository, userRepository, issueRepository);
-        	
-        	for (int i = 0; i < 10; ++i) workItemService.create(String.format("description #%d", i));
-        	
-        	Slice<WorkItem> result = workItemService.getAllByPage(1, 2);
-        	assertNotNull(result);
-        	assertEquals(2, result.getSize());
-        	
-        	List<WorkItem> items = new ArrayList<>();
-        	for (int i = 0; i < 10; ++i) {
-        		items.addAll(workItemService.getByDescriptionContains((String.format("description #%d", i))));
-        		workItemService.removeById(items.get(0).getId());
-        		items.clear();
-        	}
-    	}
+            WorkItemService workItemService = new WorkItemService(workItemRepository, userRepository, issueRepository);
+
+            for (int i = 0; i < 10; ++i) workItemService.create(String.format("description #%d", i));
+
+            Slice<WorkItem> result = workItemService.getAllByPage(1, 2);
+            assertNotNull(result);
+            assertEquals(2, result.getSize());
+
+            List<WorkItem> items = new ArrayList<>();
+            for (int i = 0; i < 10; ++i) {
+                items.addAll(workItemService.getByDescriptionContains((String.format("description #%d", i))));
+                workItemService.removeById(items.get(0).getId());
+                items.clear();
+            }
+        }
     }
 
     @Test
@@ -435,14 +436,14 @@ public final class TestWorkItemService {
         workItemService.removeById(workItemId);
         verify(workItemRepository).delete(workItem);
     }
-    
+
     @Test
     public void removeByIdShouldCatchExceptionsAndThrowServiceException() {
         exception.expect(ServiceException.class);
         when(workItemRepository.findOne(workItemId)).thenThrow(dataAccessException);
         workItemService.removeById(workItemId);
     }
-    
+
     @Test
     public void removeByIdShouldThrowExceptionWhenWorkItemNotFound() {
         exception.expect(NoSearchResultException.class);
@@ -495,7 +496,7 @@ public final class TestWorkItemService {
         when(workItemRepository.save(new WorkItem(workItemDescription))).thenThrow(dataAccessException);
         workItemService.create(workItemDescription);
     }
-    
+
     @Test
     public void setUserShouldCatchExceptionsAndThrowServiceException() {
         exception.expect(ServiceException.class);
@@ -507,7 +508,28 @@ public final class TestWorkItemService {
     }
 
     @Test
-    public void canGetCompletedWorkItemsBetweenDates() throws Exception {
+    public void canGetCompletedWorkItemsBetweenDates() {
+        LocalDate from = LocalDate.now().minusDays(1);
+        LocalDate to = LocalDate.now().plusDays(1);
+        workItemService.getCompletedWorkItems(from, to);
+        verify(workItemRepository).findByCompletionDate(from, to);
+    }
 
+    @Test
+    public void shouldThrowNoSearchResultExceptionIfNoWorkItemsFoundBetweenDates() {
+        exception.expect(NoSearchResultException.class);
+        LocalDate from = LocalDate.now().minusDays(1);
+        LocalDate to = LocalDate.now().plusDays(1);
+        when(workItemRepository.findByCompletionDate(from, to)).thenReturn(null);
+        workItemService.getCompletedWorkItems(from, to);
+    }
+
+    @Test
+    public void shouldThrowServiceExceptionIfErrorOccursWhenGettingCompletedWorkItemBetweenDates() {
+        exception.expect(ServiceException.class);
+        LocalDate from = LocalDate.now().minusDays(1);
+        LocalDate to = LocalDate.now().plusDays(1);
+        doThrow(dataAccessException).when(workItemRepository).findByCompletionDate(from, to);
+        workItemService.getCompletedWorkItems(from, to);
     }
 }
