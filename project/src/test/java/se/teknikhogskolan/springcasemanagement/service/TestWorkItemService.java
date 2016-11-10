@@ -21,6 +21,8 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.RecoverableDataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 
 import se.teknikhogskolan.springcasemanagement.model.Issue;
@@ -57,6 +59,9 @@ public final class TestWorkItemService {
     @InjectMocks
     private WorkItemService workItemService;
 
+	@Mock
+	private Page<WorkItem> page;
+
     private final Long workItemId = 235235L;
     private final Long userNumber = 23553L;
     private final Long userId = 589L;
@@ -70,6 +75,34 @@ public final class TestWorkItemService {
     public void setup() {
         MockitoAnnotations.initMocks(this);
         workItems.clear();
+    }
+
+    @Test
+    public void canGetAllByCreationDate() {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.scan(PROJECT_PACKAGE);
+            context.refresh();
+
+            WorkItemRepository workItemRepository = context.getBean(WorkItemRepository.class);
+            UserRepository userRepository = context.getBean(UserRepository.class);
+            IssueRepository issueRepository = context.getBean(IssueRepository.class);
+            WorkItemService workItemService = new WorkItemService(workItemRepository, userRepository, issueRepository);
+            
+            final int workItemsCreatedToday = 5;
+            for (int i = 0; i < workItemsCreatedToday; ++i) workItemService.create(String.format("Created today #%d", i));
+
+            LocalDate fromDate = LocalDate.now().minusDays(1);
+            LocalDate toDate = LocalDate.now().plusDays(1);
+            List<WorkItem> result = workItemService.getByCreatedBetweenDates(fromDate, toDate);
+            assertEquals(workItemsCreatedToday, result.size());
+
+            List<WorkItem> items = new ArrayList<>();
+            for (int i = 0; i < workItemsCreatedToday; ++i) {
+                items.addAll(workItemService.getByDescriptionContains((String.format("Created today #%d", i))));
+                workItemService.removeById(items.get(0).getId());
+                items.clear();
+            }
+        }
     }
 
     @Test
@@ -96,6 +129,26 @@ public final class TestWorkItemService {
                 items.clear();
             }
         }
+    }
+
+    @Test
+    public void canGetAllBySlicesMocked() {
+        workItems.add(workItem);
+        PageRequest pageRequest = new PageRequest(1, 1);
+    	when(workItemRepository.findAll(pageRequest)).thenReturn(page);
+    	when(page.hasContent()).thenReturn(true);
+        Page<WorkItem> result = workItemService.getAllByPage(1, 1);
+        assertEquals(page, result);
+    }
+
+    @Test
+    public void canGetAllByCreationDateMocked() {
+        LocalDate fromDate = LocalDate.now().minusDays(1);
+        LocalDate toDate = LocalDate.now().plusDays(1);
+        workItems.add(workItem);
+    	when(workItemRepository.findByCreationDate(fromDate, toDate)).thenReturn((List) workItems);
+        List<WorkItem> result = workItemService.getByCreatedBetweenDates(fromDate, toDate);
+        assertEquals(workItem, result.get(0));
     }
 
     @Test

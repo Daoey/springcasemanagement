@@ -118,7 +118,7 @@ public final class TestWorkItemRepository {
     }
 
     @Test
-    public void canGetWorkItemsBetweenDates() throws Exception {
+    public void canGetWorkItemsCompletedBetweenDates() throws Exception {
         WorkItem workItemDone = new WorkItem("Perfect Date1").setStatus(Status.DONE).setCompletionDate(LocalDate.now());
         executeVoid(workItemRepository -> workItemRepository.save(workItemDone));
         WorkItem workItemUnStarted = new WorkItem("Perfect Date2").setStatus(Status.UNSTARTED).setCompletionDate(LocalDate.now());
@@ -138,6 +138,22 @@ public final class TestWorkItemRepository {
             workItemRepository.delete(workItemDone);
             workItemRepository.delete(workItemUnStarted);
             workItemRepository.delete(workItemStarted);
+        });
+    }
+
+    @Test
+    public void canGetWorkItemsCreatedBetweenDates() throws Exception {
+        WorkItem workItem = new WorkItem("Created today");
+        executeVoid(workItemRepository -> workItemRepository.save(workItem));
+
+        LocalDate startDate = LocalDate.now().minusDays(1);
+        LocalDate toDate = LocalDate.now().plusDays(1);
+        Collection<WorkItem> workItemsCreatedToday = executeMany(workItemRepository -> workItemRepository.findByCreationDate(startDate, toDate));
+
+        assertTrue(workItemsCreatedToday.contains(workItem));
+        
+        executeVoid(workItemRepository -> {
+            workItemRepository.delete(workItem);
         });
     }
 

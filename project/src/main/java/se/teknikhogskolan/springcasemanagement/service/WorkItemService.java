@@ -34,7 +34,28 @@ public class WorkItemService {
         this.userRepository = userRepository;
         this.issueRepository = issueRepository;
     }
+    
+    public List<WorkItem> getByCreatedBetweenDates(LocalDate fromDate, LocalDate toDate){
+    	List<WorkItem> result = getAllCreatedBetweenDates(fromDate, toDate);
+    	throwNoSearchResultExceptionIfResultIsEmpty(result);
+    	return result;
+    }
 
+    private List<WorkItem> getAllCreatedBetweenDates(LocalDate fromDate, LocalDate toDate) {
+        try {
+            return workItemRepository.findByCreationDate(fromDate, toDate);
+        } catch (Exception e) {
+            throw new ServiceException(String.format("Could not get WorkItems between '%s' and '%s'",
+                    toDate, fromDate), e);
+        }
+    }
+
+    private void throwNoSearchResultExceptionIfResultIsEmpty(List<WorkItem> result) {
+        if (null == result || result.isEmpty()) {
+            throw new NoSearchResultException();
+        }
+    }
+    
     public Page<WorkItem> getAllByPage(int page, int pageSize) {
         Page<WorkItem> result = getAllByPage(new PageRequest(page, pageSize));
         throwNoSearchResultExceptionIfResultIsEmpty(result);

@@ -6,6 +6,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -404,5 +405,45 @@ public final class TestUserService {
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage("No users on page: 4");
         userService.getAllByPage(4, 10);
+    }
+    
+    @Test
+    public void getByCreationDateCallsCorrectMethodAndReturnsCorrectUsers() {
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate = LocalDate.now();
+        when(userRepository.findByCreationDate(startDate, endDate)).thenReturn(users);
+        List<User> usersReturned = userService.getByCreationDate(startDate, endDate);
+        verify(userRepository, times(1)).findByCreationDate(startDate, endDate);
+        assertEquals(users, usersReturned);
+    }
+    
+    @Test
+    public void getByCreationDateThrowsServiceExceptionIfExceptionThrown() {
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate = LocalDate.now().plusDays(3);
+        doThrow(dataAccessException).when(userRepository).findByCreationDate(startDate, endDate);
+        thrown.equals(ServiceException.class);
+        thrown.expectMessage("Failed to get users created between: " + startDate + " and " + endDate);
+        userService.getByCreationDate(startDate, endDate);
+    }
+    
+    @Test
+    public void getByCreationDateThrowsNoSearchResultExceptionIfNullIsReturned() {
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate = LocalDate.now().plusDays(3);
+        when(userRepository.findByCreationDate(startDate, endDate)).thenReturn(null);
+        thrown.expect(NoSearchResultException.class);
+        thrown.expectMessage("No users created between: " + startDate + " and " + endDate);
+        userService.getByCreationDate(startDate, endDate);
+    }
+    
+    @Test
+    public void getByCreationDateThrowsNoSearchResultExceptionIfEmptyListIsReturned() {
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate = LocalDate.now().plusDays(3);
+        when(userRepository.findByCreationDate(startDate, endDate)).thenReturn(new ArrayList<User>());
+        thrown.expect(NoSearchResultException.class);
+        thrown.expectMessage("No users created between: " + startDate + " and " + endDate);
+        userService.getByCreationDate(startDate, endDate);
     }
 }

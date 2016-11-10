@@ -1,5 +1,6 @@
 package se.teknikhogskolan.springcasemanagement.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -17,9 +18,12 @@ public interface UserRepository extends CrudRepository<User, Long> {
     List<User> findByFirstNameContainingAndLastNameContainingAndUsernameContaining(String firstName, String lastName,
             String username);
 
+    Page<User> findAll(Pageable pageable);
+    
     @Query("select u from User u where u.team.id = :teamId")
     List<User> findByTeamId(@Param("teamId") Long teamId);
     
-    Page<User> findAll(Pageable pageable);
+    @Query("select u from User u where u.created between :startDate and :endDate")
+    List<User> findByCreationDate(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
 }
