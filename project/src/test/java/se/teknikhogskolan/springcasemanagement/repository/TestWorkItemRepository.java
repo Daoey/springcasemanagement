@@ -151,7 +151,7 @@ public final class TestWorkItemRepository {
         Collection<WorkItem> workItemsCreatedToday = executeMany(workItemRepository -> workItemRepository.findByCreationDate(startDate, toDate));
 
         assertTrue(workItemsCreatedToday.contains(workItem));
-
+        
         executeVoid(workItemRepository -> {
             workItemRepository.delete(workItem);
         });
