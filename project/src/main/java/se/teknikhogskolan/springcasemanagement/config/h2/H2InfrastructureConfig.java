@@ -26,7 +26,7 @@ public class H2InfrastructureConfig {
     public DataSource dataSource() {
 
         HikariConfig config = new HikariConfig();
-        config.setDriverClassName("com.mysql.jdbc.Driver");
+        config.setDriverClassName("org.h2.Driver");
         config.setJdbcUrl("jdbc:h2:mem:testdb");
 
         return new HikariDataSource(config);
