@@ -1,17 +1,18 @@
 package se.teknikhogskolan.springcasemanagement.model;
 
 import java.time.LocalDate;
-
+import javax.persistence.Column;
 import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
@@ -21,6 +22,7 @@ public abstract class AbstractEntity {
     private Long id;
 
     @CreatedDate
+    @Column(updatable = false)
     private LocalDate created;
 
     @LastModifiedDate
