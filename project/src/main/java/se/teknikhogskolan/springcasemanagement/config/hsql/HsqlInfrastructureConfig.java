@@ -21,6 +21,9 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 @EnableJpaAuditing
 public class HsqlInfrastructureConfig {
+
+    public static final String HSQL_PROJECT_PACKAGE = "se.teknikhogskolan.springcasemanagement.config.hsql";
+
     @Bean
     public DataSource dataSource() {
         HikariConfig config = new HikariConfig();
