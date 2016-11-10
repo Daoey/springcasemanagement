@@ -2,8 +2,8 @@ package se.teknikhogskolan.springcasemanagement.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -20,6 +20,6 @@ public interface UserRepository extends CrudRepository<User, Long> {
     @Query("select u from User u where u.team.id = :teamId")
     List<User> findByTeamId(@Param("teamId") Long teamId);
     
-    Slice<User> findAll(Pageable pageable);
+    Page<User> findAll(Pageable pageable);
 
 }

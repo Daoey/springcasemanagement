@@ -20,9 +20,10 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.RecoverableDataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
 
 import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
@@ -382,11 +383,11 @@ public final class TestUserService {
     
     @Test
     public void getAllByPageCallsCorrectMethodAndReturnsCorrectSliceOfUsers() {
-        Slice<User> sliceUsers = new SliceImpl<User>(users);
+        Page<User> pageUsers = new PageImpl<User>(users);
         PageRequest pageRequest = new PageRequest(0, 10);
-        when(userRepository.findAll(pageRequest)).thenReturn(sliceUsers);
-        Slice<User> sliceUsersFromDatabase = userService.getAllByPage(0, 10);
-        assertEquals(sliceUsers, sliceUsersFromDatabase);
+        when(userRepository.findAll(pageRequest)).thenReturn(pageUsers);
+        Slice<User> pageUsersFromDatabase = userService.getAllByPage(0, 10);
+        assertEquals(pageUsers, pageUsersFromDatabase);
     }
     
     @Test

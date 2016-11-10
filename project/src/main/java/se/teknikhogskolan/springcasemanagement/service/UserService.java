@@ -3,8 +3,8 @@ package se.teknikhogskolan.springcasemanagement.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import se.teknikhogskolan.springcasemanagement.model.User;
@@ -181,18 +181,18 @@ public class UserService {
         }
     }
     
-    public Slice<User> getAllByPage(int page, int pageSize) {
-        Slice<User> slice;
+    public Page<User> getAllByPage(int pageNumber, int pageSize) {
+        Page<User> page;
         try {
-            slice = userRepository.findAll(new PageRequest(page, pageSize));
+            page = userRepository.findAll(new PageRequest(pageNumber, pageSize));
         } catch (Exception e) {
             throw new ServiceException("Failed to get users by page", e);
         }
 
-        if (slice != null) {
-            return slice;
+        if (page != null) {
+            return page;
         } else
-            throw new NoSearchResultException("No users on page: " + page);
+            throw new NoSearchResultException("No users on page: " + pageNumber);
     }
 
     private boolean usernameLongEnough(String username) {
