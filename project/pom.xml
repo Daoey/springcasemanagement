@@ -17,6 +17,8 @@
 
 		<hikari.version>2.5.1</hikari.version>
 		<jta.version>1.2</jta.version>
+
+		<hsqldb.version>2.3.4</hsqldb.version>
 	</properties>
 
 	<build>
@@ -107,6 +109,12 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-aspects</artifactId>
 			<version>3.1.2.RELEASE</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hsqldb</groupId>
+			<artifactId>hsqldb</artifactId>
+			<version>${hsqldb.version}</version>
 		</dependency>
 	</dependencies>
 
