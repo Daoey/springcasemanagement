@@ -14,8 +14,8 @@ import org.springframework.data.repository.query.Param;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
 
 public interface WorkItemRepository extends CrudRepository<WorkItem, Long> {
-		
-	Page<WorkItem> findAll(Pageable pageable);
+
+    Page<WorkItem> findAll(Pageable pageable);
 
     Collection<WorkItem> findByStatus(WorkItem.Status status);
 
@@ -24,7 +24,7 @@ public interface WorkItemRepository extends CrudRepository<WorkItem, Long> {
     Collection<WorkItem> findByDescriptionContains(String text);
 
     Collection<WorkItem> findByIssueIsNotNull();
-    
+
     @Query("Select w from WorkItem w left join User u on w.user.id = u.id WHERE u.team.id = :teamId")
     List<WorkItem> findByTeamId(@Param("teamId") Long teamId);
 

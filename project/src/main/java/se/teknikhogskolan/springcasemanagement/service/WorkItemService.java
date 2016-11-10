@@ -36,10 +36,10 @@ public class WorkItemService {
         this.userRepository = userRepository;
         this.issueRepository = issueRepository;
     }
-    
-    public Page<WorkItem> getAllByPage(int page, int pageSize){
-    	Page result = workItemRepository.findAll(new PageRequest(page, pageSize));
-    	return result;
+
+    public Page<WorkItem> getAllByPage(int page, int pageSize) {
+        Page result = workItemRepository.findAll(new PageRequest(page, pageSize));
+        return result;
     }
 
     public WorkItem removeIssueFromWorkItem(Long workItemId) {
