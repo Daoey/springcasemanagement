@@ -1,4 +1,4 @@
-package se.teknikhogskolan.springcasemanagement.config;
+package se.teknikhogskolan.springcasemanagement.config.mysql;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;

@@ -20,7 +20,7 @@ import se.teknikhogskolan.springcasemanagement.model.User;
 
 public final class TestUserRepository {
 
-    private static final String PROJECT_PACKAGE = "se.teknikhogskolan.springcasemanagement";
+    private static final String PROJECT_PACKAGE = "se.teknikhogskolan.springcasemanagement.config.hsql";
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
