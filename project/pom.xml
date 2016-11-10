@@ -19,6 +19,8 @@
 		<jta.version>1.2</jta.version>
 
 		<hsqldb.version>2.3.4</hsqldb.version>
+		
+		<dbh2.version>1.4.193</dbh2.version>
 	</properties>
 
 	<build>
@@ -116,6 +118,12 @@
 			<artifactId>hsqldb</artifactId>
 			<version>${hsqldb.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>${dbh2.version}</version>
+		</dependency>
+	
 	</dependencies>
 
 	<dependencyManagement>
