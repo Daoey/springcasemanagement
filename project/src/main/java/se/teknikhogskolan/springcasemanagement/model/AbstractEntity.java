@@ -1,10 +1,12 @@
 package se.teknikhogskolan.springcasemanagement.model;
 
 import java.time.LocalDate;
+import javax.persistence.Column;
 import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
+
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -22,6 +24,7 @@ public abstract class AbstractEntity {
     private Long id;
 
     @CreatedDate
+    @Column(updatable = false)
     private LocalDate created;
 
     @LastModifiedDate
