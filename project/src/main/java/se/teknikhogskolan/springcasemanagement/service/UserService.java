@@ -1,5 +1,6 @@
 package se.teknikhogskolan.springcasemanagement.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -194,7 +195,23 @@ public class UserService {
         } else
             throw new NoSearchResultException("No users on page: " + pageNumber);
     }
-
+    
+    public List<User> getByCreationDate(LocalDate startDate, LocalDate endDate) {        
+        try{
+            List<User> users = userRepository.findByCreationDate(startDate, endDate);
+            if (users == null || users.size() == 0) {
+                throw new NoSearchResultException("No users created between: " + startDate + " and " + endDate);
+            } 
+            else {
+                return users;
+            }
+        }catch(NoSearchResultException e){
+            throw e;
+        }catch(Exception e){
+            throw new ServiceException("Failed to get users created between: " + startDate + " and " + endDate, e);
+        }
+    }
+    
     private boolean usernameLongEnough(String username) {
         final int minimumLengthUsername = 10;
         return username.length() >= minimumLengthUsername;

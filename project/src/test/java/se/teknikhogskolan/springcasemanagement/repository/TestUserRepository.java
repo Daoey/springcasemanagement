@@ -2,6 +2,7 @@ package se.teknikhogskolan.springcasemanagement.repository;
 
 import static org.junit.Assert.assertEquals;
 
+import java.time.LocalDate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -71,11 +72,7 @@ public final class TestUserRepository {
     public void canSearchForUsers() {
 
         long numberOfUsersToAdd = 5;
-        for (long i = 0; i < numberOfUsersToAdd; i++) {
-            Long index = i;
-            executeVoid(userRepository -> userRepository.save(new User(user.getUserNumber() + index,
-                    user.getUsername() + index, user.getFirstName(), user.getLastName())));
-        }
+        addUsers(numberOfUsersToAdd);
 
         // Adding a similar user that should not be found
         executeVoid(userRepository -> userRepository.save(new User(100L, "username wrong", "firstNam", "llastname")));
@@ -145,17 +142,14 @@ public final class TestUserRepository {
         User userFromDatabase = execute(userRepository -> userRepository.findByUserNumber(user.getUserNumber()));
         assertEquals(user, userFromDatabase);
     }
-    
+
     @Test
     public void canGetUsersByPage() {
-        
+
         long numberOfUsersToAdd = 5;
-        for (long i = 0; i < numberOfUsersToAdd; i++) {
-            Long index = i;
-            executeVoid(userRepository -> userRepository.save(new User(user.getUserNumber() + index,
-                    user.getUsername() + index, user.getFirstName(), user.getLastName())));
-        }
-        
+        addUsers(numberOfUsersToAdd);
+
+
         try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
             context.scan(PROJECT_PACKAGE);
             context.refresh();
@@ -164,7 +158,38 @@ public final class TestUserRepository {
             Slice<User> userSlice = userRepository.findAll(new PageRequest(0, 3));
             assertEquals(3, userSlice.getSize());
         }
-        
+    }
+
+    @Test
+    public void canGetUsersIfBetweenDate() {
+        long numberOfUsersToAdd = 5;
+        addUsers(numberOfUsersToAdd);
+
+
+        LocalDate date = LocalDate.now();
+        Iterable<User> users = executeMultiple(userRepository -> userRepository.findByCreationDate(date, date));
+        long usersFound = users.spliterator().getExactSizeIfKnown();
+        assertEquals(numberOfUsersToAdd, usersFound);
+    }
+
+    @Test
+    public void cantGetUsersIfNotBetweenDate() {
+        long numberOfUsersToAdd = 5;
+        addUsers(numberOfUsersToAdd);
+
+        LocalDate startDate = LocalDate.now().minusDays(4);
+        LocalDate endDate = LocalDate.now().minusDays(2);
+        Iterable<User> users = executeMultiple(userRepository -> userRepository.findByCreationDate(startDate, endDate));
+        long usersFound = users.spliterator().getExactSizeIfKnown();
+        assertEquals(0, usersFound);
+    }
+    
+    private void addUsers(long numberOfUsersToAdd) {
+        for (long i = 0; i < numberOfUsersToAdd; i++) {
+            Long index = i;
+            executeVoid(userRepository -> userRepository.save(new User(user.getUserNumber() + index,
+                    user.getUsername() + index, user.getFirstName(), user.getLastName())));
+        }
     }
 
     private void removeAllUsers() {
