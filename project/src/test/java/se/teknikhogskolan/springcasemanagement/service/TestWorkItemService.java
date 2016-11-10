@@ -9,7 +9,6 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 import org.junit.Before;
@@ -22,18 +21,13 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.RecoverableDataAccessException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
 import se.teknikhogskolan.springcasemanagement.model.Issue;
-import se.teknikhogskolan.springcasemanagement.model.Team;
 import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
 import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
-import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 import se.teknikhogskolan.springcasemanagement.repository.WorkItemRepository;
 
@@ -199,9 +193,7 @@ public final class TestWorkItemService {
 
         verify(workItemRepository).findByUserId(userId);
         assertEquals(workItemsWithOurUser, result);
-        result.forEach(item -> {
-            assertEquals(userId, item.getUser().getId());
-        });
+        result.forEach(item -> assertEquals(userId, item.getUser().getId()));
     }
 
     @Test
@@ -266,9 +258,7 @@ public final class TestWorkItemService {
         workItems = workItemService.getAllWithIssue();
 
         verify(workItemRepository).findByIssueIsNotNull();
-        workItems.forEach(item -> {
-            assertNotNull(item.getIssue());
-        });
+        workItems.forEach(item -> assertNotNull(item.getIssue()));
     }
 
     @Test
