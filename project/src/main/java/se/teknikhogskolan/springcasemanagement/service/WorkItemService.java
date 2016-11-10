@@ -5,14 +5,11 @@ import static se.teknikhogskolan.springcasemanagement.model.WorkItem.Status.UNST
 
 import java.time.LocalDate;
 import java.util.Collection;
-import java.util.List;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import se.teknikhogskolan.springcasemanagement.model.Issue;
@@ -150,7 +147,7 @@ public class WorkItemService {
             WorkItem workItem = workItemRepository.findOne(workItemId);
             workItem.setStatus(status);
             if (status.equals(DONE))
-                workItem.setDoneDate(LocalDate.now());
+                workItem.setCompletionDate(LocalDate.now());
             return workItemRepository.save(workItem);
         } catch (NullPointerException e) {
             throw new NoSearchResultException(

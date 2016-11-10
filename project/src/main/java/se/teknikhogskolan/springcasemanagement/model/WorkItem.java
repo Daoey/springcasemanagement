@@ -26,7 +26,7 @@ public class WorkItem extends AbstractEntity {
     @Enumerated(EnumType.STRING)
     private Status status = Status.UNSTARTED;
 
-    private LocalDate doneDate;
+    private LocalDate completionDate;
 
     @OneToOne(cascade = CascadeType.ALL)
     private Issue issue;
@@ -63,12 +63,12 @@ public class WorkItem extends AbstractEntity {
         return this;
     }
 
-    public LocalDate getDoneDate() {
-        return doneDate;
+    public LocalDate getCompletionDate() {
+        return completionDate;
     }
 
-    public WorkItem setDoneDate(LocalDate doneDate) {
-        this.doneDate = doneDate;
+    public WorkItem setCompletionDate(LocalDate completionDate) {
+        this.completionDate = completionDate;
         return this;
     }
 
