@@ -5,6 +5,7 @@ import static se.teknikhogskolan.springcasemanagement.model.WorkItem.Status.UNST
 
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -183,6 +184,21 @@ public class WorkItemService {
             throw e;
         } catch (Exception e) {
             throw new ServiceException(String.format("Cannot remove WorkItem with id '%d'", workItemId), e);
+        }
+    }
+
+    public List<WorkItem> getCompletedWorkItems(LocalDate from, LocalDate to) {
+        try {
+            List<WorkItem> workItems = workItemRepository.findByCompletionDate(from, to);
+            if (null == workItems) {
+                throw new NoSearchResultException("Could not find any completed work items between dates "
+                        + from + " and " + to);
+            }
+            return workItems;
+        } catch (NoSearchResultException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ServiceException("Failed to get completed work items", e);
         }
     }
 
