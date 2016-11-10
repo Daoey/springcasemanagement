@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -38,6 +39,9 @@ public final class TestTeamService {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private Team mockedTeam;
 
     @InjectMocks
     private TeamService teamService;
@@ -263,6 +267,18 @@ public final class TestTeamService {
     }
 
     @Test
+    public void shouldThrowServiceExceptionIfTeamIsFullWhenAddingUserToTeam() {
+        int maxAmountOfUsers = 10;
+        thrown.expect(ServiceException.class);
+        thrown.expectMessage("Team with id '" + teamId + "' already contains 10 users");
+        when(teamRepository.findOne(teamId)).thenReturn(mockedTeam);
+        when(userRepository.findOne(userId)).thenReturn(user);
+        when(mockedTeam.isActive()).thenReturn(true);
+        when(mockedTeam.getUsers()).thenReturn(getUsersFromTeam(maxAmountOfUsers));
+        teamService.addUserToTeam(teamId, userId);
+    }
+
+    @Test
     public void shouldThrowNoSearchResultExceptionIfUserIdIsNullWhenAddingUserToTeam() {
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage("Team with id '" + teamId + "' or User with id '" + userId + "' did not exist.");
@@ -367,5 +383,13 @@ public final class TestTeamService {
         when(userRepository.findOne(userId)).thenReturn(user);
         doThrow(dataAccessException).when(userRepository).save(user);
         teamService.removeUserFromTeam(teamId, userId);
+    }
+
+    private List<User> getUsersFromTeam(int amount) {
+        ArrayList<User> users = new ArrayList<>();
+        for (int i = 0; i < amount; i++) {
+            users.add(new User(10L + i, "username" + i, "", ""));
+        }
+        return users;
     }
 }

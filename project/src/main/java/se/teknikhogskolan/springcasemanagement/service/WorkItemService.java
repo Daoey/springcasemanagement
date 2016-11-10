@@ -11,8 +11,6 @@ import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import se.teknikhogskolan.springcasemanagement.model.Issue;
@@ -135,6 +133,20 @@ public class WorkItemService {
 			return workItemRepository.findByTeamId(teamId);
 		}, String.format("Cannot not get WorkItems by Team id '%s'", teamId));
 	}
+    public WorkItem setStatus(Long workItemId, WorkItem.Status status) {
+        try {
+            WorkItem workItem = workItemRepository.findOne(workItemId);
+            workItem.setStatus(status);
+            if (status.equals(DONE))
+                workItem.setCompletionDate(LocalDate.now());
+            return workItemRepository.save(workItem);
+        } catch (NullPointerException e) {
+            throw new NoSearchResultException(
+                    String.format("Cannot set Status '%s' on WorkItem '%s'", status, workItemId), e);
+        } catch (Exception e) {
+            throw new ServiceException(String.format("Cannot set Status '%s' on WorkItem '%s'", status, workItemId), e);
+        }
+    }
 
 	private Collection<WorkItem> executeMany(Function<WorkItemRepository, Collection<WorkItem>> operation,
 			String exceptionMessage) {
@@ -161,20 +173,20 @@ public class WorkItemService {
 		}
 	}
 
-	public WorkItem setStatus(Long workItemId, WorkItem.Status status) {
-		try {
-			WorkItem workItem = workItemRepository.findOne(workItemId);
-			workItem.setStatus(status);
-			if (status.equals(DONE))
-				workItem.setDoneDate(LocalDate.now());
-			return workItemRepository.save(workItem);
-		} catch (NullPointerException e) {
-			throw new NoSearchResultException(
-					String.format("Cannot set Status '%s' on WorkItem '%s'", status, workItemId), e);
-		} catch (Exception e) {
-			throw new ServiceException(String.format("Cannot set Status '%s' on WorkItem '%s'", status, workItemId), e);
-		}
-	}
+    public List<WorkItem> getCompletedWorkItems(LocalDate from, LocalDate to) {
+        try {
+            List<WorkItem> workItems = workItemRepository.findByCompletionDate(from, to);
+            if (null == workItems) {
+                throw new NoSearchResultException("Could not find any completed work items between dates "
+                        + from + " and " + to);
+            }
+            return workItems;
+        } catch (NoSearchResultException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ServiceException("Failed to get completed work items", e);
+        }
+    }
 
 	public WorkItem getById(Long workItemId) {
 		try {

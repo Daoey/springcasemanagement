@@ -21,6 +21,7 @@ import org.springframework.data.domain.PageRequest;
 
 import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
+import se.teknikhogskolan.springcasemanagement.repository.paging.PagingIssueRepository;
 
 @RunWith(MockitoJUnitRunner.class)
 public final class TestIssueService {
@@ -30,6 +31,9 @@ public final class TestIssueService {
 
     @Mock
     private IssueRepository issueRepository;
+
+    @Mock
+    private PagingIssueRepository pagingIssueRepository;
 
     @InjectMocks
     private IssueService issueService;
@@ -199,7 +203,7 @@ public final class TestIssueService {
 
     @Test
     public void shouldThrowServiceExceptionIfErrorOccurredWhenGettingPage() {
-        doThrow(dataAccessException).when(issueRepository).findAll(new PageRequest(0, 6));
+        doThrow(dataAccessException).when(pagingIssueRepository).findAll(new PageRequest(0, 6));
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Could not get issues by page");
         issueService.getAllByPage(0, 6);

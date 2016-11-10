@@ -119,9 +119,9 @@ public final class TestWorkItemRepository {
 
     @Test
     public void canGetWorkItemsBetweenDates() throws Exception {
-        WorkItem workItemDone = new WorkItem("Perfect Date1").setStatus(Status.DONE).setDoneDate(LocalDate.now());
+        WorkItem workItemDone = new WorkItem("Perfect Date1").setStatus(Status.DONE).setCompletionDate(LocalDate.now());
         executeVoid(workItemRepository -> workItemRepository.save(workItemDone));
-        WorkItem workItemUnStarted = new WorkItem("Perfect Date2").setStatus(Status.UNSTARTED).setDoneDate(LocalDate.now());
+        WorkItem workItemUnStarted = new WorkItem("Perfect Date2").setStatus(Status.UNSTARTED).setCompletionDate(LocalDate.now());
         executeVoid(workItemRepository -> workItemRepository.save(workItemUnStarted));
         WorkItem workItemStarted = new WorkItem("Perfect Date3").setStatus(Status.STARTED);
         executeVoid(workItemRepository -> workItemRepository.save(workItemStarted));

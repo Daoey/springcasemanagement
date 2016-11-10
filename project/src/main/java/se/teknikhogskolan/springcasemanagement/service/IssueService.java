@@ -1,20 +1,24 @@
 package se.teknikhogskolan.springcasemanagement.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
+import se.teknikhogskolan.springcasemanagement.repository.paging.PagingIssueRepository;
 
 @Service
 public class IssueService {
 
     private final IssueRepository issueRepository;
+    private final PagingIssueRepository pagingIssueRepository;
 
     @Autowired
-    public IssueService(IssueRepository issueRepository) {
+    public IssueService(IssueRepository issueRepository, PagingIssueRepository pagingIssueRepository) {
         this.issueRepository = issueRepository;
+        this.pagingIssueRepository = pagingIssueRepository;
     }
 
     public Issue getById(Long issueId) {
@@ -91,10 +95,10 @@ public class IssueService {
         }
     }
 
-    public Slice<Issue> getAllByPage(int page, int pageSize) {
-        Slice<Issue> slice;
+    public Page<Issue> getAllByPage(int page, int pageSize) {
+        Page<Issue> slice;
         try {
-            slice = issueRepository.findAll(new PageRequest(page, pageSize));
+            slice = pagingIssueRepository.findAll(new PageRequest(page, pageSize));
         } catch (Exception e) {
             throw new ServiceException("Could not get issues by page", e);
         }

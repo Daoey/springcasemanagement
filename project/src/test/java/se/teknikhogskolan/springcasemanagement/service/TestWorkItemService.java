@@ -505,4 +505,9 @@ public final class TestWorkItemService {
         when(workItemRepository.findOne(workItemId)).thenThrow(dataAccessException);
         workItemService.setUser(userNumber, workItemId);
     }
+
+    @Test
+    public void canGetCompletedWorkItemsBetweenDates() throws Exception {
+
+    }
 }
