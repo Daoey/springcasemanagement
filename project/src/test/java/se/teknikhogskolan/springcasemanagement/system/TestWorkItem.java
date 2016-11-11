@@ -25,7 +25,6 @@ import se.teknikhogskolan.springcasemanagement.service.WorkItemService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes={H2InfrastructureConfig.class})
-@ComponentScan(basePackages = {"se.teknikhogskolan.springcasemanagement"})
 @Sql({"sql/workitem_data.sql"})
 public class TestWorkItem {    
     @Autowired(required = true)
