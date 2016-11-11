@@ -3,10 +3,8 @@ package se.teknikhogskolan.springcasemanagement.config.h2;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -17,7 +15,11 @@ import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
 @Configuration
+@ComponentScan(basePackages = {"se.teknikhogskolan.springcasemanagement"})
 @EnableJpaRepositories("se.teknikhogskolan.springcasemanagement.repository")
 @EnableTransactionManagement
 @EnableJpaAuditing
@@ -28,7 +30,6 @@ public class H2InfrastructureConfig {
         HikariConfig config = new HikariConfig();
         config.setDriverClassName("org.h2.Driver");
         config.setJdbcUrl("jdbc:h2:mem:testdb");
-        // config.setConnectionInitSql("/home/peferb/workitems.sql");
 
         return new HikariDataSource(config);
     }

@@ -6,49 +6,32 @@ import static org.junit.Assert.assertTrue;
 import java.time.LocalDate;
 import java.util.List;
 
-import org.hibernate.boot.registry.classloading.spi.ClassLoaderService.Work;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import se.teknikhogskolan.springcasemanagement.config.h2.H2InfrastructureConfig;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
-import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
-import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
-import se.teknikhogskolan.springcasemanagement.repository.WorkItemRepository;
 import se.teknikhogskolan.springcasemanagement.service.NoSearchResultException;
 import se.teknikhogskolan.springcasemanagement.service.ServiceException;
 import se.teknikhogskolan.springcasemanagement.service.WorkItemService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
-@Sql({ "drop_schema.sql", "schema.sql", "data.sql" })
-public class TestWorkItem {
-    private static AnnotationConfigApplicationContext context;
-    private static final String PROJECT_PACKAGE = "se.teknikhogskolan.springcasemanagement.config.h2";
-    private static WorkItemService workItemService;
+@ContextConfiguration(classes={H2InfrastructureConfig.class})
+@Sql({"sql/workitem_data.sql"})
+public class TestWorkItem {    
+    @Autowired(required = true)
+    private WorkItemService workItemService;
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
-
-    @BeforeClass
-    public static void setup() {
-        context = new AnnotationConfigApplicationContext();
-        context.scan(PROJECT_PACKAGE);
-        context.refresh();
-        WorkItemRepository workItemRepository = context.getBean(WorkItemRepository.class);
-        UserRepository userRepository = context.getBean(UserRepository.class);
-        IssueRepository issueRepository = context.getBean(IssueRepository.class);
-        workItemService = new WorkItemService(workItemRepository, userRepository, issueRepository);
-    }
-
-    @AfterClass
-    public static void tearDown() {
-        context.close();
-    }
     
     @Test
     public void getByCreatedBetweenDatesShouldThrowNoSearchResultExceptionIfNoMatch() {
@@ -59,6 +42,7 @@ public class TestWorkItem {
     }
     
     @Test
+    @Rollback
     public void canGetByCreatedBetweenDates() {
         WorkItem workItem = workItemService.create("Created today #1");
         LocalDate fromDate = LocalDate.now().minusDays(1);
@@ -68,12 +52,14 @@ public class TestWorkItem {
     }
     
     @Test
+    @Rollback
     public void canCreatePersistentWorkItem() {
         WorkItem result = workItemService.create("description");
         assertNotNull(result.getId());
     }
 
     @Test
+    @Rollback
     public void persistingTwoWorkItemsWithSameDescriptionShouldThrowException() {
         exception.expect(ServiceException.class);
         String description = "duplicate descripton";

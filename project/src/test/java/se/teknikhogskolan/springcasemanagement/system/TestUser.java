@@ -108,5 +108,11 @@ public class TestUser {
         assertEquals(true, lukeBeforeInactivation.isActive());
         User lukeAfterInactivation = userService.inactivate(luke.getUserNumber());
         assertEquals(false, lukeAfterInactivation.isActive());
+
+        System.out.println(lukeAfterInactivation.getWorkItems());  //Skriver ut null trots eager fetch!
+        
+        for(WorkItem workItem : lukeAfterInactivation.getWorkItems()){
+            assertEquals(Status.UNSTARTED, workItem.getStatus());
+        }
     }
 }
