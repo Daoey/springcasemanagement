@@ -6,20 +6,18 @@ import static org.junit.Assert.assertTrue;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
-import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import se.teknikhogskolan.springcasemanagement.config.h2.H2InfrastructureConfig;
@@ -30,7 +28,8 @@ import se.teknikhogskolan.springcasemanagement.service.WorkItemService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes={H2InfrastructureConfig.class})
-//@Sql({"workitem_data.sql"})
+@Sql(scripts = "add_workitem_data.sql", executionPhase = ExecutionPhase.BEFORE_TEST_METHOD)
+@Sql(scripts = "remove_workitem_data.sql", executionPhase = ExecutionPhase.AFTER_TEST_METHOD)
 public class TestWorkItem {    
     @Autowired(required = true)
     private WorkItemService workItemService;
@@ -39,19 +38,15 @@ public class TestWorkItem {
     public ExpectedException exception = ExpectedException.none();
     
     @Before
-    @Sql(scripts = "classpath:add_workitem_data.sql", executionPhase = ExecutionPhase.BEFORE_TEST_METHOD)
-    public void insertTestData(){
-        
-    }
+    public void insertTestData(){}
     
-    @Before
-    @Sql(scripts = "classpath:remove_workitem_data.sql", executionPhase = ExecutionPhase.AFTER_TEST_METHOD)
-    public void removeTestData(){
-        
-    }
+    @After
+    public void removeTestData(){}
     
     @Test
-    public void testWithSql() {
+    public void canGetWorkItem() {
+        Page<WorkItem> result = workItemService.getAllByPage(1, 1);
+        result.forEach(System.out::println);
     }
     
     @Test
