@@ -131,7 +131,6 @@ public class TeamService {
                         + userId + "' or Team with id '" + teamId + "' is inactive");
             } else {
                 if (team.getUsers().size() < 10) {
-                    System.out.println(team.getUsers());
                     user.setTeam(team);
                     userRepository.save(user);
                     return teamRepository.findOne(teamId);
