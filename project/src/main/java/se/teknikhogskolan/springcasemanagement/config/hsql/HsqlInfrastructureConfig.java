@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class HsqlInfrastructureConfig {
     @Bean
     public DataSource dataSource() {
-    	
+        
         HikariConfig config = new HikariConfig();
         config.setDriverClassName("org.hsqldb.jdbc.JDBCDriver");
         config.setJdbcUrl("jdbc:hsqldb:mem:TestSelf");
