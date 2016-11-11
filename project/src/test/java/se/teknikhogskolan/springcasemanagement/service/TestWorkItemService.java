@@ -116,16 +116,17 @@ public final class TestWorkItemService {
             UserRepository userRepository = context.getBean(UserRepository.class);
             IssueRepository issueRepository = context.getBean(IssueRepository.class);
             WorkItemService workItemService = new WorkItemService(workItemRepository, userRepository, issueRepository);
-
-            for (int i = 0; i < 10; ++i)
+            
+            int amountOfItems = 10;
+            for (int i = 0; i < amountOfItems; ++i)
                 workItemService.create(String.format("description #%d", i));
 
-            Slice<WorkItem> result = workItemService.getAllByPage(1, 2);
+            Page<WorkItem> result = workItemService.getAllByPage(1, 2);
             assertNotNull(result);
             assertEquals(2, result.getSize());
 
             List<WorkItem> items = new ArrayList<>();
-            for (int i = 0; i < 10; ++i) {
+            for (int i = 0; i < amountOfItems; ++i) {
                 items.addAll(workItemService.getByDescriptionContains((String.format("description #%d", i))));
                 workItemService.removeById(items.get(0).getId());
                 items.clear();
