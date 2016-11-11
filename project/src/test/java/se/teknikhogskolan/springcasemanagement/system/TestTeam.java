@@ -19,7 +19,7 @@ import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { HsqlInfrastructureConfig.class })
-@Sql("team_data.sql")
+@Sql("data.sql")
 @Transactional
 public class TestTeam {
 
