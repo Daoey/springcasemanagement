@@ -2,6 +2,7 @@ package se.teknikhogskolan.springcasemanagement.model;
 
 import java.util.Collection;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -24,7 +25,7 @@ public class User extends AbstractEntity {
     @ManyToOne
     private Team team;
     
-    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
     private Collection<WorkItem> workItems;
 
     private boolean active;
