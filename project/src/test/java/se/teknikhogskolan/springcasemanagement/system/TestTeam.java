@@ -25,7 +25,7 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { HsqlInfrastructureConfig.class })
-@Sql({"team_drop_schema.sql", "team_schema.sql", "team_data.sql"})
+@Sql({"team_schema.sql", "team_data.sql"})
 @Transactional
 public class TestTeam {
 
