@@ -1,0 +1,1 @@
+delete from Issue where id = 1;
