@@ -1,0 +1,1 @@
+INSERT INTO Team (id, created, active, name) VALUES (1, now, true, 'test');
