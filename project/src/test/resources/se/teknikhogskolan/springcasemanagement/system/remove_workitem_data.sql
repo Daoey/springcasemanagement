@@ -1,0 +1,1 @@
+delete from WorkItem where description = 'hello1';
