@@ -48,9 +48,17 @@ public class TestWorkItem {
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     
     @Test
+    public void canGetAllCreatedBetweenDatesNoMatchShouldThrowNoSearchResultException() {
+        exception.expect(NoSearchResultException.class);
+        LocalDate fromDate = LocalDate.parse("2016-11-01", formatter);
+        LocalDate toDate = LocalDate.parse("2016-11-02", formatter);
+        workItemService.getByCreatedBetweenDates(fromDate, toDate);
+    }
+    
+    @Test
     public void canGetAllCreatedBetweenDates() {
-        LocalDate fromDate = LocalDate.parse("2016-11-10", formatter);
-        LocalDate toDate = LocalDate.parse("2016-11-12", formatter);
+        LocalDate fromDate = LocalDate.parse("2016-11-11", formatter);
+        LocalDate toDate = LocalDate.parse("2016-11-11", formatter);
         List<WorkItem> result = workItemService.getByCreatedBetweenDates(fromDate, toDate);
         assertHasContent(result);
     }
