@@ -1,92 +1,70 @@
 package se.teknikhogskolan.springcasemanagement.system;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 import se.teknikhogskolan.springcasemanagement.config.hsql.HsqlInfrastructureConfig;
 import se.teknikhogskolan.springcasemanagement.model.Team;
-import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
-import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 import se.teknikhogskolan.springcasemanagement.service.TeamService;
 
-import java.util.function.Function;
-
+import static junit.framework.TestCase.assertFalse;
+import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { HsqlInfrastructureConfig.class })
-@Sql({"team_schema.sql", "team_data.sql"})
+@Sql("team_data.sql")
 @Transactional
 public class TestTeam {
+
+    private String name;
+    private Long id;
 
     @Autowired
     private TeamService teamService;
 
-    private Team createdTeam;
-
     @Before
     public void setUp() throws Exception {
-
+        this.name = "test";
+        this.id = 1L;
     }
 
     @Test
     public void canGetTeamById() {
-        Team teamFromDb = teamService.getById(1L);
+        Team teamFromDb = teamService.getById(id);
         assertNotNull(teamFromDb);
     }
 
     @Test
     public void canGetTeamByName() throws Exception {
-        Team teamFromDb = execute(teamService -> teamService.getByName(createdTeam.getName()));
-       // assertEquals(teamFromDb, createdTeam);
+        Team teamFromDb = teamService.getByName(name);
+        assertNotNull(teamFromDb);
     }
 
     @Test
     public void canUpdateName() throws Exception {
         String newName = "Updated name";
-        Team teamFromDb = execute(teamService -> teamService.updateName(createdTeam.getId(), newName));
-        assertEquals(teamFromDb.getName(), newName);
+        Team updatedTeam = teamService.updateName(id, newName);
+        assertEquals(updatedTeam.getName(), newName);
     }
 
     @Test
     public void canInactiveTeam() throws Exception {
-        Team teamFromDb = execute(teamService -> teamService.inactive(createdTeam.getId()));
+        Team teamFromDb = teamService.inactive(id);
         assertFalse(teamFromDb.isActive());
     }
 
     @Test
-    public void canActiveTeam() throws Exception {
-        Team teamFromDb = execute(teamService -> teamService.activate(createdTeam.getId()));
-        assertTrue(teamFromDb.isActive());
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
-            context.scan(HsqlInfrastructureConfig.HSQL_PROJECT_PACKAGE);
-            context.refresh();
-            TeamRepository teamRepository = context.getBean(TeamRepository.class);
-            teamRepository.delete(createdTeam);
-        }
-    }
-
-    private Team execute(Function<TeamService, Team> operation) {
-        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
-            context.scan(HsqlInfrastructureConfig.HSQL_PROJECT_PACKAGE);
-            context.refresh();
-            TeamRepository teamRepository = context.getBean(TeamRepository.class);
-            UserRepository userRepository = context.getBean(UserRepository.class);
-            return operation.apply(new TeamService(teamRepository, userRepository));
-        }
+    public void canActivateTeam() throws Exception {
+        Team inactiveTeamFromDb = teamService.inactive(id);
+        assertFalse(inactiveTeamFromDb.isActive());
+        Team activeTeamFromDb = teamService.activate(id);
+        assertTrue(activeTeamFromDb.isActive());
     }
 }
