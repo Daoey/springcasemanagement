@@ -6,6 +6,8 @@ import javax.sql.DataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
+import se.teknikhogskolan.springcasemanagement.service.WorkItemService;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
@@ -28,7 +30,6 @@ public class H2InfrastructureConfig {
         HikariConfig config = new HikariConfig();
         config.setDriverClassName("org.h2.Driver");
         config.setJdbcUrl("jdbc:h2:mem:testdb");
-        // config.setConnectionInitSql("/home/peferb/workitems.sql");
 
         return new HikariDataSource(config);
     }
