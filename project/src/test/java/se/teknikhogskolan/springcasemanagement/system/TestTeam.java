@@ -10,7 +10,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 import se.teknikhogskolan.springcasemanagement.config.hsql.HsqlInfrastructureConfig;
 import se.teknikhogskolan.springcasemanagement.model.Team;
+import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.service.TeamService;
+import se.teknikhogskolan.springcasemanagement.service.UserService;
 
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
@@ -28,6 +30,9 @@ public class TestTeam {
 
     @Autowired
     private TeamService teamService;
+
+    @Autowired
+    private UserService userService;
 
     @Before
     public void setUp() throws Exception {
@@ -66,5 +71,23 @@ public class TestTeam {
         assertFalse(inactiveTeamFromDb.isActive());
         Team activeTeamFromDb = teamService.activate(id);
         assertTrue(activeTeamFromDb.isActive());
+    }
+
+    @Test
+    public void canGetAllTeams() throws Exception {
+        Iterable<Team> teams = teamService.getAll();
+        assertNotNull(teams);
+    }
+
+    @Test
+    public void canAddUserToTeam() throws Exception {
+        Team team = teamService.addUserToTeam(id, 1L);
+        User user = userService.getByUserNumber(1L);
+        System.out.println(user.getTeam());
+    }
+
+    @Test
+    public void canRemoveUserFromTeam() throws Exception {
+
     }
 }
