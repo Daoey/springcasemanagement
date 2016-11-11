@@ -1,0 +1,1 @@
+insert into WorkItem (id, description) values (1,'hello');

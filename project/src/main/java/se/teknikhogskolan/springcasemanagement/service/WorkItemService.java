@@ -35,10 +35,10 @@ public class WorkItemService {
         this.issueRepository = issueRepository;
     }
     
-    public List<WorkItem> getByCreatedBetweenDates(LocalDate fromDate, LocalDate toDate){
-    	List<WorkItem> result = getAllCreatedBetweenDates(fromDate, toDate);
-    	throwNoSearchResultExceptionIfResultIsEmpty(result);
-    	return result;
+    public List<WorkItem> getByCreatedBetweenDates(LocalDate fromDate, LocalDate toDate) {
+        List<WorkItem> result = getAllCreatedBetweenDates(fromDate, toDate);
+        throwNoSearchResultExceptionIfResultIsEmpty(result);
+        return result;
     }
 
     private List<WorkItem> getAllCreatedBetweenDates(LocalDate fromDate, LocalDate toDate) {

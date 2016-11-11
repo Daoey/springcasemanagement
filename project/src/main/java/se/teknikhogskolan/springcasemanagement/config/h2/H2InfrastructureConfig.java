@@ -28,6 +28,7 @@ public class H2InfrastructureConfig {
         HikariConfig config = new HikariConfig();
         config.setDriverClassName("org.h2.Driver");
         config.setJdbcUrl("jdbc:h2:mem:testdb");
+        // config.setConnectionInitSql("/home/peferb/workitems.sql");
 
         return new HikariDataSource(config);
     }

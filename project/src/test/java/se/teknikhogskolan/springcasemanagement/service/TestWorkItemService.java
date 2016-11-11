@@ -56,20 +56,20 @@ public final class TestWorkItemService {
     @Mock
     private IssueRepository issueRepository;
 
+    @Mock
+    private Page<WorkItem> page;
+
     @InjectMocks
     private WorkItemService workItemService;
 
-	@Mock
-	private Page<WorkItem> page;
-
+    private static final String PROJECT_PACKAGE = "se.teknikhogskolan.springcasemanagement";
+    private final DataAccessException dataAccessException = new RecoverableDataAccessException("Exception");
     private final Long workItemId = 235235L;
     private final Long userNumber = 23553L;
     private final Long userId = 589L;
     private final Long teamId = 23353265L;
     private final Long issueId = 23523L;
     private Collection<WorkItem> workItems = new ArrayList<>();
-    private final DataAccessException dataAccessException = new RecoverableDataAccessException("Exception");
-    private static final String PROJECT_PACKAGE = "se.teknikhogskolan.springcasemanagement";
 
     @Before
     public void setup() {
@@ -87,9 +87,10 @@ public final class TestWorkItemService {
             UserRepository userRepository = context.getBean(UserRepository.class);
             IssueRepository issueRepository = context.getBean(IssueRepository.class);
             WorkItemService workItemService = new WorkItemService(workItemRepository, userRepository, issueRepository);
-            
+
             final int workItemsCreatedToday = 5;
-            for (int i = 0; i < workItemsCreatedToday; ++i) workItemService.create(String.format("Created today #%d", i));
+            for (int i = 0; i < workItemsCreatedToday; ++i)
+                workItemService.create(String.format("Created today #%d", i));
 
             LocalDate fromDate = LocalDate.now().minusDays(1);
             LocalDate toDate = LocalDate.now().plusDays(1);
@@ -116,7 +117,8 @@ public final class TestWorkItemService {
             IssueRepository issueRepository = context.getBean(IssueRepository.class);
             WorkItemService workItemService = new WorkItemService(workItemRepository, userRepository, issueRepository);
 
-            for (int i = 0; i < 10; ++i) workItemService.create(String.format("description #%d", i));
+            for (int i = 0; i < 10; ++i)
+                workItemService.create(String.format("description #%d", i));
 
             Slice<WorkItem> result = workItemService.getAllByPage(1, 2);
             assertNotNull(result);
@@ -135,8 +137,8 @@ public final class TestWorkItemService {
     public void canGetAllBySlicesMocked() {
         workItems.add(workItem);
         PageRequest pageRequest = new PageRequest(1, 1);
-    	when(workItemRepository.findAll(pageRequest)).thenReturn(page);
-    	when(page.hasContent()).thenReturn(true);
+        when(workItemRepository.findAll(pageRequest)).thenReturn(page);
+        when(page.hasContent()).thenReturn(true);
         Page<WorkItem> result = workItemService.getAllByPage(1, 1);
         assertEquals(page, result);
     }
@@ -146,7 +148,7 @@ public final class TestWorkItemService {
         LocalDate fromDate = LocalDate.now().minusDays(1);
         LocalDate toDate = LocalDate.now().plusDays(1);
         workItems.add(workItem);
-    	when(workItemRepository.findByCreationDate(fromDate, toDate)).thenReturn((List) workItems);
+        when(workItemRepository.findByCreationDate(fromDate, toDate)).thenReturn((List) workItems);
         List<WorkItem> result = workItemService.getByCreatedBetweenDates(fromDate, toDate);
         assertEquals(workItem, result.get(0));
     }
