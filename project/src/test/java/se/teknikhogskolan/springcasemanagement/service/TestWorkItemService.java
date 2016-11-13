@@ -116,7 +116,7 @@ public final class TestWorkItemService {
             UserRepository userRepository = context.getBean(UserRepository.class);
             IssueRepository issueRepository = context.getBean(IssueRepository.class);
             WorkItemService workItemService = new WorkItemService(workItemRepository, userRepository, issueRepository);
-            
+
             int amountOfItems = 10;
             for (int i = 0; i < amountOfItems; ++i)
                 workItemService.create(String.format("description #%d", i));
@@ -148,8 +148,9 @@ public final class TestWorkItemService {
     public void canGetAllByCreationDateMocked() {
         LocalDate fromDate = LocalDate.now().minusDays(1);
         LocalDate toDate = LocalDate.now().plusDays(1);
-        workItems.add(workItem);
-        when(workItemRepository.findByCreationDate(fromDate, toDate)).thenReturn((List) workItems);
+        List<WorkItem> listToReturn = new ArrayList<>();
+        listToReturn.add(workItem);
+        when(workItemRepository.findByCreationDate(fromDate, toDate)).thenReturn(listToReturn);
         List<WorkItem> result = workItemService.getByCreatedBetweenDates(fromDate, toDate);
         assertEquals(workItem, result.get(0));
     }
