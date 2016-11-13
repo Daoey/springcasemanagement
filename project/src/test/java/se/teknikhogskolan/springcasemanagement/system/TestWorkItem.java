@@ -9,8 +9,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -38,12 +36,6 @@ public class TestWorkItem {
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
-    
-    @Before
-    public void insertTestData(){}
-    
-    @After
-    public void removeTestData(){}
 
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     
@@ -69,7 +61,7 @@ public class TestWorkItem {
 
     @Test
     public void canGetWorkItemByDescription() {
-        Collection<WorkItem> result = workItemService.getByDescriptionContains("1");
+        Collection<WorkItem> result = workItemService.getByDescriptionContains("Do this!");
         assertHasContent(result);
     }
     

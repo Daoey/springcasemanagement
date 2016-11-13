@@ -1,1 +1,1 @@
-delete from WorkItem where description = 'hello1';
+delete from WorkItem where description = 'Do this!';
