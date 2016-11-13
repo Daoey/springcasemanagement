@@ -1,8 +1,13 @@
 package se.teknikhogskolan.springcasemanagement.system;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static se.teknikhogskolan.springcasemanagement.model.WorkItem.Status.DONE;
+import static se.teknikhogskolan.springcasemanagement.model.WorkItem.Status.STARTED;
+import static se.teknikhogskolan.springcasemanagement.model.WorkItem.Status.UNSTARTED;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -21,7 +26,9 @@ import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import se.teknikhogskolan.springcasemanagement.config.h2.H2InfrastructureConfig;
+import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
+import se.teknikhogskolan.springcasemanagement.service.IssueService;
 import se.teknikhogskolan.springcasemanagement.service.NoSearchResultException;
 import se.teknikhogskolan.springcasemanagement.service.ServiceException;
 import se.teknikhogskolan.springcasemanagement.service.WorkItemService;
@@ -38,6 +45,43 @@ public class TestWorkItem {
     public ExpectedException exception = ExpectedException.none();
 
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    
+    @Test
+    @Rollback
+    public void canRemoveIssueFromWorkItem() {
+        Issue issue = workItemService.createIssue("This is an Issue!");
+        WorkItem workItem = workItemService.create("Remove Issue from WorkItem!");
+        workItem = workItemService.setStatus(workItem.getId(), DONE);
+        workItem = workItemService.addIssueToWorkItem(issue.getId(), workItem.getId());
+        assertEquals(issue, workItem.getIssue());
+        workItem = workItemService.removeIssueFromWorkItem(workItem.getId());
+        assertNull(workItem.getIssue());
+    }
+    
+    @Test
+    @Rollback
+    public void canAddIssueToWorkItem() {
+        Issue issue = workItemService.createIssue("This is an Issue!");
+        WorkItem workItem = workItemService.create("Add Issue to WorkItem!");
+        workItem = workItemService.setStatus(workItem.getId(), DONE);
+        workItem = workItemService.addIssueToWorkItem(issue.getId(), workItem.getId());
+        assertEquals(issue, workItem.getIssue());
+    }
+    
+    @Test
+    @Rollback
+    public void canChangeWorkItemStatus() {
+        WorkItem workItem = workItemService.create("Change the status.");
+        workItem = workItemService.setStatus(workItem.getId(), STARTED);
+        assertEquals(STARTED, workItem.getStatus());
+    }
+    
+    @Test
+    @Rollback
+    public void canCreateIssue() {
+        Issue issue = workItemService.createIssue("This is an Issue!");
+        assertNotNull(issue.getId());
+    }
     
     @Test
     public void canGetAllCreatedBetweenDatesNoMatchShouldThrowNoSearchResultException() {
