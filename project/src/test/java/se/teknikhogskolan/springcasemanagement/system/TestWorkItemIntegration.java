@@ -47,6 +47,13 @@ public class TestWorkItemIntegration {
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     
     @Test
+    public void canGetWorkItemsWithIssue() {
+        Collection<WorkItem> result = workItemService.getAllWithIssue();
+        final int workItemsWithIssue = 1;
+        assertEquals(workItemsWithIssue, result.size());
+    }
+    
+    @Test
     public void canGetByUser() {
         final Long userNumber = 10003L;
         List<WorkItem> result = new ArrayList<>();
