@@ -28,7 +28,7 @@ import static org.junit.Assert.assertNotNull;
         @Sql(scripts = "insert_team.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
         @Sql(scripts = "hsql_clean_tables.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 })
-public class TestTeam {
+public class TestTeamIntegration {
 
     //Same as in the insert_team.sql file
     private String name;

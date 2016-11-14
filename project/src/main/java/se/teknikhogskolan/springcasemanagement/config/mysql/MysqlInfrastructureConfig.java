@@ -20,7 +20,7 @@ import se.teknikhogskolan.springcasemanagement.config.JpaConfig;
 @EnableJpaRepositories("se.teknikhogskolan.springcasemanagement.repository")
 @EnableTransactionManagement
 @EnableJpaAuditing
-public class InfrastructureConfig extends JpaConfig {
+public class MysqlInfrastructureConfig extends JpaConfig {
     
     @Bean
     @Override
