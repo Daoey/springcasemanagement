@@ -24,7 +24,7 @@ import static junit.framework.TestCase.assertTrue;
 @ContextConfiguration(classes = H2InfrastructureConfig.class)
 @SqlGroup({
         @Sql(scripts = "insert_issue.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
-        @Sql(scripts = "delete_issue.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+        @Sql(scripts = "truncate_all_tables.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 })
 public class TestIssue {
 
