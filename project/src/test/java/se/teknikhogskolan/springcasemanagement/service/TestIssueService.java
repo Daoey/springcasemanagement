@@ -23,6 +23,9 @@ import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
 import se.teknikhogskolan.springcasemanagement.repository.paging.PagingIssueRepository;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @RunWith(MockitoJUnitRunner.class)
 public final class TestIssueService {
 
@@ -75,18 +78,20 @@ public final class TestIssueService {
     @Test
     public void canGetIssueByDescription() {
         String desc = "Test";
-        when(issueRepository.findByDescription(desc)).thenReturn(issueInDb);
-        Issue issueFromDb = issueService.getByDescription(desc);
+        List<Issue> issuesInDb = new ArrayList<>();
+        issuesInDb.add(issueInDb);
+        when(issueRepository.findByDescription(desc)).thenReturn(issuesInDb);
+        List<Issue> issuesFromDb = issueService.getByDescription(desc);
 
         verify(issueRepository).findByDescription(desc);
-        assertEquals(issueFromDb, issueInDb);
+        assertEquals(issuesFromDb.get(0), issueInDb);
     }
 
     @Test
     public void shouldThrowNoSearchResultExceptionWhenGettingIssueByDescriptionThatDoNotExist() {
         String desc = "Test";
         thrown.expect(NoSearchResultException.class);
-        thrown.expectMessage("Issue with description '" + desc + "' do not exist");
+        thrown.expectMessage("No issues with description '" + desc + "' do not exist");
         when(issueRepository.findByDescription(desc)).thenReturn(null);
         issueService.getByDescription(desc);
     }
@@ -95,7 +100,7 @@ public final class TestIssueService {
     public void shouldThrowServiceExceptionIfErrorOccursWhenGettingIssueByDescription() {
         String desc = "Test";
         thrown.expect(ServiceException.class);
-        thrown.expectMessage("Could not get issue with description: " + desc);
+        thrown.expectMessage("Could not get issues with description: " + desc);
         doThrow(dataAccessException).when(issueRepository).findByDescription(desc);
         issueService.getByDescription(desc);
     }
