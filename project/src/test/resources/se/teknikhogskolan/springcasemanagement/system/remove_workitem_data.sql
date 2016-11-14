@@ -10,4 +10,9 @@ delete from Team where id = 2465878;
 delete from Issue where id = 123541;
 
 --Remove data from tests
+SET FOREIGN_KEY_CHECKS=0;
 truncate table WorkItem;
+truncate table User;
+truncate table Team;
+truncate table Issue;
+SET FOREIGN_KEY_CHECKS=1;
