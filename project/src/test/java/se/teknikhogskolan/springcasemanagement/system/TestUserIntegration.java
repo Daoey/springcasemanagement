@@ -23,17 +23,15 @@ import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
 import se.teknikhogskolan.springcasemanagement.service.UserService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {HsqlInfrastructureConfig.class})
-@SqlGroup({
-        @Sql(scripts = "insert_user.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
-        @Sql(scripts = "hsql_clean_tables.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-})
+@ContextConfiguration(classes = { HsqlInfrastructureConfig.class })
+@SqlGroup({ @Sql(scripts = "insert_user.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+        @Sql(scripts = "hsql_clean_tables.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD) })
 public class TestUserIntegration {
 
     @Autowired
     private UserService userService;
 
-    //Same as the the initialisation in insert_user.sql
+    // Same as the the initialisation in insert_user.sql
     private final User luke = new User(1L, "Robotarm Luke", "Luke", "Skywalker");
     private final User vader = new User(2L, "I am your father", "Darth", "Vader");
     private final User leia = new User(3L, "I am your sister", "Leia", "Skywalker");
@@ -42,7 +40,8 @@ public class TestUserIntegration {
     @Test
     public void canCreateNewUser() {
         User han = new User(5L, "Captain Solo", "Han", "Solo");
-        User databaseHan = userService.create(han.getUserNumber(), han.getUsername(), han.getFirstName(), han.getLastName());
+        User databaseHan = userService.create(han.getUserNumber(), han.getUsername(), han.getFirstName(),
+                han.getLastName());
         assertEquals(han, databaseHan);
     }
 
@@ -100,7 +99,7 @@ public class TestUserIntegration {
         lightSideUsers.add(luke);
         lightSideUsers.add(leia);
         lightSideUsers.add(yoda);
-        //Team id 1L is the light side team
+        // Team id 1L is the light side team
         List<User> lightSideUsersFromDataBase = userService.getAllByTeamId(1L);
         assertEquals(lightSideUsers.size(), lightSideUsersFromDataBase.size());
         assertTrue(lightSideUsersFromDataBase.contains(luke));
@@ -137,7 +136,8 @@ public class TestUserIntegration {
 
     @Test
     public void getByCreationDate() {
-        List<User> usersFromDatabase = userService.getByCreationDate(LocalDate.of(2016, 11, 11), LocalDate.of(2016, 11, 12));
+        List<User> usersFromDatabase = userService.getByCreationDate(LocalDate.of(2016, 11, 11),
+                LocalDate.of(2016, 11, 12));
         assertEquals(2, usersFromDatabase.size());
         assertTrue(usersFromDatabase.contains(luke));
         assertTrue(usersFromDatabase.contains(vader));

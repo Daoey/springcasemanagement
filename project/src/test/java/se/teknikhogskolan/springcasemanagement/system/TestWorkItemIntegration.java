@@ -38,11 +38,11 @@ import se.teknikhogskolan.springcasemanagement.service.WorkItemService;
 @Sql(scripts = "h2_clean_tables.sql", executionPhase = ExecutionPhase.AFTER_TEST_METHOD)
 public class TestWorkItemIntegration {
 
-    @Autowired
-    private WorkItemService workItemService;
-
     @Rule
     public ExpectedException exception = ExpectedException.none();
+    
+    @Autowired
+    private WorkItemService workItemService;
 
     private final Long workItemLeadTeamId = 98486464L;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");

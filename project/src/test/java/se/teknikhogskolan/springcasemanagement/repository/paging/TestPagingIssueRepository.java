@@ -1,19 +1,20 @@
 package se.teknikhogskolan.springcasemanagement.repository.paging;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import se.teknikhogskolan.springcasemanagement.model.Issue;
-import se.teknikhogskolan.springcasemanagement.repository.TestIssueRepository;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
+import se.teknikhogskolan.springcasemanagement.model.Issue;
+import se.teknikhogskolan.springcasemanagement.repository.TestIssueRepository;
 
 public final class TestPagingIssueRepository {
 
@@ -29,7 +30,8 @@ public final class TestPagingIssueRepository {
     public void canGetIssueByPage() {
         int pageSize = 7;
         List<Issue> issuesInDb = addIssuesToDb(10);
-        Page<Issue> issuePage = executeMany(pagingIssueRepository -> pagingIssueRepository.findAll(new PageRequest(0, pageSize)));
+        Page<Issue> issuePage = executeMany(
+                pagingIssueRepository -> pagingIssueRepository.findAll(new PageRequest(0, pageSize)));
 
         issuePage.forEach(issue -> assertTrue(issuesInDb.contains(issue)));
         assertEquals(issuePage.getSize(), pageSize);

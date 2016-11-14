@@ -34,6 +34,8 @@ import se.teknikhogskolan.springcasemanagement.repository.WorkItemRepository;
 
 public final class TestWorkItemService {
 
+    private static final String PROJECT_PACKAGE = "se.teknikhogskolan.springcasemanagement";
+    
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
@@ -61,7 +63,6 @@ public final class TestWorkItemService {
     @InjectMocks
     private WorkItemService workItemService;
 
-    private static final String PROJECT_PACKAGE = "se.teknikhogskolan.springcasemanagement";
     private final DataAccessException dataAccessException = new RecoverableDataAccessException("Exception");
     private final Long workItemId = 235235L;
     private final Long userNumber = 23553L;

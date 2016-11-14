@@ -7,6 +7,9 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -22,9 +25,6 @@ import org.springframework.data.domain.PageRequest;
 import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
 import se.teknikhogskolan.springcasemanagement.repository.paging.PagingIssueRepository;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @RunWith(MockitoJUnitRunner.class)
 public final class TestIssueService {
@@ -119,8 +119,8 @@ public final class TestIssueService {
     public void shouldThrowServiceExceptionIfIssueIsInactiveWhenUpdatingIssueDescription() {
         issueInDb.setActive(false);
         thrown.expect(ServiceException.class);
-        thrown.expectMessage("Could not update "
-                + "description on Issue with issueId '" + issueId + "' since it's inactivate.");
+        thrown.expectMessage(
+                "Could not update " + "description on Issue with issueId '" + issueId + "' since it's inactivate.");
         when(issueRepository.findOne(issueId)).thenReturn(issueInDb);
         issueService.updateDescription(issueId, "test");
     }
@@ -128,8 +128,8 @@ public final class TestIssueService {
     @Test
     public void shouldThrowNoSearchResultExceptionWhenUpdatingDescriptionOnANonExistingIssue() {
         thrown.expect(NoSearchResultException.class);
-        thrown.expectMessage("Failed to update issue with id '"
-                + issueId + "' since it could not be found in the database");
+        thrown.expectMessage(
+                "Failed to update issue with id '" + issueId + "' since it could not be found in the database");
         when(issueRepository.findOne(issueId)).thenReturn(null);
         issueService.updateDescription(issueId, "test");
     }
@@ -155,8 +155,8 @@ public final class TestIssueService {
     @Test
     public void shouldThrowNoSearchResultExceptionWhenInactivatingAnIssueThatDoNotExist() {
         thrown.expect(NoSearchResultException.class);
-        thrown.expectMessage("Failed to inactive issue with id '"
-                + issueId + "' since it could not be found in the database");
+        thrown.expectMessage(
+                "Failed to inactive issue with id '" + issueId + "' since it could not be found in the database");
         issueInDb.setActive(true);
         when(issueRepository.findOne(issueId)).thenReturn(null);
         issueService.inactivate(issueId);
@@ -184,8 +184,8 @@ public final class TestIssueService {
     @Test
     public void shouldThrowNoSearchResultExceptionWhenActivatingAnIssueThatDoNotExist() {
         thrown.expect(NoSearchResultException.class);
-        thrown.expectMessage("Failed to activate issue with id '"
-                + issueId + "' since it could not be found in the database");
+        thrown.expectMessage(
+                "Failed to activate issue with id '" + issueId + "' since it could not be found in the database");
         issueInDb.setActive(false);
         when(issueRepository.findOne(issueId)).thenReturn(null);
         issueService.activate(issueId);

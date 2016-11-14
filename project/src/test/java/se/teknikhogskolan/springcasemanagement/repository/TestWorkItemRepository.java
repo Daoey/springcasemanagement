@@ -1,5 +1,11 @@
 package se.teknikhogskolan.springcasemanagement.repository;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.function.Consumer;
@@ -14,8 +20,6 @@ import se.teknikhogskolan.springcasemanagement.model.Team;
 import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
-
-import static org.junit.Assert.*;
 
 public final class TestWorkItemRepository {
     private static final String PROJECT_PACKAGE = "se.teknikhogskolan.springcasemanagement";
