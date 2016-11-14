@@ -26,8 +26,7 @@ public class UserService {
         User user;
         if (usernameLongEnough(username)) {
             user = new User(userNumber, username, firstName, lastName);
-        }
-        else{
+        } else {
             throw new ServiceException("Username too short");
         }
         try {
@@ -184,7 +183,7 @@ public class UserService {
                     + lastName + ", username = " + username, e);
         }
     }
-    
+
     public Page<User> getAllByPage(int pageNumber, int pageSize) {
         Page<User> page;
         try {
@@ -198,23 +197,22 @@ public class UserService {
         } else
             throw new NoSearchResultException("No users on page: " + pageNumber);
     }
-    
-    public List<User> getByCreationDate(LocalDate startDate, LocalDate endDate) {        
-        try{
+
+    public List<User> getByCreationDate(LocalDate startDate, LocalDate endDate) {
+        try {
             List<User> users = userRepository.findByCreationDate(startDate, endDate);
             if (users == null || users.size() == 0) {
                 throw new NoSearchResultException("No users created between: " + startDate + " and " + endDate);
-            } 
-            else {
+            } else {
                 return users;
             }
-        }catch(NoSearchResultException e){
+        } catch (NoSearchResultException e) {
             throw e;
-        }catch(Exception e){
+        } catch (Exception e) {
             throw new ServiceException("Failed to get users created between: " + startDate + " and " + endDate, e);
         }
     }
-    
+
     private boolean usernameLongEnough(String username) {
         final int minimumLengthUsername = 10;
         return username.length() >= minimumLengthUsername;

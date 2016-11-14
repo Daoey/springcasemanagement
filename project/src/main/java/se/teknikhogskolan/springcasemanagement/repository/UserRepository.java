@@ -16,14 +16,13 @@ public interface UserRepository extends CrudRepository<User, Long> {
     User findByUserNumber(Long userNumber);
 
     List<User> findByFirstNameContainingAndLastNameContainingAndUsernameContaining(String firstName, String lastName,
-            String username);
+                                                                                   String username);
 
     Page<User> findAll(Pageable pageable);
-    
+
     @Query("select u from User u where u.team.id = :teamId")
     List<User> findByTeamId(@Param("teamId") Long teamId);
-    
+
     @Query("select u from User u where u.created between :startDate and :endDate")
     List<User> findByCreationDate(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
-
 }

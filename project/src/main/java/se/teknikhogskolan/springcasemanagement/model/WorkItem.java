@@ -10,12 +10,8 @@ import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
-
-
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-
-
 
 @Entity
 public class WorkItem extends AbstractEntity {

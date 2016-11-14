@@ -9,10 +9,10 @@ import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 
 public abstract class JpaConfig {
-    
+
     @Bean
     public abstract DataSource dataSource();
-    
+
     @Bean
     public abstract JpaVendorAdapter jpaVendorAdapter();
 
@@ -23,13 +23,10 @@ public abstract class JpaConfig {
 
     @Bean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
-
         LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
         factory.setDataSource(dataSource());
         factory.setJpaVendorAdapter(jpaVendorAdapter());
         factory.setPackagesToScan("se.teknikhogskolan.springcasemanagement.model");
-
         return factory;
     }
-    
 }

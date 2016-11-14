@@ -2,6 +2,9 @@ package se.teknikhogskolan.springcasemanagement.config.hsql;
 
 import javax.sql.DataSource;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -11,9 +14,6 @@ import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 
 import se.teknikhogskolan.springcasemanagement.config.JpaConfig;
 
@@ -27,11 +27,9 @@ public class HsqlInfrastructureConfig extends JpaConfig {
     @Bean
     @Override
     public DataSource dataSource() {
-        
         HikariConfig config = new HikariConfig();
         config.setDriverClassName("org.hsqldb.jdbc.JDBCDriver");
         config.setJdbcUrl("jdbc:hsqldb:mem:TestSelf");
-        
         return new HikariDataSource(config);
     }
 

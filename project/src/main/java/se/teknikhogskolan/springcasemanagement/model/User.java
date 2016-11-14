@@ -24,7 +24,7 @@ public class User extends AbstractEntity {
 
     @ManyToOne
     private Team team;
-    
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
     private Collection<WorkItem> workItems;
 
@@ -82,7 +82,7 @@ public class User extends AbstractEntity {
         this.team = team;
         return this;
     }
-    
+
     public Collection<WorkItem> getWorkItems() {
         return workItems;
     }
@@ -94,7 +94,7 @@ public class User extends AbstractEntity {
     public void setActive(boolean active) {
         this.active = active;
     }
-    
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -106,7 +106,7 @@ public class User extends AbstractEntity {
         }
         return false;
     }
-    
+
     @Override
     public int hashCode() {
         int result = 17;

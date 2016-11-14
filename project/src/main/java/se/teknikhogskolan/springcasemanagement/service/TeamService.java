@@ -109,7 +109,7 @@ public class TeamService {
         try {
             teams = teamRepository.findAll();
             if (teams == null)
-                 throw new NoSearchResultException("No teams were found in the database");
+                throw new NoSearchResultException("No teams were found in the database");
             return teams;
         } catch (NoSearchResultException e) {
             throw e;

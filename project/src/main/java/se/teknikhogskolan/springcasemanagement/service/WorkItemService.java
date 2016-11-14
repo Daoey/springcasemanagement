@@ -34,7 +34,7 @@ public class WorkItemService {
         this.userRepository = userRepository;
         this.issueRepository = issueRepository;
     }
-    
+
     public List<WorkItem> getByCreatedBetweenDates(LocalDate fromDate, LocalDate toDate) {
         List<WorkItem> result = getAllCreatedBetweenDates(fromDate, toDate);
         throwNoSearchResultExceptionIfResultIsEmpty(result);
@@ -55,7 +55,13 @@ public class WorkItemService {
             throw new NoSearchResultException();
         }
     }
-    
+
+    private void throwNoSearchResultExceptionIfResultIsEmpty(Page<WorkItem> result) {
+        if (null == result || !result.hasContent()) {
+            throw new NoSearchResultException();
+        }
+    }
+
     public Page<WorkItem> getAllByPage(int page, int pageSize) {
         Page<WorkItem> result = getAllByPage(new PageRequest(page, pageSize));
         throwNoSearchResultExceptionIfResultIsEmpty(result);
@@ -68,12 +74,6 @@ public class WorkItemService {
         } catch (Exception e) {
             throw new ServiceException(String.format("Could not get Page '%d' with size '%d'",
                     pageRequest.getPageNumber(), pageRequest.getPageSize()), e);
-        }
-    }
-
-    private void throwNoSearchResultExceptionIfResultIsEmpty(Page<WorkItem> result) {
-        if (null == result || !result.hasContent()) {
-            throw new NoSearchResultException();
         }
     }
 
