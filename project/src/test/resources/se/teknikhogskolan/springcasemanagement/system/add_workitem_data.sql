@@ -14,5 +14,8 @@ insert into WorkItem (id, created, description, status, user_id)
 insert into WorkItem (id, created, description, status, user_id) 
 	values (45634545, '2016-11-11', 'Keep everybody smiling', 'STARTED', 23523);
 	
+insert into WorkItem (id, created, description, status) 
+	values (8658766, '2016-11-11', 'Invent cool stuff', 'STARTED');
+	
 insert into WorkItem (id, created, description, status, user_id, issue_id) 
 	values (12343456, '2016-11-11', 'Lead TMNT', 'STARTED', 10001, 123541);

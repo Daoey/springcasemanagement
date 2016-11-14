@@ -47,9 +47,20 @@ public class TestWorkItem {
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     
     @Test
+    public void canAddWorkItemToUser() {
+        Long workItemIdWithoutUser = 8658766L; // WorkItem id
+        Long userNumberWithoutWorkItem = 924234L; // User number
+        WorkItem workItem = workItemService.getById(workItemIdWithoutUser);
+        assertNull(workItem.getUser());
+        workItem = workItemService.setUser(userNumberWithoutWorkItem, workItemIdWithoutUser);
+        assertEquals(userNumberWithoutWorkItem, workItem.getUser().getUserNumber());
+    }
+    
+    @Test
     public void canGetByStatus() {
+        final int workItemsStarted = 3;
         Collection<WorkItem> result = workItemService.getByStatus(STARTED);
-        assertEquals(2, result.size());
+        assertEquals(workItemsStarted, result.size());
     }
     
     @Test
