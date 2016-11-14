@@ -44,13 +44,34 @@ public class TestWorkItem {
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
+    private final Long workItemInDatabaseId = 98486464L;
+    private final String workItemInDatabaseDescription = "Lead TMNT";
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     
     @Test
-    @Rollback
+    public void canGetByStatus() {
+        Collection<WorkItem> result = workItemService.getByStatus(STARTED);
+        result.remove(null);
+        assertEquals(2, result.size());
+    }
+    
+    @Test
+    public void canRemoveWorkItem() {
+        exception.expect(NoSearchResultException.class);
+        workItemService.removeById(workItemInDatabaseId);
+        workItemService.getById(workItemInDatabaseId);
+    }
+    
+    @Test
+    public void canGetById() {
+        WorkItem result = workItemService.getById(workItemInDatabaseId);
+        assertEquals(workItemInDatabaseId, result.getId());
+    }
+    
+    @Test
     public void canRemoveIssueFromWorkItem() {
-        Issue issue = workItemService.createIssue("This is an Issue!");
-        WorkItem workItem = workItemService.create("Remove Issue from WorkItem!");
+        Issue issue = workItemService.createIssue("This is an Issue");
+        WorkItem workItem = workItemService.getById(workItemInDatabaseId);
         workItem = workItemService.setStatus(workItem.getId(), DONE);
         workItem = workItemService.addIssueToWorkItem(issue.getId(), workItem.getId());
         assertEquals(issue, workItem.getIssue());
@@ -59,25 +80,22 @@ public class TestWorkItem {
     }
     
     @Test
-    @Rollback
     public void canAddIssueToWorkItem() {
         Issue issue = workItemService.createIssue("This is an Issue!");
-        WorkItem workItem = workItemService.create("Add Issue to WorkItem!");
+        WorkItem workItem = workItemService.getById(workItemInDatabaseId);
         workItem = workItemService.setStatus(workItem.getId(), DONE);
         workItem = workItemService.addIssueToWorkItem(issue.getId(), workItem.getId());
         assertEquals(issue, workItem.getIssue());
     }
     
     @Test
-    @Rollback
     public void canChangeWorkItemStatus() {
-        WorkItem workItem = workItemService.create("Change the status.");
+        WorkItem workItem = workItemService.getById(workItemInDatabaseId);
         workItem = workItemService.setStatus(workItem.getId(), STARTED);
         assertEquals(STARTED, workItem.getStatus());
     }
     
     @Test
-    @Rollback
     public void canCreateIssue() {
         Issue issue = workItemService.createIssue("This is an Issue!");
         assertNotNull(issue.getId());
@@ -105,7 +123,7 @@ public class TestWorkItem {
 
     @Test
     public void canGetWorkItemByDescription() {
-        Collection<WorkItem> result = workItemService.getByDescriptionContains("Do this!");
+        Collection<WorkItem> result = workItemService.getByDescriptionContains(workItemInDatabaseDescription);
         assertHasContent(result);
     }
     
@@ -124,7 +142,6 @@ public class TestWorkItem {
     }
     
     @Test
-    @Rollback
     public void canGetByCreatedBetweenDates() {
         WorkItem workItem = workItemService.create("Created today #1");
         LocalDate fromDate = LocalDate.now().minusDays(1);
@@ -134,14 +151,12 @@ public class TestWorkItem {
     }
     
     @Test
-    @Rollback
     public void canCreatePersistentWorkItem() {
         WorkItem result = workItemService.create("description");
         assertNotNull(result.getId());
     }
 
     @Test
-    @Rollback
     public void persistingTwoWorkItemsWithSameDescriptionShouldThrowException() {
         exception.expect(ServiceException.class);
         String description = "duplicate descripton";
