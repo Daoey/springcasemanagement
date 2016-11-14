@@ -7,6 +7,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static se.teknikhogskolan.springcasemanagement.model.WorkItem.Status.DONE;
 import static se.teknikhogskolan.springcasemanagement.model.WorkItem.Status.STARTED;
+import static se.teknikhogskolan.springcasemanagement.model.WorkItem.Status.UNSTARTED;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -33,7 +34,7 @@ import se.teknikhogskolan.springcasemanagement.service.WorkItemService;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes={H2InfrastructureConfig.class})
 @Sql(scripts = "add_workitem_data.sql", executionPhase = ExecutionPhase.BEFORE_TEST_METHOD)
-@Sql(scripts = "clean_all_tables_h2.sql", executionPhase = ExecutionPhase.AFTER_TEST_METHOD)
+@Sql(scripts = "h2_clean_tables.sql", executionPhase = ExecutionPhase.AFTER_TEST_METHOD)
 public class TestWorkItem {    
     @Autowired(required = true)
     private WorkItemService workItemService;
@@ -48,7 +49,6 @@ public class TestWorkItem {
     @Test
     public void canGetByStatus() {
         Collection<WorkItem> result = workItemService.getByStatus(STARTED);
-        result.remove(null);
         assertEquals(2, result.size());
     }
     
@@ -88,6 +88,7 @@ public class TestWorkItem {
     @Test
     public void canChangeWorkItemStatus() {
         WorkItem workItem = workItemService.getById(workItemInDatabaseId);
+        assertEquals(UNSTARTED, workItem.getStatus());
         workItem = workItemService.setStatus(workItem.getId(), STARTED);
         assertEquals(STARTED, workItem.getStatus());
     }
