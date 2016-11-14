@@ -6,7 +6,7 @@ import static org.junit.Assert.assertNotEquals;
 import org.junit.Test;
 
 public final class TestUserEntity {
-    
+
     @Test
     public void sameUserShouldBeEqual() {
         User user = new User(5L, "Username", "First name", "Last name");
@@ -20,21 +20,21 @@ public final class TestUserEntity {
         assertEquals(user1, user2);
         assertEquals(user1.hashCode(), user2.hashCode());
     }
-    
+
     @Test
     public void sameUserNumberDifferentUsernameShouldNotBeEqual() {
         User user1 = new User(10L, "Same username", "first", "last");
         User user2 = new User(10L, "Other username", "other name", "other name");
         assertNotEquals(user1, user2);
     }
-    
+
     @Test
     public void differentUsernumberSameUsernameShouldNotBeEqual() {
         User user1 = new User(10L, "Same username", "first", "last");
         User user2 = new User(5L, "Same username", "other name", "other name");
         assertNotEquals(user1, user2);
     }
-    
+
     @Test
     public void differentObjectTypeShouldNotBeEqual() {
         User user1 = new User(10L, "Same username", "first", "last");

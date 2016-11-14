@@ -1,6 +1,5 @@
 package se.teknikhogskolan.springcasemanagement.model;
 
-
 import static org.junit.Assert.assertEquals;
 
 import org.junit.BeforeClass;
@@ -8,11 +7,11 @@ import org.junit.Test;
 
 import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
 
-public class TestWorkItem {
+public final class TestWorkItem {
     private static WorkItem workItem1;
     private static WorkItem workItem1WithValues;
     private static WorkItem workItem2;
-    
+
     @BeforeClass
     public static void masterSetup() {
         workItem1 = new WorkItem("First WorkItem");
@@ -33,14 +32,14 @@ public class TestWorkItem {
     private void assertNotEquals(Object o1, Object o2) {
         assertEquals(false, o1.equals(o2));
     }
-    
+
     @Test
     public void testingHashCode() {
         assertEquals(workItem1.hashCode(), workItem1.hashCode());
         assertEquals(workItem1.hashCode(), workItem1WithValues.hashCode());
         assertNotEquals(workItem1.hashCode(), workItem2.hashCode());
     }
-    
+
     @Test
     public void testingCompareTo() {
         assertEquals(0, workItem1.compareTo(workItem1));

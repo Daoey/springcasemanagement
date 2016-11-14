@@ -33,11 +33,12 @@ import se.teknikhogskolan.springcasemanagement.service.ServiceException;
 import se.teknikhogskolan.springcasemanagement.service.WorkItemService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes={H2InfrastructureConfig.class})
+@ContextConfiguration(classes = {H2InfrastructureConfig.class})
 @Sql(scripts = "add_workitem_data.sql", executionPhase = ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(scripts = "h2_clean_tables.sql", executionPhase = ExecutionPhase.AFTER_TEST_METHOD)
-public class TestWorkItemIntegration {    
-    @Autowired(required = true)
+public class TestWorkItemIntegration {
+
+    @Autowired
     private WorkItemService workItemService;
 
     @Rule
@@ -45,14 +46,14 @@ public class TestWorkItemIntegration {
 
     private final Long workItemLeadTeamId = 98486464L;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    
+
     @Test
     public void canGetWorkItemsWithIssue() {
         Collection<WorkItem> result = workItemService.getAllWithIssue();
         final int workItemsWithIssue = 1;
         assertEquals(workItemsWithIssue, result.size());
     }
-    
+
     @Test
     public void canGetByUser() {
         final Long userNumber = 10003L;
@@ -61,7 +62,7 @@ public class TestWorkItemIntegration {
         final Long workItemId = 98486464L;
         assertEquals(workItemId, result.get(0).getId());
     }
-    
+
     @Test
     public void canGetByTeam() {
         final Long teamId = 2465878L;
@@ -69,7 +70,7 @@ public class TestWorkItemIntegration {
         final int workItemsInTeam = 2;
         assertEquals(workItemsInTeam, result.size());
     }
-    
+
     @Test
     public void canAddWorkItemToUser() {
         Long workItemIdWithoutUser = 8658766L;
@@ -79,7 +80,7 @@ public class TestWorkItemIntegration {
         workItem = workItemService.setUser(userNumberWithoutWorkItem, workItemIdWithoutUser);
         assertEquals(userNumberWithoutWorkItem, workItem.getUser().getUserNumber());
     }
-    
+
     @Test
     public void addingWorkItemToInactiveUserShouldThrowException() {
         exception.expect(ServiceException.class);
@@ -88,7 +89,7 @@ public class TestWorkItemIntegration {
         Long inactiveUsernumber = 20001L;
         workItemService.setUser(inactiveUsernumber, workItemIdWithoutUser);
     }
-    
+
     @Test
     public void addingWorkItemToUserWithFiveWorkItemsShouldThrowException() {
         exception.expect(ServiceException.class);
@@ -97,27 +98,27 @@ public class TestWorkItemIntegration {
         Long usernumberWithFiveWorkItems = 20002L;
         workItemService.setUser(usernumberWithFiveWorkItems, workItemIdWithoutUser);
     }
-    
+
     @Test
     public void canGetByStatus() {
         final int workItemsStarted = 3;
         Collection<WorkItem> result = workItemService.getByStatus(STARTED);
         assertEquals(workItemsStarted, result.size());
     }
-    
+
     @Test
     public void canRemoveWorkItem() {
         exception.expect(NoSearchResultException.class);
         workItemService.removeById(workItemLeadTeamId);
         workItemService.getById(workItemLeadTeamId);
     }
-    
+
     @Test
     public void canGetById() {
         WorkItem result = workItemService.getById(workItemLeadTeamId);
         assertEquals(workItemLeadTeamId, result.getId());
     }
-    
+
     @Test
     public void canRemoveIssueFromWorkItem() {
         Issue issue = workItemService.createIssue("This is an Issue");
@@ -128,7 +129,7 @@ public class TestWorkItemIntegration {
         workItem = workItemService.removeIssueFromWorkItem(workItem.getId());
         assertNull(workItem.getIssue());
     }
-    
+
     @Test
     public void canAddIssueToWorkItem() {
         Issue issue = workItemService.createIssue("This is an Issue!");
@@ -137,7 +138,7 @@ public class TestWorkItemIntegration {
         workItem = workItemService.addIssueToWorkItem(issue.getId(), workItem.getId());
         assertEquals(issue, workItem.getIssue());
     }
-    
+
     @Test
     public void canChangeWorkItemStatus() {
         WorkItem workItem = workItemService.getById(workItemLeadTeamId);
@@ -145,13 +146,13 @@ public class TestWorkItemIntegration {
         workItem = workItemService.setStatus(workItem.getId(), STARTED);
         assertEquals(STARTED, workItem.getStatus());
     }
-    
+
     @Test
     public void canCreateIssue() {
         Issue issue = workItemService.createIssue("This is an Issue!");
         assertNotNull(issue.getId());
     }
-    
+
     @Test
     public void canGetAllCreatedBetweenDatesNoMatchShouldThrowNoSearchResultException() {
         exception.expect(NoSearchResultException.class);
@@ -159,7 +160,7 @@ public class TestWorkItemIntegration {
         LocalDate toDate = LocalDate.parse("2016-11-02", formatter);
         workItemService.getByCreatedBetweenDates(fromDate, toDate);
     }
-    
+
     @Test
     public void canGetAllCreatedBetweenDates() {
         LocalDate fromDate = LocalDate.parse("2016-11-11", formatter);
@@ -167,7 +168,7 @@ public class TestWorkItemIntegration {
         List<WorkItem> result = workItemService.getByCreatedBetweenDates(fromDate, toDate);
         assertHasContent(result);
     }
-    
+
     private static void assertHasContent(Collection<WorkItem> result) {
         assertFalse(result.isEmpty());
     }
@@ -178,13 +179,13 @@ public class TestWorkItemIntegration {
         Collection<WorkItem> result = workItemService.getByDescriptionContains(workItemLeadTeamDescription);
         assertHasContent(result);
     }
-    
+
     @Test
     public void getWorkItemByDescriptionNoMatchShouldThrowNoSearchResultException() {
         exception.expect(NoSearchResultException.class);
         workItemService.getByDescriptionContains("8r347y8w%%%r78");
     }
-    
+
     @Test
     public void getByCreatedBetweenDatesShouldThrowNoSearchResultExceptionIfNoMatch() {
         exception.expect(NoSearchResultException.class);
@@ -192,7 +193,7 @@ public class TestWorkItemIntegration {
         LocalDate toDate = LocalDate.now().plusDays(2);
         workItemService.getByCreatedBetweenDates(fromDate, toDate);
     }
-    
+
     @Test
     public void canGetByCreatedBetweenDates() {
         WorkItem workItem = workItemService.create("Created today #1");
@@ -201,7 +202,7 @@ public class TestWorkItemIntegration {
         List<WorkItem> result = workItemService.getByCreatedBetweenDates(fromDate, toDate);
         assertTrue(result.contains(workItem));
     }
-    
+
     @Test
     public void canCreatePersistentWorkItem() {
         WorkItem result = workItemService.create("description");
