@@ -26,7 +26,7 @@ import static org.junit.Assert.assertNotNull;
 @ContextConfiguration(classes = {HsqlInfrastructureConfig.class})
 @SqlGroup({
         @Sql(scripts = "insert_team.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
-        @Sql(scripts = "hsql_clean_tablessql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+        @Sql(scripts = "hsql_clean_tables.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 })
 public class TestTeam {
 
