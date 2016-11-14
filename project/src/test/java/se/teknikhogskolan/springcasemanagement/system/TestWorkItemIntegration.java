@@ -36,7 +36,7 @@ import se.teknikhogskolan.springcasemanagement.service.WorkItemService;
 @ContextConfiguration(classes={H2InfrastructureConfig.class})
 @Sql(scripts = "add_workitem_data.sql", executionPhase = ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(scripts = "h2_clean_tables.sql", executionPhase = ExecutionPhase.AFTER_TEST_METHOD)
-public class TestWorkItem {    
+public class TestWorkItemIntegration {    
     @Autowired(required = true)
     private WorkItemService workItemService;
 
