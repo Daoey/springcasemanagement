@@ -42,7 +42,7 @@ public class TestIssue {
         this.issuesFromPageOne = issueService.getByDescription("page1");
     }
 
-   /* @Test
+    @Test
     public void canGetIssue() {
         Issue issueFromDb = issueService.getById(issueId);
         assertEquals(issueFromDb, issueInDb);
@@ -79,5 +79,5 @@ public class TestIssue {
     public void canGetAllByPage() {
         Page<Issue> issuePage = issueService.getAllByPage(1, 2);
         assertEquals(issuePage.getSize(), issuesFromPageOne.size());
-    }*/
+    }
 }
