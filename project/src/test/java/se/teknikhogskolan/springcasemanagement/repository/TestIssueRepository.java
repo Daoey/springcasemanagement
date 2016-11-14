@@ -47,12 +47,12 @@ public final class TestIssueRepository {
     public void canGetIssueByDescription() {
         String desc = "Description";
         issue.setDescription(desc);
-        Issue issueFromDb = execute(issueRepository -> {
+        List<Issue> issuesFromDb = executeMany(issueRepository -> {
             issue = issueRepository.save(issue);
             return issueRepository.findByDescription(desc);
         });
 
-        assertEquals(issueFromDb, issue);
+        assertEquals(issuesFromDb.get(0), issue);
         deleteOneIssue(issue);
     }
 
@@ -71,6 +71,15 @@ public final class TestIssueRepository {
             context.refresh();
             IssueRepository issueRepository = context.getBean(IssueRepository.class);
             operation.accept(issueRepository);
+        }
+    }
+
+    public List<Issue> executeMany(Function<IssueRepository, List<Issue>> operation) {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.scan(projectPackage);
+            context.refresh();
+            IssueRepository issueRepository = context.getBean(IssueRepository.class);
+            return operation.apply(issueRepository);
         }
     }
 

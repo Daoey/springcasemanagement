@@ -1,9 +1,10 @@
 package se.teknikhogskolan.springcasemanagement.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
@@ -35,18 +36,18 @@ public class IssueService {
             throw new NoSearchResultException("Issue with issueId '" + issueId + "' do not exist");
     }
 
-    public Issue getByDescription(String description) {
-        Issue issue;
+    public List<Issue> getByDescription(String description) {
+        List<Issue> issue;
         try {
             issue = issueRepository.findByDescription(description);
         } catch (Exception e) {
-            throw new ServiceException("Could not get issue with description: " + description, e);
+            throw new ServiceException("Could not get issues with description: " + description, e);
         }
 
         if (issue != null) {
             return issue;
         } else
-            throw new NoSearchResultException("Issue with description '" + description + "' do not exist");
+            throw new NoSearchResultException("No issues with description '" + description + "' do not exist");
     }
 
     public Issue updateDescription(Long issueId, String description) {
@@ -95,17 +96,17 @@ public class IssueService {
         }
     }
 
-    public Page<Issue> getAllByPage(int page, int pageSize) {
-        Page<Issue> slice;
+    public Page<Issue> getAllByPage(int pageNumber, int pageSize) {
+        Page<Issue> page;
         try {
-            slice = pagingIssueRepository.findAll(new PageRequest(page, pageSize));
+            page = pagingIssueRepository.findAll(new PageRequest(pageNumber, pageSize));
         } catch (Exception e) {
             throw new ServiceException("Could not get issues by page", e);
         }
 
-        if (slice != null) {
-            return slice;
+        if (page != null) {
+            return page;
         } else
-            throw new NoSearchResultException("no issues on page: " + page);
+            throw new NoSearchResultException("no issues on page: " + pageNumber);
     }
 }
