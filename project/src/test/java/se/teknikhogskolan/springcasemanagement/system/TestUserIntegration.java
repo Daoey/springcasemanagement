@@ -28,7 +28,7 @@ import se.teknikhogskolan.springcasemanagement.service.UserService;
     @Sql(scripts = "insert_user.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
     @Sql(scripts = "hsql_clean_tables.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 })
-public class TestUser {
+public class TestUserIntegration {
 
     @Autowired
     private UserService userService;

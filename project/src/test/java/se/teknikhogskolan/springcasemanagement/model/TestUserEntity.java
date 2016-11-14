@@ -5,7 +5,7 @@ import static org.junit.Assert.assertNotEquals;
 
 import org.junit.Test;
 
-public final class TestUser {
+public final class TestUserEntity {
     
     @Test
     public void sameUserShouldBeEqual() {
