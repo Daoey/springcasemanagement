@@ -1,1 +1,1 @@
-delete from Issue where id = 1;
+TRUNCATE TABLE Issue;
