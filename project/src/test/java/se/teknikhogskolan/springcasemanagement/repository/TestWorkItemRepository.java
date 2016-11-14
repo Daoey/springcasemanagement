@@ -29,17 +29,17 @@ public final class TestWorkItemRepository {
         try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
             context.scan(PROJECT_PACKAGE);
             context.refresh();
-            
+
             team = context.getBean(TeamRepository.class).save(new Team("Team with WorkItems"));
-            
+
             UserRepository userRepository = context.getBean(UserRepository.class);
             user = userRepository.save(new User(23142134L, "Team_working_guy", "Test", "Tester"));
             user.setTeam(team);
             user = userRepository.save(user);
-            
+
             WorkItemRepository workItemRepository = context.getBean(WorkItemRepository.class);
             workItem = workItemRepository.save(new WorkItem("Test getting all WorkItems from one Team").setUser(user));
-            
+
             Status status = Status.DONE;
             workItemDone = new WorkItem("Do the vacuumer");
             workItemDone.setStatus(status);
@@ -121,14 +121,16 @@ public final class TestWorkItemRepository {
     public void canGetWorkItemsCompletedBetweenDates() throws Exception {
         WorkItem workItemDone = new WorkItem("Perfect Date1").setStatus(Status.DONE).setCompletionDate(LocalDate.now());
         executeVoid(workItemRepository -> workItemRepository.save(workItemDone));
-        WorkItem workItemUnStarted = new WorkItem("Perfect Date2").setStatus(Status.UNSTARTED).setCompletionDate(LocalDate.now());
+        WorkItem workItemUnStarted = new WorkItem("Perfect Date2").setStatus(Status.UNSTARTED)
+                .setCompletionDate(LocalDate.now());
         executeVoid(workItemRepository -> workItemRepository.save(workItemUnStarted));
         WorkItem workItemStarted = new WorkItem("Perfect Date3").setStatus(Status.STARTED);
         executeVoid(workItemRepository -> workItemRepository.save(workItemStarted));
 
         LocalDate startDate = LocalDate.now().minusDays(1);
         LocalDate toDate = LocalDate.now().plusDays(1);
-        Collection<WorkItem> workItemList = executeMany(workItemRepository -> workItemRepository.findByCompletionDate(startDate, toDate));
+        Collection<WorkItem> workItemList = executeMany(
+                workItemRepository -> workItemRepository.findByCompletionDate(startDate, toDate));
 
         assertTrue(workItemList.contains(workItemDone));
         assertFalse(workItemList.contains(workItemUnStarted));
@@ -148,10 +150,11 @@ public final class TestWorkItemRepository {
 
         LocalDate startDate = LocalDate.now().minusDays(1);
         LocalDate toDate = LocalDate.now().plusDays(1);
-        Collection<WorkItem> workItemsCreatedToday = executeMany(workItemRepository -> workItemRepository.findByCreationDate(startDate, toDate));
+        Collection<WorkItem> workItemsCreatedToday = executeMany(
+                workItemRepository -> workItemRepository.findByCreationDate(startDate, toDate));
 
         assertTrue(workItemsCreatedToday.contains(workItem));
-        
+
         executeVoid(workItemRepository -> {
             workItemRepository.delete(workItem);
         });
