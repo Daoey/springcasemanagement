@@ -11,7 +11,7 @@ public final class TestTeamEntity {
     private Team team;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         team = new Team("name");
     }
 

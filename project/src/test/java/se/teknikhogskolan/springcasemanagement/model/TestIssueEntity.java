@@ -11,9 +11,8 @@ public final class TestIssueEntity {
     private Issue issue;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp(){
         issue = new Issue("description");
-
     }
 
     @Test

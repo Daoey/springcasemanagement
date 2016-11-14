@@ -23,10 +23,10 @@ import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
 import se.teknikhogskolan.springcasemanagement.service.UserService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = { HsqlInfrastructureConfig.class })
+@ContextConfiguration(classes = {HsqlInfrastructureConfig.class})
 @SqlGroup({
-    @Sql(scripts = "insert_user.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
-    @Sql(scripts = "hsql_clean_tables.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+        @Sql(scripts = "insert_user.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
+        @Sql(scripts = "hsql_clean_tables.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 })
 public class TestUserIntegration {
 
@@ -45,7 +45,7 @@ public class TestUserIntegration {
         User databaseHan = userService.create(han.getUserNumber(), han.getUsername(), han.getFirstName(), han.getLastName());
         assertEquals(han, databaseHan);
     }
-    
+
     @Test
     public void canGetUserById() {
         assertEquals(luke, userService.getById(10L));
@@ -79,24 +79,24 @@ public class TestUserIntegration {
 
     @Test
     public void inactivateAndActivateUser() {
-        
+
         User lukeBeforeInactivation = userService.getByUserNumber(luke.getUserNumber());
         assertEquals(true, lukeBeforeInactivation.isActive());
-        
+
         User lukeAfterInactivation = userService.inactivate(luke.getUserNumber());
         assertEquals(false, lukeAfterInactivation.isActive());
 
-        for(WorkItem workItem : lukeAfterInactivation.getWorkItems()){
+        for (WorkItem workItem : lukeAfterInactivation.getWorkItems()) {
             assertEquals(Status.UNSTARTED, workItem.getStatus());
         }
-        
+
         User lukeAfterReActivation = userService.activate(luke.getUserNumber());
         assertEquals(true, lukeAfterReActivation.isActive());
     }
-    
+
     @Test
     public void getAllByTeamId() {
-        List<User> lightSideUsers = new ArrayList<User>();
+        List<User> lightSideUsers = new ArrayList<>();
         lightSideUsers.add(luke);
         lightSideUsers.add(leia);
         lightSideUsers.add(yoda);
@@ -107,40 +107,39 @@ public class TestUserIntegration {
         assertTrue(lightSideUsersFromDataBase.contains(leia));
         assertTrue(lightSideUsersFromDataBase.contains(yoda));
     }
-    
+
     @Test
     public void search() {
-        List<User> lastNameSkywalker = new ArrayList<User>();
+        List<User> lastNameSkywalker = new ArrayList<>();
         lastNameSkywalker.add(luke);
         lastNameSkywalker.add(leia);
         List<User> usersFromDataBase = userService.search("", "Skywalker", "");
-        
+
         assertEquals(lastNameSkywalker.size(), usersFromDataBase.size());
         assertTrue(usersFromDataBase.contains(luke));
-        assertTrue(usersFromDataBase.contains(leia));        
+        assertTrue(usersFromDataBase.contains(leia));
     }
-    
+
     @Test
-    public void getAllByPage(){
+    public void getAllByPage() {
         Page<User> userPage = userService.getAllByPage(0, 2);
         assertEquals(2, userPage.getNumberOfElements());
         assertEquals(2, userPage.getTotalPages());
-        
+
         List<User> allUsers = new ArrayList<>();
         allUsers.add(luke);
         allUsers.add(leia);
         allUsers.add(vader);
         allUsers.add(yoda);
-        
+
         assertEquals(allUsers.size(), userPage.getTotalElements());
     }
-    
+
     @Test
-    public void getByCreationDate(){
+    public void getByCreationDate() {
         List<User> usersFromDatabase = userService.getByCreationDate(LocalDate.of(2016, 11, 11), LocalDate.of(2016, 11, 12));
         assertEquals(2, usersFromDatabase.size());
         assertTrue(usersFromDatabase.contains(luke));
         assertTrue(usersFromDatabase.contains(vader));
     }
-    
 }

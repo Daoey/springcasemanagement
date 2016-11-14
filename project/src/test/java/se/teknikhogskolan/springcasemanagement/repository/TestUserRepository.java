@@ -145,10 +145,8 @@ public final class TestUserRepository {
 
     @Test
     public void canGetUsersByPage() {
-
         long numberOfUsersToAdd = 5;
         addUsers(numberOfUsersToAdd);
-
 
         try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
             context.scan(PROJECT_PACKAGE);
@@ -164,7 +162,6 @@ public final class TestUserRepository {
     public void canGetUsersIfBetweenDate() {
         long numberOfUsersToAdd = 5;
         addUsers(numberOfUsersToAdd);
-
 
         LocalDate date = LocalDate.now();
         Iterable<User> users = executeMultiple(userRepository -> userRepository.findByCreationDate(date, date));
@@ -183,7 +180,7 @@ public final class TestUserRepository {
         long usersFound = users.spliterator().getExactSizeIfKnown();
         assertEquals(0, usersFound);
     }
-    
+
     private void addUsers(long numberOfUsersToAdd) {
         for (long i = 0; i < numberOfUsersToAdd; i++) {
             Long index = i;

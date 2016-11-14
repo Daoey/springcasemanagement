@@ -53,7 +53,7 @@ public final class TestUserService {
     @Before
     public void init() {
         user = new User(1L, "Long enough name", "First", "Last");
-        users = new ArrayList<User>();
+        users = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             users.add(user);
         }
@@ -268,7 +268,7 @@ public final class TestUserService {
     @Test
     public void inactivateUserSetsAllWorkItemsToUnstartedAndInactivatesUser() {
         // Populate a list with some Started work items
-        List<WorkItem> workItems = new ArrayList<WorkItem>();
+        List<WorkItem> workItems = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
             WorkItem workItem = new WorkItem("Some workItem");
             workItem.setStatus(Status.STARTED);
@@ -322,7 +322,7 @@ public final class TestUserService {
 
     @Test
     public void getAllByTeamIdThrowsNoSearchResultExceptionIfEmptyListReturned() {
-        when(userRepository.findByTeamId(1L)).thenReturn(new ArrayList<User>());
+        when(userRepository.findByTeamId(1L)).thenReturn(new ArrayList<>());
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage("No users with team id: 1 found");
         userService.getAllByTeamId(1L);
@@ -358,7 +358,7 @@ public final class TestUserService {
     @Test
     public void searchUsersThrowsNoSearchResultExceptionIfEmptyListReturned() {
         when(userRepository.findByFirstNameContainingAndLastNameContainingAndUsernameContaining("first", "last",
-                "user")).thenReturn(new ArrayList<User>());
+                "user")).thenReturn(new ArrayList<>());
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage("No users fulfilling criteria: firstName = first, lastName = last, username = user");
         userService.search("first", "last", "user");
@@ -381,16 +381,16 @@ public final class TestUserService {
         thrown.expectMessage("Failed to get users with criteria: firstName = first, lastName = last, username = user");
         userService.search("first", "last", "user");
     }
-    
+
     @Test
     public void getAllByPageCallsCorrectMethodAndReturnsCorrectSliceOfUsers() {
-        Page<User> pageUsers = new PageImpl<User>(users);
+        Page<User> pageUsers = new PageImpl<>(users);
         PageRequest pageRequest = new PageRequest(0, 10);
         when(userRepository.findAll(pageRequest)).thenReturn(pageUsers);
         Slice<User> pageUsersFromDatabase = userService.getAllByPage(0, 10);
         assertEquals(pageUsers, pageUsersFromDatabase);
     }
-    
+
     @Test
     public void getAllByPageThrowsServiceExceptionIfExceptionThrown() {
         doThrow(dataAccessException).when(userRepository).findAll(new PageRequest(4, 10));
@@ -398,7 +398,7 @@ public final class TestUserService {
         thrown.expectMessage("Failed to get users by page");
         userService.getAllByPage(4, 10);
     }
-    
+
     @Test
     public void getAllByPageThrowsNoSearchResultExceptionIfNoUsersFound() {
         when(userRepository.findAll(new PageRequest(4, 10))).thenReturn(null);
@@ -406,7 +406,7 @@ public final class TestUserService {
         thrown.expectMessage("No users on page: 4");
         userService.getAllByPage(4, 10);
     }
-    
+
     @Test
     public void getByCreationDateCallsCorrectMethodAndReturnsCorrectUsers() {
         LocalDate startDate = LocalDate.now();
@@ -416,7 +416,7 @@ public final class TestUserService {
         verify(userRepository, times(1)).findByCreationDate(startDate, endDate);
         assertEquals(users, usersReturned);
     }
-    
+
     @Test
     public void getByCreationDateThrowsServiceExceptionIfExceptionThrown() {
         LocalDate startDate = LocalDate.now();
@@ -426,7 +426,7 @@ public final class TestUserService {
         thrown.expectMessage("Failed to get users created between: " + startDate + " and " + endDate);
         userService.getByCreationDate(startDate, endDate);
     }
-    
+
     @Test
     public void getByCreationDateThrowsNoSearchResultExceptionIfNullIsReturned() {
         LocalDate startDate = LocalDate.now();
@@ -436,12 +436,12 @@ public final class TestUserService {
         thrown.expectMessage("No users created between: " + startDate + " and " + endDate);
         userService.getByCreationDate(startDate, endDate);
     }
-    
+
     @Test
     public void getByCreationDateThrowsNoSearchResultExceptionIfEmptyListIsReturned() {
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = LocalDate.now().plusDays(3);
-        when(userRepository.findByCreationDate(startDate, endDate)).thenReturn(new ArrayList<User>());
+        when(userRepository.findByCreationDate(startDate, endDate)).thenReturn(new ArrayList<>());
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage("No users created between: " + startDate + " and " + endDate);
         userService.getByCreationDate(startDate, endDate);
