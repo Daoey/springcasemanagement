@@ -7,7 +7,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static se.teknikhogskolan.springcasemanagement.model.WorkItem.Status.DONE;
 import static se.teknikhogskolan.springcasemanagement.model.WorkItem.Status.STARTED;
-import static se.teknikhogskolan.springcasemanagement.model.WorkItem.Status.UNSTARTED;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -19,7 +18,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
@@ -28,7 +26,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import se.teknikhogskolan.springcasemanagement.config.h2.H2InfrastructureConfig;
 import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
-import se.teknikhogskolan.springcasemanagement.service.IssueService;
 import se.teknikhogskolan.springcasemanagement.service.NoSearchResultException;
 import se.teknikhogskolan.springcasemanagement.service.ServiceException;
 import se.teknikhogskolan.springcasemanagement.service.WorkItemService;
@@ -36,7 +33,7 @@ import se.teknikhogskolan.springcasemanagement.service.WorkItemService;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes={H2InfrastructureConfig.class})
 @Sql(scripts = "add_workitem_data.sql", executionPhase = ExecutionPhase.BEFORE_TEST_METHOD)
-@Sql(scripts = "truncate_all_tables.sql", executionPhase = ExecutionPhase.AFTER_TEST_METHOD)
+@Sql(scripts = "clean_all_tables_h2.sql", executionPhase = ExecutionPhase.AFTER_TEST_METHOD)
 public class TestWorkItem {    
     @Autowired(required = true)
     private WorkItemService workItemService;
