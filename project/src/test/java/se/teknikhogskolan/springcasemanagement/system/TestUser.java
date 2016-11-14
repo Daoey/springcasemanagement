@@ -26,7 +26,7 @@ import se.teknikhogskolan.springcasemanagement.service.UserService;
 @ContextConfiguration(classes = { HsqlInfrastructureConfig.class })
 @SqlGroup({
     @Sql(scripts = "insert_user.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
-    @Sql(scripts = "clean_user.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    @Sql(scripts = "clean_user_hsql.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 })
 public class TestUser {
 

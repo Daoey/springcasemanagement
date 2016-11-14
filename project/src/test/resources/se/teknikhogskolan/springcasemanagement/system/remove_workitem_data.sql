@@ -1,1 +1,0 @@
-delete from WorkItem where description = 'Do this!';
