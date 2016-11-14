@@ -11,6 +11,7 @@ import static se.teknikhogskolan.springcasemanagement.model.WorkItem.Status.UNST
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -42,9 +43,25 @@ public class TestWorkItem {
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
-    private final Long workItemInDatabaseId = 98486464L;
-    private final String workItemInDatabaseDescription = "Lead TMNT";
+    private final Long workItemLeadTeamId = 98486464L;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    
+    @Test
+    public void canGetByUser() {
+        final Long userNumber = 124224L;
+        List<WorkItem> result = new ArrayList<>();
+        result.addAll(workItemService.getByUserNumber(userNumber));
+        final Long workItemId = 98486464L;
+        assertEquals(workItemId, result.get(0).getId());
+    }
+    
+    @Test
+    public void canGetByTeam() {
+        final Long teamId = 2465878L;
+        Collection<WorkItem> result = workItemService.getByTeamId(teamId);
+        final int workItemsInTeam = 2;
+        assertEquals(workItemsInTeam, result.size());
+    }
     
     @Test
     public void canAddWorkItemToUser() {
@@ -66,20 +83,20 @@ public class TestWorkItem {
     @Test
     public void canRemoveWorkItem() {
         exception.expect(NoSearchResultException.class);
-        workItemService.removeById(workItemInDatabaseId);
-        workItemService.getById(workItemInDatabaseId);
+        workItemService.removeById(workItemLeadTeamId);
+        workItemService.getById(workItemLeadTeamId);
     }
     
     @Test
     public void canGetById() {
-        WorkItem result = workItemService.getById(workItemInDatabaseId);
-        assertEquals(workItemInDatabaseId, result.getId());
+        WorkItem result = workItemService.getById(workItemLeadTeamId);
+        assertEquals(workItemLeadTeamId, result.getId());
     }
     
     @Test
     public void canRemoveIssueFromWorkItem() {
         Issue issue = workItemService.createIssue("This is an Issue");
-        WorkItem workItem = workItemService.getById(workItemInDatabaseId);
+        WorkItem workItem = workItemService.getById(workItemLeadTeamId);
         workItem = workItemService.setStatus(workItem.getId(), DONE);
         workItem = workItemService.addIssueToWorkItem(issue.getId(), workItem.getId());
         assertEquals(issue, workItem.getIssue());
@@ -90,7 +107,7 @@ public class TestWorkItem {
     @Test
     public void canAddIssueToWorkItem() {
         Issue issue = workItemService.createIssue("This is an Issue!");
-        WorkItem workItem = workItemService.getById(workItemInDatabaseId);
+        WorkItem workItem = workItemService.getById(workItemLeadTeamId);
         workItem = workItemService.setStatus(workItem.getId(), DONE);
         workItem = workItemService.addIssueToWorkItem(issue.getId(), workItem.getId());
         assertEquals(issue, workItem.getIssue());
@@ -98,7 +115,7 @@ public class TestWorkItem {
     
     @Test
     public void canChangeWorkItemStatus() {
-        WorkItem workItem = workItemService.getById(workItemInDatabaseId);
+        WorkItem workItem = workItemService.getById(workItemLeadTeamId);
         assertEquals(UNSTARTED, workItem.getStatus());
         workItem = workItemService.setStatus(workItem.getId(), STARTED);
         assertEquals(STARTED, workItem.getStatus());
@@ -132,7 +149,8 @@ public class TestWorkItem {
 
     @Test
     public void canGetWorkItemByDescription() {
-        Collection<WorkItem> result = workItemService.getByDescriptionContains(workItemInDatabaseDescription);
+        final String workItemLeadTeamDescription = "Lead TMNT";
+        Collection<WorkItem> result = workItemService.getByDescriptionContains(workItemLeadTeamDescription);
         assertHasContent(result);
     }
     
