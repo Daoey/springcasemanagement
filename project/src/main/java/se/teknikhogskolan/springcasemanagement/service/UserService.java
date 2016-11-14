@@ -23,10 +23,13 @@ public class UserService {
     }
 
     public User create(Long userNumber, String username, String firstName, String lastName) {
-        if (!usernameLongEnough(username)) {
+        User user;
+        if (usernameLongEnough(username)) {
+            user = new User(userNumber, username, firstName, lastName);
+        }
+        else{
             throw new ServiceException("Username too short");
         }
-        User user = new User(userNumber, username, firstName, lastName);
         try {
             return userRepository.save(user);
         } catch (Exception e) {
