@@ -48,7 +48,7 @@ public class TestWorkItem {
     
     @Test
     public void canGetByUser() {
-        final Long userNumber = 124224L;
+        final Long userNumber = 10003L;
         List<WorkItem> result = new ArrayList<>();
         result.addAll(workItemService.getByUserNumber(userNumber));
         final Long workItemId = 98486464L;
@@ -65,12 +65,30 @@ public class TestWorkItem {
     
     @Test
     public void canAddWorkItemToUser() {
-        Long workItemIdWithoutUser = 8658766L; // WorkItem id
-        Long userNumberWithoutWorkItem = 924234L; // User number
+        Long workItemIdWithoutUser = 8658766L;
+        Long userNumberWithoutWorkItem = 10002L;
         WorkItem workItem = workItemService.getById(workItemIdWithoutUser);
         assertNull(workItem.getUser());
         workItem = workItemService.setUser(userNumberWithoutWorkItem, workItemIdWithoutUser);
         assertEquals(userNumberWithoutWorkItem, workItem.getUser().getUserNumber());
+    }
+    
+    @Test
+    public void addingWorkItemToInactiveUserShouldThrowException() {
+        exception.expect(ServiceException.class);
+        exception.expectMessage("Cannot set User to WorkItem. User is inactive or have 5 WorkItems");
+        Long workItemIdWithoutUser = 8658766L;
+        Long inactiveUsernumber = 20001L;
+        workItemService.setUser(inactiveUsernumber, workItemIdWithoutUser);
+    }
+    
+    @Test
+    public void addingWorkItemToUserWithFiveWorkItemsShouldThrowException() {
+        exception.expect(ServiceException.class);
+        exception.expectMessage("Cannot set User to WorkItem. User is inactive or have 5 WorkItems");
+        Long workItemIdWithoutUser = 8658766L;
+        Long usernumberWithFiveWorkItems = 20002L;
+        workItemService.setUser(usernumberWithFiveWorkItems, workItemIdWithoutUser);
     }
     
     @Test
