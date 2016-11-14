@@ -109,7 +109,7 @@ public class WorkItemService {
         return workItems;
     }
 
-    private void ifEmptyThrowNoSearchResultException(Collection collection) {
+    private void ifEmptyThrowNoSearchResultException(Collection<WorkItem> collection) {
         if (null == collection || collection.isEmpty()) {
             throw new NoSearchResultException();
         }
