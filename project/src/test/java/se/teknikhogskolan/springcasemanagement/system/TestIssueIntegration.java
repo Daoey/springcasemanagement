@@ -26,7 +26,7 @@ import static junit.framework.TestCase.assertTrue;
         @Sql(scripts = "insert_issue.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),
         @Sql(scripts = "h2_clean_tables.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 })
-public class TestIssue {
+public class TestIssueIntegration {
 
     private Long issueId;
     private Issue issueInDb;
