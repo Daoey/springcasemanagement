@@ -299,7 +299,7 @@ public final class TestWorkItemService {
     @Test
     public void removingIssueFromWorkItemShouldCatchExceptionsAndThrowServiceException() {
         exception.expect(ServiceException.class);
-        exception.expectMessage(String.format("Cannot remove Issue from WorkItem. WorkItem id '%d'", workItemId));
+        exception.expectMessage(String.format("Cannot find WorkItem '%d'", workItemId));
         doThrow(dataAccessException).when(workItemRepository).findOne(workItemId);
         workItemService.removeIssueFromWorkItem(workItemId);
     }
@@ -536,10 +536,10 @@ public final class TestWorkItemService {
     }
 
     @Test
-    public void createShouldCatchExceptionsAndThrowServiceException() {
-        String workItemDescription = "Do something!";
-        exception.expect(ServiceException.class);
-        exception.expectMessage(String.format("Cannot create WorkItem with description '%s'", workItemDescription));
+    public void createShouldCatchExceptionsAndThrowDatabaseException() {
+        final String workItemDescription = "We should throw exceptions";
+        exception.expect(DatabaseException.class);
+        exception.expectMessage(String.format("Cannot save WorkItem with description '%s'", workItemDescription));
         when(workItemRepository.save(new WorkItem(workItemDescription))).thenThrow(dataAccessException);
         workItemService.create(workItemDescription);
     }

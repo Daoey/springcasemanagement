@@ -13,6 +13,7 @@ import org.springframework.core.NestedRuntimeException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.model.User;
@@ -47,7 +48,7 @@ public class WorkItemService {
         try {
             return workItemRepository.findByCreationDate(fromDate, toDate);
         } catch (NestedRuntimeException e) {
-            throw new ServiceException(String.format("Could not get WorkItems between '%s' and '%s'", toDate, fromDate),
+            throw new DatabaseException(String.format("Cannot get WorkItems between '%s' and '%s'", toDate, fromDate),
                     e);
         }
     }
@@ -69,7 +70,7 @@ public class WorkItemService {
         try {
             return workItemRepository.findAll(pageRequest);
         } catch (NestedRuntimeException e) {
-            throw new ServiceException(String.format("Could not get Page '%d' with size '%d'",
+            throw new DatabaseException(String.format("Cannot get Page '%d' with size '%d'",
                     pageRequest.getPageNumber(), pageRequest.getPageSize()), e);
         }
     }
@@ -79,25 +80,24 @@ public class WorkItemService {
             throw new NoSearchResultException(exceptionMessage);
         }
     }
-
+    
+    @Transactional
     public WorkItem removeIssueFromWorkItem(Long workItemId) {
+        WorkItem workItem = getWorkItemById(workItemId);
+        throwNoSearchResultExceptionIfNull(workItem, String.format("Cannot find WorkItem with id '%d'", workItemId));
+        Issue issue = workItem.getIssue();
+        throwNoSearchResultExceptionIfNull(issue, String.format("Cannot remove Issue from WorkItem %d, no Issue found in WorkItem", workItemId));
+        workItem = saveWorkItem(workItem.setIssue(null));
+        issue = deleteIssue(issue);
+        return workItem;
+    }
+
+    private Issue deleteIssue(Issue issue) {
         try {
-            WorkItem workItem = workItemRepository.findOne(workItemId);
-            Issue issue = workItem.getIssue();
-            if (null == issue) {
-                throw new ServiceException(
-                        String.format("Cannot remove Issue from WorkItem %d, no Issue found in WorkItem", workItemId));
-            }
-            workItem = workItemRepository.save(workItem.setIssue(null));
             issueRepository.delete(issue.getId());
-            return workItem;
-        } catch (ServiceException e) {
-            throw e;
-        } catch (NullPointerException e) {
-            throw new NoSearchResultException(String.format("Cannot find WorkItem with id '%d'", workItemId), e);
-        } catch (Exception e) {
-            throw new ServiceException(String.format("Cannot remove Issue from WorkItem. WorkItem id '%d'", workItemId),
-                    e);
+            return issue;
+        } catch (NestedRuntimeException e) {
+            throw new DatabaseException(String.format("Cannot remove Issue from WorkItem. Issue id '%d'", issue.getId()), e);
         }
     }
 
@@ -105,8 +105,8 @@ public class WorkItemService {
         Collection<WorkItem> workItems;
         try {
             workItems = workItemRepository.findByIssueIsNotNull();
-        } catch (Exception e) {
-            throw new ServiceException("Cannot get all WorkItems with Issue", e);
+        } catch (NestedRuntimeException e) {
+            throw new DatabaseException("Cannot get all WorkItems with Issue", e);
         }
         ifEmptyThrowNoSearchResultException(workItems);
         return workItems;
@@ -130,25 +130,25 @@ public class WorkItemService {
                 workItem.setIssue(issue);
                 return workItemRepository.save(workItem);
             } else
-                throw new ServiceException(
+                throw new DatabaseException(
                         String.format("Issue can only be added to WorkItem with Status 'DONE', Status was '%s'",
                                 workItem.getStatus()));
         } catch (NoSearchResultException e) {
             throw e;
-        } catch (ServiceException e) {
+        } catch (DatabaseException e) {
             throw e;
         } catch (NullPointerException e) {
             throw new NoSearchResultException(String.format("Cannot find WorkItem with id '%d'", workItemId), e);
-        } catch (Exception e) {
-            throw new ServiceException(String.format("Cannot add Issue to WorkItem. WorkItem id '%d'", workItemId), e);
+        } catch (NestedRuntimeException e) {
+            throw new DatabaseException(String.format("Cannot add Issue to WorkItem. WorkItem id '%d'", workItemId), e);
         }
     }
 
     public Issue createIssue(String description) {
         try {
             return issueRepository.save(new Issue(description));
-        } catch (Exception e) {
-            throw new ServiceException(String.format("Cannot create Issue with description '%s'", description), e);
+        } catch (NestedRuntimeException e) {
+            throw new DatabaseException(String.format("Cannot create Issue with description '%s'", description), e);
         }
     }
 
@@ -168,8 +168,8 @@ public class WorkItemService {
         } catch (NullPointerException e) {
             throw new NoSearchResultException(
                     String.format("Cannot set Status '%s' on WorkItem '%s'", status, workItemId), e);
-        } catch (Exception e) {
-            throw new ServiceException(String.format("Cannot set Status '%s' on WorkItem '%s'", status, workItemId), e);
+        } catch (NestedRuntimeException e) {
+            throw new DatabaseException(String.format("Cannot set Status '%s' on WorkItem '%s'", status, workItemId), e);
         }
     }
 
@@ -185,16 +185,16 @@ public class WorkItemService {
             throw e;
         } catch (NullPointerException e) {
             throw new NoSearchResultException(exceptionMessage, e);
-        } catch (Exception e) {
-            throw new ServiceException(exceptionMessage, e);
+        } catch (NestedRuntimeException e) {
+            throw new DatabaseException(exceptionMessage, e);
         }
     }
 
     public WorkItem create(String description) {
         try {
             return saveWorkItem(new WorkItem(description));
-        } catch (Exception e) {
-            throw new ServiceException(String.format("Cannot create WorkItem with description '%s'", description), e);
+        } catch (NestedRuntimeException e) {
+            throw new DatabaseException(String.format("Cannot create WorkItem with description '%s'", description), e);
         }
     }
 
@@ -208,8 +208,8 @@ public class WorkItemService {
             return workItems;
         } catch (NoSearchResultException e) {
             throw e;
-        } catch (Exception e) {
-            throw new ServiceException("Failed to get completed work items", e);
+        } catch (NestedRuntimeException e) {
+            throw new DatabaseException("Failed to get completed work items", e);
         }
     }
 
@@ -222,8 +222,8 @@ public class WorkItemService {
             return workItem;
         } catch (NoSearchResultException e) {
             throw e;
-        } catch (Exception e) {
-            throw new ServiceException(String.format("Cannot get WorkItem with id %d", workItemId), e);
+        } catch (NestedRuntimeException e) {
+            throw new DatabaseException(String.format("Cannot get WorkItem with id %d", workItemId), e);
         }
     }
 
@@ -237,8 +237,8 @@ public class WorkItemService {
             return workItem;
         } catch (NoSearchResultException e) {
             throw e;
-        } catch (Exception e) {
-            throw new ServiceException(String.format("Cannot remove WorkItem with id '%d'", workItemId), e);
+        } catch (NestedRuntimeException e) {
+            throw new DatabaseException(String.format("Cannot remove WorkItem with id '%d'", workItemId), e);
         }
     }
 
@@ -271,22 +271,22 @@ public class WorkItemService {
             workItem.setUser(user);
             return saveWorkItem(workItem);
         } else
-            throw new ServiceException("Cannot set User to WorkItem. User is inactive or have 5 WorkItems");
+            throw new DatabaseException("Cannot set User to WorkItem. User is inactive or have 5 WorkItems");
     }
 
     private WorkItem saveWorkItem(WorkItem workItem) {
         try {
             return workItemRepository.save(workItem);
-        } catch (Exception e) {
-            throw new ServiceException(String.format("Cannot save WorkItem %s", workItem), e);
+        } catch (NestedRuntimeException e) {
+            throw new DatabaseException(String.format("Cannot save WorkItem with description '%s'", workItem.getDescription(), e));
         }
     }
 
     private WorkItem getWorkItemById(Long workItemId) {
         try {
             return workItemRepository.findOne(workItemId);
-        } catch (Exception e) {
-            throw new ServiceException(String.format("Cannot find WorkItem '%d'", workItemId));
+        } catch (NestedRuntimeException e) {
+            throw new DatabaseException(String.format("Cannot find WorkItem '%d'", workItemId));
         }
     }
 
@@ -294,13 +294,17 @@ public class WorkItemService {
         User user;
         try {
             user = userRepository.findByUserNumber(userNumber);
-        } catch (Exception e) {
-            throw new ServiceException(String.format("Cannot get User by userNumber '%d'", userNumber), e);
+        } catch (NestedRuntimeException e) {
+            throw new DatabaseException(String.format("Cannot get User by userNumber '%d'", userNumber), e);
         }
-        if (null == user) {
-            throw new NoSearchResultException(String.format("Cannot find User '%d'", userNumber));
-        }
+        throwNoSearchResultExceptionIfNull(user, String.format("Cannot find User '%d'", userNumber));
         return user;
+    }
+
+    private void throwNoSearchResultExceptionIfNull(Object object, String exceptionMessage) {
+        if (null == object) {
+            throw new NoSearchResultException(exceptionMessage);
+        }
     }
 
     private boolean userCanHaveOneMoreWorkItem(User user) {
