@@ -54,6 +54,11 @@ public class TestWorkItemIntegration {
     public void removeIssueFromWorkItemIsTransactional() {
         // TODO implement test this
     }
+    
+    @Test
+    public void canGetWorkItemsCompletedBetweenDates() {
+        // TODO implement test this
+    }
 
     @Test
     public void workItemToString() {

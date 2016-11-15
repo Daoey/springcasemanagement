@@ -103,12 +103,6 @@ public class WorkItemService {
         }
     }
 
-    private void throwNoSearchResultExceptionIfNull(AbstractEntity entity, String exceptionMessage) {
-        if (null == entity) {
-            throw new NoSearchResultException(exceptionMessage);
-        }
-    }
-
     private WorkItem saveWorkItem(WorkItem workItem) {
         try {
             return workItemRepository.save(workItem);
@@ -212,13 +206,8 @@ public class WorkItemService {
     public List<WorkItem> getCompletedWorkItems(LocalDate from, LocalDate to) {
         try {
             List<WorkItem> workItems = workItemRepository.findByCompletionDate(from, to);
-            if (null == workItems) {
-                throw new NoSearchResultException(
-                        "Could not find any completed work items between dates " + from + " and " + to);
-            }
+            throwNoSearchResultExceptionIfResultIsEmpty(workItems, String.format("No match for WorkItems completed between '%s' and '%s'", to, from));
             return workItems;
-        } catch (NoSearchResultException e) {
-            throw e;
         } catch (NestedRuntimeException e) {
             throw new DatabaseException("Failed to get completed work items", e);
         }
@@ -296,8 +285,14 @@ public class WorkItemService {
         } catch (NestedRuntimeException e) {
             throw new DatabaseException(String.format("Cannot get User by userNumber '%d'", userNumber), e);
         }
-        throwNoSearchResultExceptionIfNull(user, String.format("No match for User with id '%d'", userNumber));
+        throwNoSearchResultExceptionIfNull(user, String.format("No match for User '%d'", userNumber));
         return user;
+    }
+
+    private void throwNoSearchResultExceptionIfNull(AbstractEntity entity, String exceptionMessage) {
+        if (null == entity) {
+            throw new NoSearchResultException(exceptionMessage);
+        }
     }
 
     private boolean userCanHaveOneMoreWorkItem(User user) {

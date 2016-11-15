@@ -78,7 +78,7 @@ public final class TestWorkItemService {
     }
 
     @Test
-    public void canGetAllByCreationDate() {
+    public void canGetAllByCreationDate() { // TODO make this unit test
         try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
             context.scan(PROJECT_PACKAGE);
             context.refresh();
@@ -107,7 +107,7 @@ public final class TestWorkItemService {
     }
 
     @Test
-    public void canGetAllBySlices() {
+    public void canGetAllBySlices() { // TODO make this unit test
         try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
             context.scan(PROJECT_PACKAGE);
             context.refresh();
@@ -559,6 +559,9 @@ public final class TestWorkItemService {
     public void canGetCompletedWorkItemsBetweenDates() {
         LocalDate from = LocalDate.now().minusDays(1);
         LocalDate to = LocalDate.now().plusDays(1);
+        List<WorkItem> workItems = new ArrayList<>();
+        workItems.add(workItem);
+        when(workItemRepository.findByCompletionDate(from, to)).thenReturn(workItems);
         workItemService.getCompletedWorkItems(from, to);
         verify(workItemRepository).findByCompletionDate(from, to);
     }
