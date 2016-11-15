@@ -103,6 +103,12 @@ public class WorkItemService {
         }
     }
 
+    private void throwNoSearchResultExceptionIfNull(AbstractEntity entity, String exceptionMessage) {
+        if (null == entity) {
+            throw new NoSearchResultException(exceptionMessage);
+        }
+    }
+
     private WorkItem saveWorkItem(WorkItem workItem) {
         try {
             return workItemRepository.save(workItem);
@@ -290,14 +296,8 @@ public class WorkItemService {
         } catch (NestedRuntimeException e) {
             throw new DatabaseException(String.format("Cannot get User by userNumber '%d'", userNumber), e);
         }
-        throwNoSearchResultExceptionIfNull(user, String.format("Cannot find User '%d'", userNumber));
+        throwNoSearchResultExceptionIfNull(user, String.format("No match for User with id '%d'", userNumber));
         return user;
-    }
-
-    private void throwNoSearchResultExceptionIfNull(AbstractEntity entity, String exceptionMessage) {
-        if (null == entity) {
-            throw new NoSearchResultException(exceptionMessage);
-        }
     }
 
     private boolean userCanHaveOneMoreWorkItem(User user) {
