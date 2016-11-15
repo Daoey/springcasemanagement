@@ -86,12 +86,29 @@ public class WorkItemService {
     @Transactional // TODO test @Transactional
     public WorkItem removeIssueFromWorkItem(Long workItemId) {
         WorkItem workItem = getWorkItemById(workItemId);
-        throwNoSearchResultExceptionIfNull(workItem, String.format("Cannot find WorkItem with id '%d'", workItemId));
         Issue issue = workItem.getIssue();
         throwNoSearchResultExceptionIfNull(issue, String.format("Cannot remove Issue from WorkItem %d, no Issue found in WorkItem", workItemId));
         workItem = saveWorkItem(workItem.setIssue(null));
         issue = deleteIssue(issue);
         return workItem;
+    }
+
+    private WorkItem getWorkItemById(Long workItemId) {
+        try {
+            WorkItem workItem = workItemRepository.findOne(workItemId);
+            throwNoSearchResultExceptionIfNull(workItem, String.format("Cannot find WorkItem with id '%d'", workItemId));
+            return workItem;
+        } catch (NestedRuntimeException e) {
+            throw new DatabaseException(String.format("Cannot find WorkItem '%d'", workItemId));
+        }
+    }
+
+    private WorkItem saveWorkItem(WorkItem workItem) {
+        try {
+            return workItemRepository.save(workItem);
+        } catch (NestedRuntimeException e) {
+            throw new DatabaseException(String.format("Cannot save WorkItem with description '%s'", workItem.getDescription(), e));
+        }
     }
 
     private Issue deleteIssue(Issue issue) {
@@ -127,28 +144,23 @@ public class WorkItemService {
     }
 
     public WorkItem addIssueToWorkItem(Long issueId, Long workItemId) {
+        Issue issue = getIssueById(issueId);
+        WorkItem workItem = getWorkItemById(workItemId);
+        if (DONE.equals(workItem.getStatus())) {
+            workItem.setStatus(UNSTARTED);
+            workItem.setIssue(issue);
+            return saveWorkItem(workItem);
+        } else throw new DatabaseException(String.format("Issue can only be added to WorkItem with Status 'DONE', Status was '%s'",
+                            workItem.getStatus()));
+    }
+
+    private Issue getIssueById(Long issueId) {
         try {
             Issue issue = issueRepository.findOne(issueId);
-            if (null == issue) {
-                throw new NoSearchResultException(String.format("Cannot find Issue with id '%d'", issueId));
-            }
-            WorkItem workItem = workItemRepository.findOne(workItemId);
-            if (DONE.equals(workItem.getStatus())) {
-                workItem.setStatus(UNSTARTED);
-                workItem.setIssue(issue);
-                return workItemRepository.save(workItem);
-            } else
-                throw new DatabaseException(
-                        String.format("Issue can only be added to WorkItem with Status 'DONE', Status was '%s'",
-                                workItem.getStatus()));
-        } catch (NoSearchResultException e) {
-            throw e;
-        } catch (DatabaseException e) {
-            throw e;
-        } catch (NullPointerException e) {
-            throw new NoSearchResultException(String.format("Cannot find WorkItem with id '%d'", workItemId), e);
+            throwNoSearchResultExceptionIfNull(issue, String.format("Cannot find Issue with id '%d'", issueId));
+            return issue;
         } catch (NestedRuntimeException e) {
-            throw new DatabaseException(String.format("Cannot add Issue to WorkItem. WorkItem id '%d'", workItemId), e);
+            throw new DatabaseException(String.format("Cannot get Issue with id '%d'", issueId), e);
         }
     }
 
@@ -263,22 +275,6 @@ public class WorkItemService {
             return saveWorkItem(workItem);
         } else
             throw new DatabaseException("Cannot set User to WorkItem. User is inactive or have 5 WorkItems");
-    }
-
-    private WorkItem saveWorkItem(WorkItem workItem) {
-        try {
-            return workItemRepository.save(workItem);
-        } catch (NestedRuntimeException e) {
-            throw new DatabaseException(String.format("Cannot save WorkItem with description '%s'", workItem.getDescription(), e));
-        }
-    }
-
-    private WorkItem getWorkItemById(Long workItemId) {
-        try {
-            return workItemRepository.findOne(workItemId);
-        } catch (NestedRuntimeException e) {
-            throw new DatabaseException(String.format("Cannot find WorkItem '%d'", workItemId));
-        }
     }
 
     private User getUserByUsernumber(Long userNumber) {
