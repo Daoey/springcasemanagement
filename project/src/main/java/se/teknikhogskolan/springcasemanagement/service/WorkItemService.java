@@ -9,12 +9,14 @@ import java.util.List;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import se.teknikhogskolan.springcasemanagement.model.AbstractEntity;
 import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
@@ -81,7 +83,7 @@ public class WorkItemService {
         }
     }
     
-    @Transactional
+    @Transactional // TODO test @Transactional
     public WorkItem removeIssueFromWorkItem(Long workItemId) {
         WorkItem workItem = getWorkItemById(workItemId);
         throwNoSearchResultExceptionIfNull(workItem, String.format("Cannot find WorkItem with id '%d'", workItemId));
@@ -102,19 +104,25 @@ public class WorkItemService {
     }
 
     public Collection<WorkItem> getAllWithIssue() {
-        Collection<WorkItem> workItems;
-        try {
-            workItems = workItemRepository.findByIssueIsNotNull();
-        } catch (NestedRuntimeException e) {
-            throw new DatabaseException("Cannot get all WorkItems with Issue", e);
-        }
-        ifEmptyThrowNoSearchResultException(workItems);
+        Collection<WorkItem> workItems = executeMany(workItemRepository -> {
+            return workItemRepository.findByIssueIsNotNull();
+        }, "Cannot get all WorkItems with Issue");
+        ifEmptyThrowNoSearchResultException(workItems, "No match for get all WorkItems with Issue");
         return workItems;
     }
 
-    private void ifEmptyThrowNoSearchResultException(Collection<WorkItem> collection) {
+    private Collection<WorkItem> executeMany(Function<WorkItemRepository, Collection<WorkItem>> operation,
+            String exceptionMessage) {
+        try {
+            return operation.apply(workItemRepository);
+        } catch (NestedRuntimeException e) {
+            throw new DatabaseException(exceptionMessage, e);
+        }
+    }
+    
+    private void ifEmptyThrowNoSearchResultException(Collection<WorkItem> collection, String exceptionMessage) {
         if (null == collection || collection.isEmpty()) {
-            throw new NoSearchResultException();
+            throw new NoSearchResultException(exceptionMessage);
         }
     }
 
@@ -170,23 +178,6 @@ public class WorkItemService {
                     String.format("Cannot set Status '%s' on WorkItem '%s'", status, workItemId), e);
         } catch (NestedRuntimeException e) {
             throw new DatabaseException(String.format("Cannot set Status '%s' on WorkItem '%s'", status, workItemId), e);
-        }
-    }
-
-    private Collection<WorkItem> executeMany(Function<WorkItemRepository, Collection<WorkItem>> operation,
-            String exceptionMessage) {
-        Collection<WorkItem> result;
-        try {
-            result = operation.apply(workItemRepository);
-            if (result.isEmpty())
-                throw new NoSearchResultException(exceptionMessage);
-            return result;
-        } catch (NoSearchResultException e) {
-            throw e;
-        } catch (NullPointerException e) {
-            throw new NoSearchResultException(exceptionMessage, e);
-        } catch (NestedRuntimeException e) {
-            throw new DatabaseException(exceptionMessage, e);
         }
     }
 
@@ -301,8 +292,8 @@ public class WorkItemService {
         return user;
     }
 
-    private void throwNoSearchResultExceptionIfNull(Object object, String exceptionMessage) {
-        if (null == object) {
+    private void throwNoSearchResultExceptionIfNull(AbstractEntity entity, String exceptionMessage) {
+        if (null == entity) {
             throw new NoSearchResultException(exceptionMessage);
         }
     }

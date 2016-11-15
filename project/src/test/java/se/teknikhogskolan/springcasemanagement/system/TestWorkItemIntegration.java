@@ -49,6 +49,11 @@ public class TestWorkItemIntegration {
 
     private final Long workItemLeadTeamId = 98486464L;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    
+    @Test
+    public void removeIssueFromWorkItemIsTransactional() {
+        // TODO implement test this
+    }
 
     @Test
     public void workItemToString() {
