@@ -53,8 +53,8 @@ public class TestUserIntegration {
     @Test
     public void userToString() {
         final String result = userService.getById(10L).toString();
-        final String expectedTosString = "User [id=10, userNumber=1, username=Robotarm Luke, firstName=Luke, lastName=Skywalker, "
-                                      + "teamId=1, workItemsSize=2, active=true, created=2016-11-11, lastModified=null]";
+        final String expectedTosString = "User [id=10, userNumber=1, username=Robotarm Luke, firstName=Luke, "
+                + "lastName=Skywalker, teamId=1, workItemsSize=2, active=true, created=2016-11-11, lastModified=null]";
         assertEquals(result, expectedTosString);
     }
 
