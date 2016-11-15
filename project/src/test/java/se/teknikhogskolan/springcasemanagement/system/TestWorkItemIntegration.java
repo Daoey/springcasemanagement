@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
+import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import se.teknikhogskolan.springcasemanagement.config.h2.H2InfrastructureConfig;
@@ -34,8 +35,9 @@ import se.teknikhogskolan.springcasemanagement.service.WorkItemService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { H2InfrastructureConfig.class })
-@Sql(scripts = "add_workitem_data.sql", executionPhase = ExecutionPhase.BEFORE_TEST_METHOD)
-@Sql(scripts = "h2_clean_tables.sql", executionPhase = ExecutionPhase.AFTER_TEST_METHOD)
+@SqlGroup({
+    @Sql(scripts = "add_workitem_data.sql", executionPhase = ExecutionPhase.BEFORE_TEST_METHOD),
+    @Sql(scripts = "h2_clean_tables.sql", executionPhase = ExecutionPhase.AFTER_TEST_METHOD)})
 public class TestWorkItemIntegration {
 
     @Rule
