@@ -156,7 +156,7 @@ public final class TestUserService {
     @Test
     public void updateFirstNameThrowsServiceExceptionIfExceptionIsThrown() {
         thrown.expect(ServiceException.class);
-        thrown.expectMessage("Failed to update firstName on user with user number: 1");
+        thrown.expectMessage("Failed to get user with user number: 1");
         doThrow(dataAccessException).when(userRepository).findByUserNumber(1L);
         userService.updateFirstName(1L, "some name");
     }
@@ -192,7 +192,7 @@ public final class TestUserService {
     public void updateLastNameThrowsServiceExceptionIfExceptionIsThrown() {
         doThrow(dataAccessException).when(userRepository).findByUserNumber(1L);
         thrown.expect(ServiceException.class);
-        thrown.expectMessage("Failed to update lastName on user with user number: 1");
+        thrown.expectMessage("Failed to get user with user number: 1");
         userService.updateLastName(1L, "some name");
     }
 
@@ -235,7 +235,7 @@ public final class TestUserService {
     public void updateUsernameThrowsServiceExceptionIfExceptionIsThrown() {
         doThrow(dataAccessException).when(userRepository).findByUserNumber(1L);
         thrown.expect(ServiceException.class);
-        thrown.expectMessage("Failed to update username on user with user number: 1");
+        thrown.expectMessage("Failed to get user with user number: 1");
         userService.updateUsername(1L, "some long enough name");
     }
 
@@ -261,7 +261,7 @@ public final class TestUserService {
     public void activateUserThrowsServiceExcptionIfExceptionIsThrown() {
         doThrow(dataAccessException).when(userRepository).findByUserNumber(1L);
         thrown.expect(ServiceException.class);
-        thrown.expectMessage("Failed to activate user with user number: 1");
+        thrown.expectMessage("Failed to get user with user number: 1");
         userService.activate(1L);
     }
 
@@ -308,7 +308,7 @@ public final class TestUserService {
     public void inactivateUserThrowsServiceExceptionIfExceptionIsThrown() {
         doThrow(dataAccessException).when(userRepository).findByUserNumber(1L);
         thrown.expect(ServiceException.class);
-        thrown.expectMessage("Failed to inactivate user with user number: 1");
+        thrown.expectMessage("Failed to get user with user number: 1");
         userService.inactivate(1L);
     }
 

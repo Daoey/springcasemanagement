@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -27,160 +28,116 @@ public class UserService {
         if (usernameLongEnough(username)) {
             user = new User(userNumber, username, firstName, lastName);
         } else {
-            throw new ServiceException("Username too short");
+            throw new InvalidInputException("Username too short");
         }
-        try {
-            return userRepository.save(user);
-        } catch (Exception e) {
-            throw new ServiceException("Failed to create user: " + user, e);
-        }
+        return saveUser(user, "Failed to create user: " + user);
     }
 
     public User getById(Long userId) {
+        User user;
         try {
-            User user = userRepository.findOne(userId);
-            if (user == null) {
-                throw new NoSearchResultException("No user with id: " + userId + " found");
-            } else {
-                return user;
-            }
-        } catch (NoSearchResultException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new ServiceException("Failed to get user with id: " + userId, e);
+            user = userRepository.findOne(userId);
+        } catch (DataAccessException e) {
+            throw new DatabaseException("Failed to get user with id: " + userId, e);
+        }
+        if (user == null) {
+            throw new NoSearchResultException("No user with id: " + userId + " found");
+        } else {
+            return user;
         }
     }
 
     public User getByUserNumber(Long userNumber) {
+        User user;
         try {
-            User user = userRepository.findByUserNumber(userNumber);
-            if (user == null) {
-                throw new NoSearchResultException("No user with user number: " + userNumber + " found");
-            } else {
-                return user;
-            }
-        } catch (NoSearchResultException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new ServiceException("Failed to get user with user number: " + userNumber, e);
+            user = userRepository.findByUserNumber(userNumber);
+        } catch (DataAccessException e) {
+            throw new DatabaseException("Failed to get user with user number: " + userNumber, e);
+        }
+        if (user == null) {
+            throw new NoSearchResultException("No user with user number: " + userNumber + " found");
+        } else {
+            return user;
         }
     }
 
     public User updateFirstName(Long userNumber, String firstName) {
-        try {
-            User user = userRepository.findByUserNumber(userNumber);
-            if (user.isActive()) {
-                user.setFirstName(firstName);
-                return userRepository.save(user);
-            } else {
-                throw new ServiceException("User is inactive");
-            }
-        } catch (ServiceException e) {
-            throw e;
-        } catch (NullPointerException e) {
-            throw new NoSearchResultException("No user with user number: " + userNumber + " found", e);
-        } catch (Exception e) {
-            throw new ServiceException("Failed to update firstName on user with user number: " + userNumber, e);
+        User user = getByUserNumber(userNumber);
+        if (user.isActive()) {
+            user.setFirstName(firstName);
+            return saveUser(user, "Failed to update firstName on user with user number: " + userNumber);
+        } else {
+            throw new ForbiddenOperationException("User is inactive");
         }
     }
 
     public User updateLastName(Long userNumber, String lastName) {
-        try {
-            User user = userRepository.findByUserNumber(userNumber);
-            if (user.isActive()) {
-                user.setLastName(lastName);
-                return userRepository.save(user);
-            } else {
-                throw new ServiceException("User is inactive");
-            }
-        } catch (ServiceException e) {
-            throw e;
-        } catch (NullPointerException e) {
-            throw new NoSearchResultException("No user with user number: " + userNumber + " found", e);
-        } catch (Exception e) {
-            throw new ServiceException("Failed to update lastName on user with user number: " + userNumber, e);
+        User user = getByUserNumber(userNumber);
+        if (user.isActive()) {
+            user.setLastName(lastName);
+            return saveUser(user, "Failed to update lastName on user with user number: " + userNumber);
+        } else {
+            throw new ForbiddenOperationException("User is inactive");
         }
     }
 
     public User updateUsername(Long userNumber, String username) {
-        try {
-            User user = userRepository.findByUserNumber(userNumber);
-            if (user.isActive()) {
-                if (usernameLongEnough(username)) {
-                    user.setUsername(username);
-                    return userRepository.save(user);
-                } else {
-                    throw new ServiceException("Username too short");
-                }
+        User user = getByUserNumber(userNumber);
+        if (user.isActive()) {
+            if (usernameLongEnough(username)) {
+                user.setUsername(username);
+                return saveUser(user, "Failed to update username on user with user number: " + userNumber);
             } else {
-                throw new ServiceException("User is inactive");
+                throw new InvalidInputException("Username too short");
             }
-        } catch (ServiceException e) {
-            throw e;
-        } catch (NullPointerException e) {
-            throw new NoSearchResultException("No user with user number: " + userNumber + " found", e);
-        } catch (Exception e) {
-            throw new ServiceException("Failed to update username on user with user number: " + userNumber, e);
+        } else {
+            throw new ForbiddenOperationException("User is inactive");
         }
     }
 
     public User activate(Long userNumber) {
-        try {
-            User user = userRepository.findByUserNumber(userNumber);
-            user.setActive(true);
-            return userRepository.save(user);
-        } catch (NullPointerException e) {
-            throw new NoSearchResultException("No user with user number: " + userNumber + " found", e);
-        } catch (Exception e) {
-            throw new ServiceException("Failed to activate user with user number: " + userNumber, e);
-        }
+        User user = getByUserNumber(userNumber);
+        user.setActive(true);
+        return saveUser(user, "Failed to activate user with user number: " + userNumber);
     }
 
     public User inactivate(Long userNumber) {
-        try {
-            User user = userRepository.findByUserNumber(userNumber);
-            if (user.getWorkItems() != null) {
-                user.getWorkItems().forEach(workItem -> workItem.setStatus(Status.UNSTARTED));
-            }
-            user.setActive(false);
-            return userRepository.save(user);
-        } catch (NullPointerException e) {
-            throw new NoSearchResultException("No user with user number: " + userNumber + " found", e);
-        } catch (Exception e) {
-            throw new ServiceException("Failed to inactivate user with user number: " + userNumber, e);
+
+        User user = getByUserNumber(userNumber);
+        if (user.getWorkItems() != null) {
+            user.getWorkItems().forEach(workItem -> workItem.setStatus(Status.UNSTARTED));
         }
+        user.setActive(false);
+        return saveUser(user, "Failed to inactivate user with user number: " + userNumber);
     }
 
     public List<User> getAllByTeamId(Long teamId) {
+        List<User> users;
         try {
-            List<User> users = userRepository.findByTeamId(teamId);
-            if (users == null || users.size() == 0) {
-                throw new NoSearchResultException("No users with team id: " + teamId + " found");
-            } else {
-                return users;
-            }
-        } catch (NoSearchResultException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new ServiceException("Failed to get all users with team id: " + teamId, e);
+            users = userRepository.findByTeamId(teamId);
+        } catch (DataAccessException e) {
+            throw new DatabaseException("Failed to get all users with team id: " + teamId, e);
+        }
+        if (users == null || users.size() == 0) {
+            throw new NoSearchResultException("No users with team id: " + teamId + " found");
+        } else {
+            return users;
         }
     }
 
     public List<User> search(String firstName, String lastName, String username) {
+        List<User> users;
         try {
-            List<User> users = userRepository
-                    .searchUsers(firstName, lastName, username);
-            if (users == null || users.size() == 0) {
-                throw new NoSearchResultException("No users fulfilling criteria: " + "firstName = " + firstName
-                        + ", lastName = " + lastName + ", username = " + username);
-            } else {
-                return users;
-            }
-        } catch (NoSearchResultException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new ServiceException("Failed to get users with criteria: firstName = " + firstName + ", lastName = "
-                    + lastName + ", username = " + username, e);
+            users = userRepository.searchUsers(firstName, lastName, username);
+        } catch (DataAccessException e) {
+            throw new DatabaseException("Failed to get users with criteria: firstName = " + firstName
+                    + ", lastName = " + lastName + ", username = " + username, e);
+        }
+        if (users == null || users.size() == 0) {
+            throw new NoSearchResultException("No users fulfilling criteria: " + "firstName = " + firstName
+                    + ", lastName = " + lastName + ", username = " + username);
+        } else {
+            return users;
         }
     }
 
@@ -188,28 +145,38 @@ public class UserService {
         Page<User> page;
         try {
             page = userRepository.findAll(new PageRequest(pageNumber, pageSize));
-        } catch (Exception e) {
-            throw new ServiceException("Failed to get users by page", e);
+        } catch (DataAccessException e) {
+            throw new DatabaseException("Failed to get users by page", e);
         }
-
         if (page != null) {
             return page;
-        } else
+        } else {
             throw new NoSearchResultException("No users on page: " + pageNumber);
+        }
     }
 
     public List<User> getByCreationDate(LocalDate startDate, LocalDate endDate) {
+        
+        List<User> users;
         try {
-            List<User> users = userRepository.findByCreationDate(startDate, endDate);
-            if (users == null || users.size() == 0) {
-                throw new NoSearchResultException("No users created between: " + startDate + " and " + endDate);
-            } else {
-                return users;
-            }
-        } catch (NoSearchResultException e) {
-            throw e;
+            users = userRepository.findByCreationDate(startDate, endDate);
+        } catch (DataAccessException e) {
+            throw new DatabaseException("Failed to get users created between: " + startDate + " and " + endDate,
+                    e);
+        }
+        
+        if (users == null || users.size() == 0) {
+            throw new NoSearchResultException("No users created between: " + startDate + " and " + endDate);
+        } else {
+            return users;
+        }
+    }
+
+    private User saveUser(User user, String dataConnectivityExceptionMessage) {
+        try {
+            return userRepository.save(user);
         } catch (Exception e) {
-            throw new ServiceException("Failed to get users created between: " + startDate + " and " + endDate, e);
+            throw new DatabaseException(dataConnectivityExceptionMessage, e);
         }
     }
 
