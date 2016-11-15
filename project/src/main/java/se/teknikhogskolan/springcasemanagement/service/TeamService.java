@@ -78,16 +78,16 @@ public class TeamService {
         }
     }
 
-    public Team inactive(Long teamId) {
+    public Team inactivate(Long teamId) {
         try {
             Team team = teamRepository.findOne(teamId);
             team.setActive(false);
             return teamRepository.save(team);
         } catch (NullPointerException e) {
-            throw new NoSearchResultException("Failed to inactive team with id '"
+            throw new NoSearchResultException("Failed to inactivate team with id '"
                     + teamId + "' since it could not be found in the database", e);
         } catch (Exception e) {
-            throw new ServiceException("Could not inactive team with id: " + teamId, e);
+            throw new ServiceException("Could not inactivate team with id: " + teamId, e);
         }
     }
 

@@ -179,7 +179,7 @@ public final class TestTeamService {
         teamInDb.setActive(true);
         when(teamRepository.findOne(teamId)).thenReturn(teamInDb);
         when(teamRepository.save(teamInDb)).thenReturn(teamInDb);
-        Team teamFromDb = teamService.inactive(teamId);
+        Team teamFromDb = teamService.inactivate(teamId);
         verify(teamRepository).save(teamInDb);
         assertFalse(teamFromDb.isActive());
 
@@ -189,19 +189,19 @@ public final class TestTeamService {
     public void shouldThrowNoSearchResultExceptionWhenTryingToInactivateANonExistingTeam() {
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage(
-                "Failed to inactive team with id '" + teamId + "' since it could not be found in the database");
+                "Failed to inactivate team with id '" + teamId + "' since it could not be found in the database");
         teamInDb.setActive(true);
         when(teamRepository.findOne(teamId)).thenReturn(null);
-        teamService.inactive(teamId);
+        teamService.inactivate(teamId);
     }
 
     @Test
     public void shouldThrowServiceExceptionIfAnErrorOccursWhenInactivatingATeam() {
         thrown.expect(ServiceException.class);
-        thrown.expectMessage("Could not inactive team with id: " + teamId);
+        thrown.expectMessage("Could not inactivate team with id: " + teamId);
         teamInDb.setActive(true);
         doThrow(dataAccessException).when(teamRepository).findOne(teamId);
-        teamService.inactive(teamId);
+        teamService.inactivate(teamId);
     }
 
     @Test
