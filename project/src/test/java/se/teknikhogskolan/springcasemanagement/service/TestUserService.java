@@ -347,17 +347,17 @@ public final class TestUserService {
     @Test
     public void searchUsersCallsCorrectMethod() {
         String name = "some name";
-        when(userRepository.findByFirstNameContainingAndLastNameContainingAndUsernameContaining(name, name, name))
+        when(userRepository.searchUsers(name, name, name))
                 .thenReturn(users);
         List<User> usersFromDatabase = userService.search(name, name, name);
-        verify(userRepository, times(1)).findByFirstNameContainingAndLastNameContainingAndUsernameContaining(name, name,
+        verify(userRepository, times(1)).searchUsers(name, name,
                 name);
         assertEquals(users, usersFromDatabase);
     }
 
     @Test
     public void searchUsersThrowsNoSearchResultExceptionIfEmptyListReturned() {
-        when(userRepository.findByFirstNameContainingAndLastNameContainingAndUsernameContaining("first", "last",
+        when(userRepository.searchUsers("first", "last",
                 "user")).thenReturn(new ArrayList<>());
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage("No users fulfilling criteria: firstName = first, lastName = last, username = user");
@@ -366,7 +366,7 @@ public final class TestUserService {
 
     @Test
     public void searchUsersThrowsNoSearchResultExceptionIfNullReturned() {
-        when(userRepository.findByFirstNameContainingAndLastNameContainingAndUsernameContaining("first", "last",
+        when(userRepository.searchUsers("first", "last",
                 "user")).thenReturn(null);
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage("No users fulfilling criteria: firstName = first, lastName = last, username = user");
@@ -376,7 +376,7 @@ public final class TestUserService {
     @Test
     public void searchUsersThrowsServiceExceptionIfExceptionIsThrown() {
         doThrow(dataAccessException).when(userRepository)
-                .findByFirstNameContainingAndLastNameContainingAndUsernameContaining("first", "last", "user");
+                .searchUsers("first", "last", "user");
         thrown.expect(ServiceException.class);
         thrown.expectMessage("Failed to get users with criteria: firstName = first, lastName = last, username = user");
         userService.search("first", "last", "user");

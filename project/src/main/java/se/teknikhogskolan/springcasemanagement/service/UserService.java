@@ -169,7 +169,7 @@ public class UserService {
     public List<User> search(String firstName, String lastName, String username) {
         try {
             List<User> users = userRepository
-                    .findByFirstNameContainingAndLastNameContainingAndUsernameContaining(firstName, lastName, username);
+                    .searchUsers(firstName, lastName, username);
             if (users == null || users.size() == 0) {
                 throw new NoSearchResultException("No users fulfilling criteria: " + "firstName = " + firstName
                         + ", lastName = " + lastName + ", username = " + username);
