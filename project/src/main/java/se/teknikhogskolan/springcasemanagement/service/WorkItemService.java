@@ -39,7 +39,7 @@ public class WorkItemService {
     public List<WorkItem> getByCreatedBetweenDates(LocalDate fromDate, LocalDate toDate) {
         List<WorkItem> result = getAllCreatedBetweenDates(fromDate, toDate);
         throwNoSearchResultExceptionIfResultIsEmpty(result, 
-                String.format("No WorkItems found between dates '%' and '%'", fromDate, toDate));
+                String.format("No WorkItems found between dates '%s' and '%s'", fromDate, toDate));
         return result;
     }
 
@@ -61,7 +61,7 @@ public class WorkItemService {
     public Page<WorkItem> getAllByPage(int page, int pageSize) {
         Page<WorkItem> result = getAllByPage(new PageRequest(page, pageSize));
         throwNoSearchResultExceptionIfResultIsEmpty(result,
-                String.format("No WorkItems found when requesting page #% and page size '%'", page, pageSize));
+                String.format("No WorkItems found when requesting page #%d and page size '%d'", page, pageSize));
         return result;
     }
 

@@ -39,4 +39,12 @@ public abstract class AbstractEntity {
     public LocalDate getLastModified() {
         return lastModified;
     }
+    
+    public String lastModifiedToString() {
+        return this.lastModified == null ? "null" : lastModified.toString();
+    }
+    
+    public String createdDateToString() {
+        return this.created == null ? "null" : created.toString();
+    }
 }

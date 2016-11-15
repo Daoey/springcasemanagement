@@ -114,4 +114,27 @@ public class User extends AbstractEntity {
         result += result * username.hashCode();
         return result;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("User [userNumber=");
+        builder.append(userNumber);
+        builder.append(", id=");
+        builder.append(getId());
+        builder.append(", username=");
+        builder.append(username);
+        builder.append(", firstName=");
+        builder.append(firstName);
+        builder.append(", lastName=");
+        builder.append(lastName);
+        builder.append(", teamId=");
+        builder.append(team == null ? "null" : team.getId());
+        builder.append(", workItemsSize=");
+        builder.append(workItems == null ? "0" : workItems.size());
+        builder.append(", active=");
+        builder.append(active);
+        builder.append("]");
+        return builder.toString();
+    }
 }

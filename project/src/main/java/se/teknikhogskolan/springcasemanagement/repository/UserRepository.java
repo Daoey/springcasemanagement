@@ -15,9 +15,10 @@ public interface UserRepository extends CrudRepository<User, Long> {
 
     User findByUserNumber(Long userNumber);
 
-    // TODO shorten name
-    List<User> findByFirstNameContainingAndLastNameContainingAndUsernameContaining(String firstName, String lastName,
-                                                                                   String username);
+    @Query("select u from User u where u.firstName like %:firstName% and u.lastName like "
+            + "%:lastName% and u.username like %:username%")
+    List<User> searchUsers(@Param("firstName") String firstName, @Param("lastName") String lastName,
+            @Param("username") String username);
 
     Page<User> findAll(Pageable pageable);
 

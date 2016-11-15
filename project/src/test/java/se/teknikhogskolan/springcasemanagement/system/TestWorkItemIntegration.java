@@ -33,19 +33,28 @@ import se.teknikhogskolan.springcasemanagement.service.ServiceException;
 import se.teknikhogskolan.springcasemanagement.service.WorkItemService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {H2InfrastructureConfig.class})
+@ContextConfiguration(classes = { H2InfrastructureConfig.class })
 @Sql(scripts = "add_workitem_data.sql", executionPhase = ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(scripts = "h2_clean_tables.sql", executionPhase = ExecutionPhase.AFTER_TEST_METHOD)
 public class TestWorkItemIntegration {
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
-    
+
     @Autowired
     private WorkItemService workItemService;
 
     private final Long workItemLeadTeamId = 98486464L;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    @Test
+    public void workItemToString() {
+        final Long workItemWithIssueAndUser = 12343456L;
+        final String expectedToString = "WorkItem [description=Lead TMNT, id=12343456, status=STARTED, "
+                + "created=2016-11-11, lastModified=null, completionDate=null, issueId=123541, userId=68165]";
+        String result = workItemService.getById(workItemWithIssueAndUser).toString();
+        assertTrue(result.equals(expectedToString));
+    }
 
     @Test
     public void canGetWorkItemsWithIssue() {

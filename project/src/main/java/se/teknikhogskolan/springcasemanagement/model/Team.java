@@ -67,4 +67,19 @@ public class Team extends AbstractEntity {
         }
         return false;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Team [name=");
+        builder.append(name);
+        builder.append(", id=");
+        builder.append(getId());
+        builder.append(", active=");
+        builder.append(active);
+        builder.append(", usersSize=");
+        builder.append(users == null ? "0" : users.size());
+        builder.append("]");
+        return builder.toString();
+    }
 }

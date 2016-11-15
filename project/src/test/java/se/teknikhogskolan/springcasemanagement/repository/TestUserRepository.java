@@ -82,7 +82,7 @@ public final class TestUserRepository {
         String username = user.getUsername().substring(5, 9);
 
         Iterable<User> users = executeMultiple(userRepository -> userRepository
-                .findByFirstNameContainingAndLastNameContainingAndUsernameContaining(firstName, lastName, username));
+                .searchUsers(firstName, lastName, username));
 
         long numberOfUsersFound = users.spliterator().getExactSizeIfKnown();
         assertEquals(numberOfUsersToAdd, numberOfUsersFound);
@@ -94,7 +94,7 @@ public final class TestUserRepository {
         String lastName = user.getLastName().substring(0, 2);
         String username = user.getUsername().substring(5, 9);
         Iterable<User> users = executeMultiple(userRepository -> userRepository
-                .findByFirstNameContainingAndLastNameContainingAndUsernameContaining(firstName, lastName, username));
+                .searchUsers(firstName, lastName, username));
         users.spliterator().getExactSizeIfKnown();
     }
 

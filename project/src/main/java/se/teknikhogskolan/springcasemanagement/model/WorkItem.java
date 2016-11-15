@@ -116,11 +116,6 @@ public class WorkItem extends AbstractEntity {
         return true;
     }
 
-    @Override
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this, ToStringStyle.JSON_STYLE);
-    }
-
     public int compareTo(WorkItem other) {
         if (null != getId() && null != other.getId()) {
             if (getId() > other.getId()) return 1;
@@ -130,5 +125,32 @@ public class WorkItem extends AbstractEntity {
         if (result < 0) return -1;
         if (result == 0) return 0;
         return 1;
+    }
+    
+    public String completionDateToString() {
+        return this.completionDate == null ? "null" : completionDate.toString();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("WorkItem [description=");
+        builder.append(description);
+        builder.append(", id=");
+        builder.append(getId());
+        builder.append(", status=");
+        builder.append(status);
+        builder.append(", created=");
+        builder.append(createdDateToString());
+        builder.append(", lastModified=");
+        builder.append(lastModifiedToString());
+        builder.append(", completionDate=");
+        builder.append(completionDateToString());
+        builder.append(", issueId=");
+        builder.append(issue == null ? "null" : issue.getId());
+        builder.append(", userId=");
+        builder.append(user == null ? "null" : user.getId());
+        builder.append("]");
+        return builder.toString();
     }
 }
