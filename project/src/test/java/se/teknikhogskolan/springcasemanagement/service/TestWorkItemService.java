@@ -291,7 +291,7 @@ public final class TestWorkItemService {
     @Test
     public void removingIssueFromWorkItemNotFoundInDatabaseShouldThrowException() {
         exception.expect(ServiceException.class);
-        exception.expectMessage(String.format("Cannot find WorkItem with id '%d'", workItemId));
+        exception.expectMessage(String.format("No match for WorkItem with id '%d'", workItemId));
         when(workItemRepository.findOne(workItemId)).thenReturn(null);
         workItemService.removeIssueFromWorkItem(workItemId);
     }
@@ -367,7 +367,7 @@ public final class TestWorkItemService {
     @Test
     public void addingNotFoundIssueToWorkItemShouldThrowException() {
         exception.expect(NoSearchResultException.class);
-        exception.expectMessage(String.format("Cannot find Issue with id '%d'", issueId));
+        exception.expectMessage(String.format("No match for Issue with id '%d'", issueId));
         when(issueRepository.findOne(issueId)).thenReturn(null);
         workItemService.addIssueToWorkItem(issueId, workItemId);
     }
@@ -375,7 +375,7 @@ public final class TestWorkItemService {
     @Test
     public void addingIssueNotFoundToWorkItemShouldThrowException() {
         exception.expect(NoSearchResultException.class);
-        exception.expectMessage(String.format("Cannot find WorkItem with id '%d'", workItemId));
+        exception.expectMessage(String.format("No match for WorkItem with id '%d'", workItemId));
         when(issueRepository.findOne(issueId)).thenReturn(issue);
         when(workItemRepository.findOne(workItemId)).thenReturn(null);
         workItemService.addIssueToWorkItem(issueId, workItemId);
@@ -384,7 +384,7 @@ public final class TestWorkItemService {
     @Test
     public void addingIssueToWorkItemShouldCatchExceptionsAndThrowServiceException() {
         exception.expect(ServiceException.class);
-        exception.expectMessage(String.format("Cannot add Issue to WorkItem. WorkItem id '%d'", workItemId));
+        exception.expectMessage(String.format("Cannot get Issue with id '%d'", issueId));
         doThrow(dataAccessException).when(issueRepository).findOne(issueId);
         workItemService.addIssueToWorkItem(issueId, workItemId);
     }
@@ -423,8 +423,9 @@ public final class TestWorkItemService {
 
     @Test
     public void canFindByTeamIdReturnsWithoutResultShouldThrowException() {
-        exception.expect(ServiceException.class);
-        exception.expectMessage(String.format("Cannot not get WorkItems by Team id '%s'", teamId));
+        exception.expect(NoSearchResultException.class);
+        exception.expectMessage(String.format("No match for WorkItems with team id '%d'", teamId));
+        when(workItemRepository.findByTeamId(teamId)).thenReturn(null);
         workItemService.getByTeamId(teamId);
         verify(workItemRepository).findByTeamId(teamId);
     }
@@ -440,10 +441,10 @@ public final class TestWorkItemService {
     }
 
     @Test
-    public void canFindByDescriptionContainsWithNoMatchShouldThrowException() {
+    public void canFindByDescriptionContainsReturnsEmptyListShouldThrowException() {
         String searchText = "important";
-        exception.expect(ServiceException.class);
-        exception.expectMessage("Cannot get WorkItems by description contains '" + searchText + "'");
+        exception.expect(NoSearchResultException.class);
+        exception.expectMessage(String.format("No match for WorkItem description contains '%s'", searchText));
         when(workItemRepository.findByDescriptionContains(searchText)).thenReturn(workItems);
         workItemService.getByDescriptionContains(searchText);
         verify(workItemRepository).findByDescriptionContains(searchText);
@@ -452,8 +453,8 @@ public final class TestWorkItemService {
     @Test
     public void canFindByDescriptionContainsReturnsNullShouldThrowException() {
         String searchText = "important";
-        exception.expect(ServiceException.class);
-        exception.expectMessage("Cannot get WorkItems by description contains '" + searchText + "'");
+        exception.expect(NoSearchResultException.class);
+        exception.expectMessage(String.format("No match for WorkItem description contains '%s'", searchText));
         when(workItemRepository.findByDescriptionContains(searchText)).thenReturn(null);
         workItemService.getByDescriptionContains(searchText);
         verify(workItemRepository).findByDescriptionContains(searchText);
@@ -471,8 +472,8 @@ public final class TestWorkItemService {
     @Test
     public void canFindByStatusShouldThrowExceptionIfNoWorkItemFound() {
         Status wantedStatus = Status.STARTED;
-        exception.expect(ServiceException.class);
-        exception.expectMessage(String.format("Cannot get WorkItems by Status '%s'", wantedStatus));
+        exception.expect(NoSearchResultException.class);
+        exception.expectMessage(String.format(String.format("No match for get WorkItems by Status '%s'", wantedStatus)));
         workItemService.getByStatus(wantedStatus);
         verify(workItemRepository).findByStatus(wantedStatus);
     }

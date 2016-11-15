@@ -55,7 +55,7 @@ public class WorkItemService {
         }
     }
 
-    private void throwNoSearchResultExceptionIfResultIsEmpty(List<WorkItem> result, String exceptionMessage) {
+    private void throwNoSearchResultExceptionIfResultIsEmpty(Collection<WorkItem> result, String exceptionMessage) {
         if (null == result || result.isEmpty()) {
             throw new NoSearchResultException(exceptionMessage);
         }
@@ -96,7 +96,7 @@ public class WorkItemService {
     private WorkItem getWorkItemById(Long workItemId) {
         try {
             WorkItem workItem = workItemRepository.findOne(workItemId);
-            throwNoSearchResultExceptionIfNull(workItem, String.format("Cannot find WorkItem with id '%d'", workItemId));
+            throwNoSearchResultExceptionIfNull(workItem, String.format("No match for WorkItem with id '%d'", workItemId));
             return workItem;
         } catch (NestedRuntimeException e) {
             throw new DatabaseException(String.format("Cannot find WorkItem '%d'", workItemId));
@@ -157,7 +157,7 @@ public class WorkItemService {
     private Issue getIssueById(Long issueId) {
         try {
             Issue issue = issueRepository.findOne(issueId);
-            throwNoSearchResultExceptionIfNull(issue, String.format("Cannot find Issue with id '%d'", issueId));
+            throwNoSearchResultExceptionIfNull(issue, String.format("No match for Issue with id '%d'", issueId));
             return issue;
         } catch (NestedRuntimeException e) {
             throw new DatabaseException(String.format("Cannot get Issue with id '%d'", issueId), e);
@@ -173,9 +173,11 @@ public class WorkItemService {
     }
 
     public Collection<WorkItem> getByTeamId(Long teamId) {
-        return executeMany(workItemRepository -> {
+        Collection<WorkItem> workItems = executeMany(workItemRepository -> {
             return workItemRepository.findByTeamId(teamId);
         }, String.format("Cannot not get WorkItems by Team id '%s'", teamId));
+        throwNoSearchResultExceptionIfResultIsEmpty(workItems, String.format("No match for WorkItems with team id '%d'", teamId));
+        return workItems;
     }
 
     public WorkItem setStatus(Long workItemId, WorkItem.Status status) {
@@ -246,9 +248,11 @@ public class WorkItemService {
     }
 
     public Collection<WorkItem> getByStatus(WorkItem.Status status) {
-        return executeMany(workItemRepository -> {
+        Collection<WorkItem> workItems = executeMany(workItemRepository -> {
             return workItemRepository.findByStatus(status);
         }, String.format("Cannot get WorkItems by Status '%s'", status));
+        throwNoSearchResultExceptionIfResultIsEmpty(workItems, String.format("No match for get WorkItems by Status '%s'", status));
+        return workItems;
     }
 
     public Collection<WorkItem> getByUserNumber(Long userNumber) {
@@ -262,9 +266,11 @@ public class WorkItemService {
     }
 
     public Collection<WorkItem> getByDescriptionContains(String text) {
-        return executeMany(workItemRepository -> {
+        Collection<WorkItem> workItems = executeMany(workItemRepository -> {
             return workItemRepository.findByDescriptionContains(text);
         }, String.format("Cannot get WorkItems by description contains '%s'", text));
+        throwNoSearchResultExceptionIfResultIsEmpty(workItems, String.format("No match for WorkItem description contains '%s'", text));
+        return workItems;
     }
 
     public WorkItem setUser(Long userNumber, Long workItemId) {
