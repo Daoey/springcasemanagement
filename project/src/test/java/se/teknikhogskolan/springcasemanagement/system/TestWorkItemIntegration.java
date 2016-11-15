@@ -50,10 +50,10 @@ public class TestWorkItemIntegration {
     @Test
     public void workItemToString() {
         final Long workItemWithIssueAndUser = 12343456L;
-        final String expectedToString = "WorkItem [description=Lead TMNT, id=12343456, status=STARTED, "
-                + "created=2016-11-11, lastModified=null, completionDate=null, issueId=123541, userId=68165]";
+        final String expectedToString = "WorkItem [id=12343456, description=Lead TMNT, status=STARTED, issueId=123541, "
+                                        + "userId=68165, created=2016-11-11, lastModified=null, completionDate=null]";
         String result = workItemService.getById(workItemWithIssueAndUser).toString();
-        assertTrue(result.equals(expectedToString));
+        assertEquals(result, expectedToString);
     }
 
     @Test

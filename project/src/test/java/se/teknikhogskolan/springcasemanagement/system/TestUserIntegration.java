@@ -31,7 +31,7 @@ public class TestUserIntegration {
     @Autowired
     private UserService userService;
 
-    // Same as the the initialisation in insert_user.sql
+    // Same as the the initialization in insert_user.sql
     private final User luke = new User(1L, "Robotarm Luke", "Luke", "Skywalker");
     private final User vader = new User(2L, "I am your father", "Darth", "Vader");
     private final User leia = new User(3L, "I am your sister", "Leia", "Skywalker");
@@ -48,6 +48,14 @@ public class TestUserIntegration {
     @Test
     public void canGetUserById() {
         assertEquals(luke, userService.getById(10L));
+    }
+
+    @Test
+    public void userToString() {
+        final String result = userService.getById(10L).toString();
+        final String expectedTosString = "User [id=10, userNumber=1, username=Robotarm Luke, firstName=Luke, lastName=Skywalker, "
+                                      + "teamId=1, workItemsSize=2, active=true, created=2016-11-11, lastModified=null]";
+        assertEquals(result, expectedTosString);
     }
 
     @Test

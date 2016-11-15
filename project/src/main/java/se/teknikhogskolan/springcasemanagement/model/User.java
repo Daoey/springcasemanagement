@@ -12,10 +12,10 @@ import javax.persistence.OneToMany;
 @Entity
 public class User extends AbstractEntity {
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private Long userNumber;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String username;
 
     private String firstName;
@@ -118,22 +118,26 @@ public class User extends AbstractEntity {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("User [userNumber=");
-        builder.append(userNumber);
-        builder.append(", id=");
+        builder.append("User [id=");
         builder.append(getId());
+        builder.append(", userNumber=");
+        builder.append(userNumber);
         builder.append(", username=");
         builder.append(username);
         builder.append(", firstName=");
-        builder.append(firstName);
+        builder.append(firstName == null ? "null" : firstName);
         builder.append(", lastName=");
-        builder.append(lastName);
+        builder.append(lastName == null ? "null" : lastName);
         builder.append(", teamId=");
         builder.append(team == null ? "null" : team.getId());
         builder.append(", workItemsSize=");
         builder.append(workItems == null ? "0" : workItems.size());
         builder.append(", active=");
         builder.append(active);
+        builder.append(", created=");
+        builder.append(createdDateToString());
+        builder.append(", lastModified=");
+        builder.append(lastModifiedToString());
         builder.append("]");
         return builder.toString();
     }

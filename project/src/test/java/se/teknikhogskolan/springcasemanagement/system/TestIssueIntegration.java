@@ -41,6 +41,13 @@ public class TestIssueIntegration {
     }
 
     @Test
+    public void issueToString() {
+        final String result = issueService.getById(issueId).toString();
+        final String expectedToString = "Issue [id=1, description=Description, active=true, workItemId=null, created=2016-11-11, lastModified=null]";
+        assertEquals(result, expectedToString);
+    }
+
+    @Test
     public void canGetIssue() {
         Issue issueFromDb = issueService.getById(issueId);
         assertEquals(issueFromDb, issueInDb);

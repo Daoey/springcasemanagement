@@ -71,14 +71,18 @@ public class Team extends AbstractEntity {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("Team [name=");
-        builder.append(name);
-        builder.append(", id=");
+        builder.append("Team [id=");
         builder.append(getId());
+        builder.append(", name=");
+        builder.append(name);
         builder.append(", active=");
         builder.append(active);
         builder.append(", usersSize=");
         builder.append(users == null ? "0" : users.size());
+        builder.append(", created=");
+        builder.append(createdDateToString());
+        builder.append(", lastModified=");
+        builder.append(lastModifiedToString());
         builder.append("]");
         return builder.toString();
     }

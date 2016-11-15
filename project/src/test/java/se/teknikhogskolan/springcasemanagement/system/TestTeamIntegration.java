@@ -20,6 +20,7 @@ import se.teknikhogskolan.springcasemanagement.model.Team;
 import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.service.TeamService;
 import se.teknikhogskolan.springcasemanagement.service.UserService;
+import se.teknikhogskolan.springcasemanagement.service.WorkItemService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { HsqlInfrastructureConfig.class })
@@ -43,6 +44,13 @@ public class TestTeamIntegration {
         this.name = "test";
         this.teamId = 1L;
         this.userId = 1L;
+    }
+    
+    @Test
+    public void teamToString() {
+        final String result = teamService.getById(teamId).toString();
+        final String expectedToString = "Team [id=1, name=test, active=true, usersSize=0, created=2016-11-11, lastModified=null]";
+        assertEquals(result, expectedToString);
     }
 
     @Test

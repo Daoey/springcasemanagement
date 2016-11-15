@@ -69,14 +69,18 @@ public class Issue extends AbstractEntity {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("Issue [workItemId=");
-        builder.append(workItem == null ? "null" : workItem.getId());
-        builder.append(", id=");
+        builder.append("Issue [id=");
         builder.append(getId());
         builder.append(", description=");
         builder.append(description);
         builder.append(", active=");
         builder.append(active);
+        builder.append(", workItemId=");
+        builder.append(workItem == null ? "null" : workItem.getId());
+        builder.append(", created=");
+        builder.append(createdDateToString());
+        builder.append(", lastModified=");
+        builder.append(lastModifiedToString());
         builder.append("]");
         return builder.toString();
     }

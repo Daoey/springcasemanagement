@@ -134,22 +134,22 @@ public class WorkItem extends AbstractEntity {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("WorkItem [description=");
-        builder.append(description);
-        builder.append(", id=");
+        builder.append("WorkItem [id=");
         builder.append(getId());
+        builder.append(", description=");
+        builder.append(description);
         builder.append(", status=");
         builder.append(status);
+        builder.append(", issueId=");
+        builder.append(issue == null ? "null" : issue.getId());
+        builder.append(", userId=");
+        builder.append(user == null ? "null" : user.getId());
         builder.append(", created=");
         builder.append(createdDateToString());
         builder.append(", lastModified=");
         builder.append(lastModifiedToString());
         builder.append(", completionDate=");
         builder.append(completionDateToString());
-        builder.append(", issueId=");
-        builder.append(issue == null ? "null" : issue.getId());
-        builder.append(", userId=");
-        builder.append(user == null ? "null" : user.getId());
         builder.append("]");
         return builder.toString();
     }
