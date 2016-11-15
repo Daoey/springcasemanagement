@@ -65,4 +65,21 @@ public class Issue extends AbstractEntity {
         result += 31 * description.hashCode();
         return result;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Issue [workItem=");
+        builder.append(workItem);
+        builder.append(", id=");
+        builder.append(getId());
+        builder.append(", description=");
+        builder.append(description);
+        builder.append(", active=");
+        builder.append(active);
+        builder.append("]");
+        return builder.toString();
+    }
+    
+    
 }

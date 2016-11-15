@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.NestedRuntimeException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -29,7 +30,7 @@ public class WorkItemService {
 
     @Autowired
     public WorkItemService(WorkItemRepository workItemRepository, UserRepository userRepository,
-                           IssueRepository issueRepository) {
+            IssueRepository issueRepository) {
         this.workItemRepository = workItemRepository;
         this.userRepository = userRepository;
         this.issueRepository = issueRepository;
@@ -37,43 +38,45 @@ public class WorkItemService {
 
     public List<WorkItem> getByCreatedBetweenDates(LocalDate fromDate, LocalDate toDate) {
         List<WorkItem> result = getAllCreatedBetweenDates(fromDate, toDate);
-        throwNoSearchResultExceptionIfResultIsEmpty(result);
+        throwNoSearchResultExceptionIfResultIsEmpty(result, 
+                String.format("No WorkItems found between dates '%' and '%'", fromDate, toDate));
         return result;
     }
 
     private List<WorkItem> getAllCreatedBetweenDates(LocalDate fromDate, LocalDate toDate) {
         try {
             return workItemRepository.findByCreationDate(fromDate, toDate);
-        } catch (Exception e) {
-            throw new ServiceException(String.format("Could not get WorkItems between '%s' and '%s'",
-                    toDate, fromDate), e);
+        } catch (NestedRuntimeException e) {
+            throw new ServiceException(String.format("Could not get WorkItems between '%s' and '%s'", toDate, fromDate),
+                    e);
         }
     }
 
-    private void throwNoSearchResultExceptionIfResultIsEmpty(List<WorkItem> result) {
+    private void throwNoSearchResultExceptionIfResultIsEmpty(List<WorkItem> result, String exceptionMessage) {
         if (null == result || result.isEmpty()) {
-            throw new NoSearchResultException();
-        }
-    }
-
-    private void throwNoSearchResultExceptionIfResultIsEmpty(Page<WorkItem> result) {
-        if (null == result || !result.hasContent()) {
-            throw new NoSearchResultException();
+            throw new NoSearchResultException(exceptionMessage);
         }
     }
 
     public Page<WorkItem> getAllByPage(int page, int pageSize) {
         Page<WorkItem> result = getAllByPage(new PageRequest(page, pageSize));
-        throwNoSearchResultExceptionIfResultIsEmpty(result);
+        throwNoSearchResultExceptionIfResultIsEmpty(result,
+                String.format("No WorkItems found when requesting page #% and page size '%'", page, pageSize));
         return result;
     }
 
     private Page<WorkItem> getAllByPage(PageRequest pageRequest) {
         try {
             return workItemRepository.findAll(pageRequest);
-        } catch (Exception e) {
+        } catch (NestedRuntimeException e) {
             throw new ServiceException(String.format("Could not get Page '%d' with size '%d'",
                     pageRequest.getPageNumber(), pageRequest.getPageSize()), e);
+        }
+    }
+
+    private void throwNoSearchResultExceptionIfResultIsEmpty(Page<WorkItem> result, String exceptionMessage) {
+        if (null == result || !result.hasContent()) {
+            throw new NoSearchResultException(exceptionMessage);
         }
     }
 
@@ -171,7 +174,7 @@ public class WorkItemService {
     }
 
     private Collection<WorkItem> executeMany(Function<WorkItemRepository, Collection<WorkItem>> operation,
-                                             String exceptionMessage) {
+            String exceptionMessage) {
         Collection<WorkItem> result;
         try {
             result = operation.apply(workItemRepository);
@@ -199,8 +202,8 @@ public class WorkItemService {
         try {
             List<WorkItem> workItems = workItemRepository.findByCompletionDate(from, to);
             if (null == workItems) {
-                throw new NoSearchResultException("Could not find any completed work items between dates "
-                        + from + " and " + to);
+                throw new NoSearchResultException(
+                        "Could not find any completed work items between dates " + from + " and " + to);
             }
             return workItems;
         } catch (NoSearchResultException e) {

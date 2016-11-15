@@ -15,6 +15,7 @@ public interface UserRepository extends CrudRepository<User, Long> {
 
     User findByUserNumber(Long userNumber);
 
+    // TODO shorten name
     List<User> findByFirstNameContainingAndLastNameContainingAndUsernameContaining(String firstName, String lastName,
                                                                                    String username);
 

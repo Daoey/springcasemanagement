@@ -39,9 +39,4 @@ public abstract class AbstractEntity {
     public LocalDate getLastModified() {
         return lastModified;
     }
-
-    @Override
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this, ToStringStyle.JSON_STYLE);
-    }
 }
