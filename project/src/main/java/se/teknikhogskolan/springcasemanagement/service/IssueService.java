@@ -33,7 +33,7 @@ public class IssueService {
         if (issue != null) {
             return issue;
         } else
-            throw new NoSearchResultException("Issue with issueId '" + issueId + "' do not exist");
+            throw new NoSearchResultException("Issue with id '" + issueId + "' do not exist");
     }
 
     public List<Issue> getByDescription(String description) {
@@ -47,7 +47,7 @@ public class IssueService {
         if (issue != null) {
             return issue;
         } else
-            throw new NoSearchResultException("No issues with description '" + description + "' do not exist");
+            throw new NoSearchResultException("Issues with description '" + description + "' do not exist");
     }
 
     public Issue updateDescription(Long issueId, String description) {
@@ -58,7 +58,7 @@ public class IssueService {
                 return issueRepository.save(issue);
             } else {
                 throw new ServiceException("Could not update "
-                        + "description on Issue with issueId '" + issueId + "' since it's inactivate.");
+                        + "description on Issue with id '" + issueId + "' since it's inactivate.");
             }
         } catch (ServiceException e) {
             throw e;
@@ -76,10 +76,10 @@ public class IssueService {
             issue.setActive(false);
             return issueRepository.save(issue);
         } catch (NullPointerException e) {
-            throw new NoSearchResultException("Failed to inactive issue with id '"
+            throw new NoSearchResultException("Failed to inactivate issue with id '"
                     + issueId + "' since it could not be found in the database", e);
         } catch (Exception e) {
-            throw new ServiceException("Could not inactive issue with id: " + issueId, e);
+            throw new ServiceException("Could not inactivate issue with id: " + issueId, e);
         }
     }
 
@@ -92,7 +92,7 @@ public class IssueService {
             throw new NoSearchResultException("Failed to activate issue with id '"
                     + issueId + "' since it could not be found in the database");
         } catch (Exception e) {
-            throw new ServiceException("Could not active issue with id: " + issueId, e);
+            throw new ServiceException("Could not activate issue with id: " + issueId, e);
         }
     }
 
@@ -107,6 +107,6 @@ public class IssueService {
         if (page != null) {
             return page;
         } else
-            throw new NoSearchResultException("no issues on page: " + pageNumber);
+            throw new NoSearchResultException("No issues on page: " + pageNumber);
     }
 }

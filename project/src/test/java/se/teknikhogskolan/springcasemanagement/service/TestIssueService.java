@@ -62,7 +62,7 @@ public final class TestIssueService {
     @Test
     public void shouldThrowNoSearchResultExceptionWhenGettingIssueByIdThatDoNotExist() {
         thrown.expect(NoSearchResultException.class);
-        thrown.expectMessage("Issue with issueId '" + issueId + "' do not exist");
+        thrown.expectMessage("Issue with id '" + issueId + "' do not exist");
         when(issueRepository.findOne(issueId)).thenReturn(null);
         issueService.getById(issueId);
     }
@@ -91,7 +91,7 @@ public final class TestIssueService {
     public void shouldThrowNoSearchResultExceptionWhenGettingIssueByDescriptionThatDoNotExist() {
         String desc = "Test";
         thrown.expect(NoSearchResultException.class);
-        thrown.expectMessage("No issues with description '" + desc + "' do not exist");
+        thrown.expectMessage("Issues with description '" + desc + "' do not exist");
         when(issueRepository.findByDescription(desc)).thenReturn(null);
         issueService.getByDescription(desc);
     }
@@ -120,7 +120,7 @@ public final class TestIssueService {
         issueInDb.setActive(false);
         thrown.expect(ServiceException.class);
         thrown.expectMessage(
-                "Could not update " + "description on Issue with issueId '" + issueId + "' since it's inactivate.");
+                "Could not update " + "description on Issue with id '" + issueId + "' since it's inactivate.");
         when(issueRepository.findOne(issueId)).thenReturn(issueInDb);
         issueService.updateDescription(issueId, "test");
     }
@@ -156,7 +156,7 @@ public final class TestIssueService {
     public void shouldThrowNoSearchResultExceptionWhenInactivatingAnIssueThatDoNotExist() {
         thrown.expect(NoSearchResultException.class);
         thrown.expectMessage(
-                "Failed to inactive issue with id '" + issueId + "' since it could not be found in the database");
+                "Failed to inactivate issue with id '" + issueId + "' since it could not be found in the database");
         issueInDb.setActive(true);
         when(issueRepository.findOne(issueId)).thenReturn(null);
         issueService.inactivate(issueId);
@@ -165,7 +165,7 @@ public final class TestIssueService {
     @Test
     public void shouldThrowServiceExceptionIfErrorOccursWhenInactivatingAnIssue() {
         thrown.expect(ServiceException.class);
-        thrown.expectMessage("Could not inactive issue with id: " + issueId);
+        thrown.expectMessage("Could not inactivate issue with id: " + issueId);
         issueInDb.setActive(true);
         doThrow(dataAccessException).when(issueRepository).findOne(issueId);
         issueService.inactivate(issueId);
@@ -194,7 +194,7 @@ public final class TestIssueService {
     @Test
     public void shouldThrowServiceExceptionIfErrorOccursWhenActivatingAnIssue() {
         thrown.expect(ServiceException.class);
-        thrown.expectMessage("Could not active issue with id: " + issueId);
+        thrown.expectMessage("Could not activate issue with id: " + issueId);
         issueInDb.setActive(false);
         doThrow(dataAccessException).when(issueRepository).findOne(issueId);
         issueService.activate(issueId);
