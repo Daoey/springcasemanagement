@@ -150,8 +150,8 @@ public class WorkItemService {
             workItem.setStatus(UNSTARTED);
             workItem.setIssue(issue);
             return saveWorkItem(workItem);
-        } else throw new DatabaseException(String.format("Issue can only be added to WorkItem with Status 'DONE', Status was '%s'",
-                            workItem.getStatus()));
+        } else throw new DatabaseException(String.format("Issue can only be added to WorkItem with Status 'DONE', Status was '%s'. "
+                + "Issue id '%d', WorkItem id '%d'", workItem.getStatus(), issueId, workItemId)); // TODO test this exception
     }
 
     private Issue getIssueById(Long issueId) {
