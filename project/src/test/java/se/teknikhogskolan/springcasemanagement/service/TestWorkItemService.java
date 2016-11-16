@@ -19,10 +19,10 @@ import org.junit.rules.ExpectedException;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 import se.teknikhogskolan.springcasemanagement.model.Issue;
@@ -37,8 +37,6 @@ import se.teknikhogskolan.springcasemanagement.service.exception.NoSearchResultE
 import se.teknikhogskolan.springcasemanagement.service.exception.ServiceException;
 
 public final class TestWorkItemService {
-
-    private static final String PROJECT_PACKAGE = "se.teknikhogskolan.springcasemanagement";
     
     @Rule
     public ExpectedException exception = ExpectedException.none();
@@ -73,24 +71,25 @@ public final class TestWorkItemService {
     private final Long userId = 589L;
     private final Long teamId = 23353265L;
     private final Long issueId = 23523L;
-    private Collection<WorkItem> workItems;
+    private Collection<WorkItem> workItemCollection;
+    private List<WorkItem> workItemList;
 
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        workItems = new ArrayList<>();
+        workItemCollection = new ArrayList<>();
+        workItemList = new ArrayList<>();
     }
 
     @Test
     public void canGetAllByCreationDate() {
         LocalDate fromDate = LocalDate.now().minusDays(1);
         LocalDate toDate = LocalDate.now().plusDays(1);
-        List<WorkItem> workItemsFromRepo = new ArrayList<>();
-        workItemsFromRepo.add(workItem);
-        when(workItemRepository.findByCreationDate(fromDate, toDate)).thenReturn(workItemsFromRepo);
-        workItems = workItemService.getByCreatedBetweenDates(fromDate, toDate);
+        workItemList.add(workItem);
+        when(workItemRepository.findByCreationDate(fromDate, toDate)).thenReturn(workItemList);
+        workItemCollection = workItemService.getByCreatedBetweenDates(fromDate, toDate);
         verify(workItemRepository).findByCreationDate(fromDate, toDate);
-        assertTrue(workItems.contains(workItem));
+        assertTrue(workItemCollection.contains(workItem));
     }
 
     @Test
@@ -103,36 +102,18 @@ public final class TestWorkItemService {
     }
 
     @Test
-    public void canGetAllBySlices() { // TODO make this unit test
-        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
-            context.scan(PROJECT_PACKAGE);
-            context.refresh();
-
-            WorkItemRepository workItemRepository = context.getBean(WorkItemRepository.class);
-            UserRepository userRepository = context.getBean(UserRepository.class);
-            IssueRepository issueRepository = context.getBean(IssueRepository.class);
-            WorkItemService workItemService = new WorkItemService(workItemRepository, userRepository, issueRepository);
-
-            int amountOfItems = 10;
-            for (int i = 0; i < amountOfItems; ++i)
-                workItemService.create(String.format("description #%d", i));
-
-            Page<WorkItem> result = workItemService.getAllByPage(1, 2);
-            assertNotNull(result);
-            assertEquals(2, result.getSize());
-
-            List<WorkItem> items = new ArrayList<>();
-            for (int i = 0; i < amountOfItems; ++i) {
-                items.addAll(workItemService.getByDescriptionContains((String.format("description #%d", i))));
-                workItemService.removeById(items.get(0).getId());
-                items.clear();
-            }
-        }
+    public void canGetAllBySlices() {
+        workItemList.add(workItem);
+        Page<WorkItem> workItemPage = new PageImpl<>(workItemList);
+        PageRequest pageRequest = new PageRequest(0, 10);
+        when(workItemRepository.findAll(pageRequest)).thenReturn(workItemPage);
+        Page<WorkItem> result = workItemService.getAllByPage(0, 10);
+        assertEquals(workItemPage, result);
     }
 
     @Test
     public void canGetAllBySlicesMocked() {
-        workItems.add(workItem);
+        workItemCollection.add(workItem);
         PageRequest pageRequest = new PageRequest(1, 1);
         when(workItemRepository.findAll(pageRequest)).thenReturn(page);
         when(page.hasContent()).thenReturn(true);
@@ -144,9 +125,8 @@ public final class TestWorkItemService {
     public void canGetAllByCreationDateMocked() {
         LocalDate fromDate = LocalDate.now().minusDays(1);
         LocalDate toDate = LocalDate.now().plusDays(1);
-        List<WorkItem> listToReturn = new ArrayList<>();
-        listToReturn.add(workItem);
-        when(workItemRepository.findByCreationDate(fromDate, toDate)).thenReturn(listToReturn);
+        workItemList.add(workItem);
+        when(workItemRepository.findByCreationDate(fromDate, toDate)).thenReturn(workItemList);
         List<WorkItem> result = workItemService.getByCreatedBetweenDates(fromDate, toDate);
         assertEquals(workItem, result.get(0));
     }
@@ -189,8 +169,8 @@ public final class TestWorkItemService {
         when(user.isActive()).thenReturn(true);
         when(user.getId()).thenReturn(userId);
         when(workItemRepository.findOne(workItemId)).thenReturn(workItem);
-        workItems = createListWithWorkItems(5);
-        when(workItemRepository.findByUserId(userId)).thenReturn(workItems);
+        workItemCollection = createListWithWorkItems(5);
+        when(workItemRepository.findByUserId(userId)).thenReturn(workItemCollection);
         workItemService.setUser(userNumber, workItemId);
     }
 
@@ -207,9 +187,9 @@ public final class TestWorkItemService {
         when(user.isActive()).thenReturn(true);
         when(user.getUserNumber()).thenReturn(userNumber);
         when(workItem.getId()).thenReturn(workItemId);
-        workItems = createListWithWorkItems(4);
+        workItemCollection = createListWithWorkItems(4);
         when(user.getId()).thenReturn(userId);
-        when(workItemRepository.findByUserId(userId)).thenReturn(workItems);
+        when(workItemRepository.findByUserId(userId)).thenReturn(workItemCollection);
         when(workItemRepository.findOne(workItemId)).thenReturn(workItem);
         workItemService.setUser(userNumber, workItemId);
         verify(workItem).setUser(user);
@@ -234,18 +214,17 @@ public final class TestWorkItemService {
     public void canGetWorkItemsByUserId() {
         WorkItem workItem = new WorkItem("Get by User");
         workItem.setUser(user);
-        Collection<WorkItem> workItemsWithOurUser = new ArrayList<>();
-        workItemsWithOurUser.add(workItem);
+        workItemCollection.add(workItem);
 
         when(user.getId()).thenReturn(userId);
         when(user.getUserNumber()).thenReturn(userNumber);
         when(userRepository.findByUserNumber(userNumber)).thenReturn(user);
-        when(workItemRepository.findByUserId(userId)).thenReturn(workItemsWithOurUser);
+        when(workItemRepository.findByUserId(userId)).thenReturn(workItemCollection);
 
         Collection<WorkItem> result = workItemService.getByUsernumber(userNumber);
 
         verify(workItemRepository).findByUserId(userId);
-        assertEquals(workItemsWithOurUser, result);
+        assertEquals(workItemCollection, result);
         result.forEach(item -> assertEquals(userId, item.getUser().getId()));
     }
 
@@ -309,31 +288,31 @@ public final class TestWorkItemService {
         when(workItemRepository.findByIssueIsNotNull()).thenReturn(workItemsWithIssue);
         when(workItem.getIssue()).thenReturn(issue);
 
-        workItems = workItemService.getAllWithIssue();
+        workItemCollection = workItemService.getAllWithIssue();
 
         verify(workItemRepository).findByIssueIsNotNull();
-        workItems.forEach(item -> assertNotNull(item.getIssue()));
+        workItemCollection.forEach(item -> assertNotNull(item.getIssue()));
     }
 
     @Test
     public void canGetAllWithIssueWhenThereIsNoIssuesShouldThrowException() {
         exception.expect(NoSearchResultException.class);
-        when(workItemRepository.findByIssueIsNotNull()).thenReturn(workItems);
-        workItems = workItemService.getAllWithIssue();
+        when(workItemRepository.findByIssueIsNotNull()).thenReturn(workItemCollection);
+        workItemCollection = workItemService.getAllWithIssue();
     }
 
     @Test
     public void canGetAllWithIssueReturnsNullShouldThrowException() {
         exception.expect(NoSearchResultException.class);
         when(workItemRepository.findByIssueIsNotNull()).thenReturn(null);
-        workItems = workItemService.getAllWithIssue();
+        workItemCollection = workItemService.getAllWithIssue();
     }
 
     @Test
     public void canGetAllWithIssueShouldCatchExceptionsAndThrowServiceException() {
         exception.expect(ServiceException.class);
         doThrow(dataAccessException).when(workItemRepository).findByIssueIsNotNull();
-        workItems = workItemService.getAllWithIssue();
+        workItemCollection = workItemService.getAllWithIssue();
     }
 
     @Test
@@ -404,8 +383,8 @@ public final class TestWorkItemService {
 
     @Test
     public void canFindByTeamId() {
-        workItems.add(workItem);
-        when(workItemRepository.findByTeamId(teamId)).thenReturn((List<WorkItem>) workItems);
+        workItemCollection.add(workItem);
+        when(workItemRepository.findByTeamId(teamId)).thenReturn((List<WorkItem>) workItemCollection);
         workItemService.getByTeamId(teamId);
         verify(workItemRepository).findByTeamId(teamId);
     }
@@ -430,9 +409,9 @@ public final class TestWorkItemService {
     @Test
     public void canFindByDescriptionContains() {
         String searchText = "important";
-        workItems = new ArrayList<>();
-        workItems.add(workItem);
-        when(workItemRepository.findByDescriptionContains(searchText)).thenReturn(workItems);
+        workItemCollection = new ArrayList<>();
+        workItemCollection.add(workItem);
+        when(workItemRepository.findByDescriptionContains(searchText)).thenReturn(workItemCollection);
         workItemService.getByDescriptionContains(searchText);
         verify(workItemRepository).findByDescriptionContains(searchText);
     }
@@ -442,7 +421,7 @@ public final class TestWorkItemService {
         String searchText = "important";
         exception.expect(NoSearchResultException.class);
         exception.expectMessage(String.format("No match for WorkItem description contains '%s'", searchText));
-        when(workItemRepository.findByDescriptionContains(searchText)).thenReturn(workItems);
+        when(workItemRepository.findByDescriptionContains(searchText)).thenReturn(workItemCollection);
         workItemService.getByDescriptionContains(searchText);
         verify(workItemRepository).findByDescriptionContains(searchText);
     }
@@ -460,8 +439,8 @@ public final class TestWorkItemService {
     @Test
     public void canFindByStatus() {
         Status wantedStatus = Status.STARTED;
-        workItems.add(workItem);
-        when(workItemRepository.findByStatus(wantedStatus)).thenReturn(workItems);
+        workItemCollection.add(workItem);
+        when(workItemRepository.findByStatus(wantedStatus)).thenReturn(workItemCollection);
         workItemService.getByStatus(wantedStatus);
         verify(workItemRepository).findByStatus(wantedStatus);
     }
@@ -547,7 +526,7 @@ public final class TestWorkItemService {
         exception.expect(ServiceException.class);
         when(userRepository.findByUserNumber(userNumber)).thenReturn(user);
         when(user.isActive()).thenReturn(true);
-        when(user.getWorkItems()).thenReturn(workItems);
+        when(user.getWorkItems()).thenReturn(workItemCollection);
         when(workItemRepository.findOne(workItemId)).thenThrow(dataAccessException);
         workItemService.setUser(userNumber, workItemId);
     }
