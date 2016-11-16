@@ -20,7 +20,6 @@ import se.teknikhogskolan.springcasemanagement.model.Team;
 import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.service.TeamService;
 import se.teknikhogskolan.springcasemanagement.service.UserService;
-import se.teknikhogskolan.springcasemanagement.service.WorkItemService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = { HsqlInfrastructureConfig.class })

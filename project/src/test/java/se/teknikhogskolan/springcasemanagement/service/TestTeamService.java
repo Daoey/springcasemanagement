@@ -1,7 +1,6 @@
 package se.teknikhogskolan.springcasemanagement.service;
 
 import static junit.framework.TestCase.assertNull;
-import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.doThrow;
@@ -32,7 +31,6 @@ import se.teknikhogskolan.springcasemanagement.service.exception.DuplicateValueE
 import se.teknikhogskolan.springcasemanagement.service.exception.ForbiddenOperationException;
 import se.teknikhogskolan.springcasemanagement.service.exception.MaximumQuantityException;
 import se.teknikhogskolan.springcasemanagement.service.exception.NoSearchResultException;
-import se.teknikhogskolan.springcasemanagement.service.exception.ServiceException;
 
 @RunWith(MockitoJUnitRunner.class)
 public final class TestTeamService {
