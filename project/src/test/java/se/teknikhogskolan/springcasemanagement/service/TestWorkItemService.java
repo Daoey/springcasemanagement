@@ -71,14 +71,14 @@ public final class TestWorkItemService {
     private final Long userId = 589L;
     private final Long teamId = 23353265L;
     private final Long issueId = 23523L;
-    private Collection<WorkItem> workItemCollection;
-    private List<WorkItem> workItemList;
+    private Collection<WorkItem> workItemCollection = new ArrayList<>();
+    private List<WorkItem> workItemList = new ArrayList<>();
 
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        workItemCollection = new ArrayList<>();
-        workItemList = new ArrayList<>();
+        workItemCollection.clear();
+        workItemList.clear();
     }
 
     @Test
