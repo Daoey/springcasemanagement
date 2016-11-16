@@ -25,6 +25,9 @@ import org.springframework.data.domain.PageRequest;
 import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
 import se.teknikhogskolan.springcasemanagement.repository.paging.PagingIssueRepository;
+import se.teknikhogskolan.springcasemanagement.service.exception.DatabaseException;
+import se.teknikhogskolan.springcasemanagement.service.exception.NoSearchResultException;
+import se.teknikhogskolan.springcasemanagement.service.exception.ServiceException;
 
 @RunWith(MockitoJUnitRunner.class)
 public final class TestIssueService {

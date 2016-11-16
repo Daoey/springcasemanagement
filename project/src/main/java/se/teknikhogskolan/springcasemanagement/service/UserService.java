@@ -12,6 +12,10 @@ import org.springframework.stereotype.Service;
 import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
+import se.teknikhogskolan.springcasemanagement.service.exception.DatabaseException;
+import se.teknikhogskolan.springcasemanagement.service.exception.ForbiddenOperationException;
+import se.teknikhogskolan.springcasemanagement.service.exception.InvalidInputException;
+import se.teknikhogskolan.springcasemanagement.service.exception.NoSearchResultException;
 
 @Service
 public class UserService {

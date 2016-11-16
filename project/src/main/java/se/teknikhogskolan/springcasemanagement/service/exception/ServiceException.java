@@ -1,6 +1,6 @@
-package se.teknikhogskolan.springcasemanagement.service;
+package se.teknikhogskolan.springcasemanagement.service.exception;
 
-public class ServiceException extends RuntimeException { // TODO make abstract(?) when services and tests updated so they uses DatabaseException instead
+public abstract class ServiceException extends RuntimeException { 
 
     private static final long serialVersionUID = 6529570775397439370L;
 

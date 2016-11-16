@@ -8,6 +8,8 @@ import se.teknikhogskolan.springcasemanagement.model.Team;
 import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
+import se.teknikhogskolan.springcasemanagement.service.exception.DatabaseException;
+import se.teknikhogskolan.springcasemanagement.service.exception.NoSearchResultException;
 
 @Service
 public class TeamService {
@@ -26,7 +28,7 @@ public class TeamService {
         try {
             team = teamRepository.findOne(teamId);
         } catch (Exception e) {
-            throw new ServiceException("Could not get team with id: " + teamId, e);
+            throw new DatabaseException("Could not get team with id: " + teamId, e);
         }
 
         if (team != null) {
@@ -40,7 +42,7 @@ public class TeamService {
         try {
             team = teamRepository.findByName(teamName);
         } catch (Exception e) {
-            throw new ServiceException("Could not get team with name: " + teamName, e);
+            throw new DatabaseException("Could not get team with name: " + teamName, e);
         }
 
         if (team != null) {
@@ -54,9 +56,9 @@ public class TeamService {
         try {
             return teamRepository.save(team);
         } catch (DuplicateKeyException e) {
-            throw new ServiceException("Team wit name '" + teamName + "' already exist", e);
+            throw new DatabaseException("Team wit name '" + teamName + "' already exist", e);
         } catch (Exception e) {
-            throw new ServiceException("Could not create team with name: " + teamName, e);
+            throw new DatabaseException("Could not create team with name: " + teamName, e);
         }
     }
 
@@ -67,14 +69,14 @@ public class TeamService {
                 team.setName(teamName);
                 return teamRepository.save(team);
             } else
-                throw new ServiceException("Could not update "
+                throw new DatabaseException("Could not update "
                         + "name on team with id '" + teamId + "' since it's inactive.");
-        } catch (ServiceException e) {
+        } catch (DatabaseException e) {
             throw e;
         } catch (NullPointerException e) {
             throw new NoSearchResultException("Team with id '" + teamId + "' do not exist.");
         } catch (Exception e) {
-            throw new ServiceException("Could not update name on team with id: " + teamId, e);
+            throw new DatabaseException("Could not update name on team with id: " + teamId, e);
         }
     }
 
@@ -87,7 +89,7 @@ public class TeamService {
             throw new NoSearchResultException("Failed to inactivate team with id '"
                     + teamId + "' since it could not be found in the database", e);
         } catch (Exception e) {
-            throw new ServiceException("Could not inactivate team with id: " + teamId, e);
+            throw new DatabaseException("Could not inactivate team with id: " + teamId, e);
         }
     }
 
@@ -100,7 +102,7 @@ public class TeamService {
             throw new NoSearchResultException("Failed to activate team with id '"
                     + teamId + "' since it could not be found in the database", e);
         } catch (Exception e) {
-            throw new ServiceException("Could not activate team with id: " + teamId, e);
+            throw new DatabaseException("Could not activate team with id: " + teamId, e);
         }
     }
 
@@ -114,7 +116,7 @@ public class TeamService {
         } catch (NoSearchResultException e) {
             throw e;
         } catch (Exception e) {
-            throw new ServiceException("Could not get all teams", e);
+            throw new DatabaseException("Could not get all teams", e);
         }
     }
 
@@ -127,7 +129,7 @@ public class TeamService {
                 throw new NoSearchResultException("Team with id '"
                         + teamId + "' or User with id '" + userId + "' did not exist.");
             } else if (!user.isActive() || !team.isActive()) {
-                throw new ServiceException("User with id '"
+                throw new DatabaseException("User with id '"
                         + userId + "' or Team with id '" + teamId + "' is inactive");
             } else {
                 if (team.getUsers().size() < 10) {
@@ -135,13 +137,13 @@ public class TeamService {
                     userRepository.save(user);
                     return teamRepository.findOne(teamId);
                 } else {
-                    throw new ServiceException("Team with id '" + teamId + "' already contains 10 users");
+                    throw new DatabaseException("Team with id '" + teamId + "' already contains 10 users");
                 }
             }
-        } catch (ServiceException e) {
+        } catch (DatabaseException e) {
             throw e;
         } catch (Exception e) {
-            throw new ServiceException("Could not add user with id '" + userId
+            throw new DatabaseException("Could not add user with id '" + userId
                     + "' to team with id '" + teamId, e);
         }
     }
@@ -155,17 +157,17 @@ public class TeamService {
                 throw new NoSearchResultException("Team with id '"
                         + teamId + "' or User with id '" + userId + "' did not exist.");
             } else if (!user.isActive() || !team.isActive()) {
-                throw new ServiceException("User with id '"
+                throw new DatabaseException("User with id '"
                         + userId + "' or Team with id '" + teamId + "' is inactive");
             } else {
                 user.setTeam(null);
                 userRepository.save(user);
                 return teamRepository.findOne(teamId);
             }
-        } catch (ServiceException e) {
+        } catch (DatabaseException e) {
             throw e;
         } catch (Exception e) {
-            throw new ServiceException("Could not remove user with id '" + userId
+            throw new DatabaseException("Could not remove user with id '" + userId
                     + "' from team with id '" + teamId, e);
         }
     }
