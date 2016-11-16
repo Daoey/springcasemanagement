@@ -285,6 +285,7 @@ public final class TestWorkItemService {
                 String.format("Cannot remove Issue from WorkItem %d, no Issue found in WorkItem", workItemId));
         when(workItemRepository.findOne(workItemId)).thenReturn(workItem);
         when(workItem.getIssue()).thenReturn(null);
+        when(workItem.getId()).thenReturn(workItemId);
         workItemService.removeIssueFromWorkItem(workItemId);
     }
 
