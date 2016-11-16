@@ -2,6 +2,7 @@ package se.teknikhogskolan.springcasemanagement.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -72,41 +73,33 @@ public final class TestWorkItemService {
     private final Long userId = 589L;
     private final Long teamId = 23353265L;
     private final Long issueId = 23523L;
-    private Collection<WorkItem> workItems = new ArrayList<>();
+    private Collection<WorkItem> workItems;
 
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        workItems.clear();
+        workItems = new ArrayList<>();
     }
 
     @Test
-    public void canGetAllByCreationDate() { // TODO make this unit test
-        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
-            context.scan(PROJECT_PACKAGE);
-            context.refresh();
+    public void canGetAllByCreationDate() {
+        LocalDate fromDate = LocalDate.now().minusDays(1);
+        LocalDate toDate = LocalDate.now().plusDays(1);
+        List<WorkItem> workItemsFromRepo = new ArrayList<>();
+        workItemsFromRepo.add(workItem);
+        when(workItemRepository.findByCreationDate(fromDate, toDate)).thenReturn(workItemsFromRepo);
+        workItems = workItemService.getByCreatedBetweenDates(fromDate, toDate);
+        verify(workItemRepository).findByCreationDate(fromDate, toDate);
+        assertTrue(workItems.contains(workItem));
+    }
 
-            WorkItemRepository workItemRepository = context.getBean(WorkItemRepository.class);
-            UserRepository userRepository = context.getBean(UserRepository.class);
-            IssueRepository issueRepository = context.getBean(IssueRepository.class);
-            WorkItemService workItemService = new WorkItemService(workItemRepository, userRepository, issueRepository);
-
-            final int workItemsCreatedToday = 5;
-            for (int i = 0; i < workItemsCreatedToday; ++i)
-                workItemService.create(String.format("Created today #%d", i));
-
-            LocalDate fromDate = LocalDate.now().minusDays(1);
-            LocalDate toDate = LocalDate.now().plusDays(1);
-            List<WorkItem> result = workItemService.getByCreatedBetweenDates(fromDate, toDate);
-            assertEquals(workItemsCreatedToday, result.size());
-
-            List<WorkItem> items = new ArrayList<>();
-            for (int i = 0; i < workItemsCreatedToday; ++i) {
-                items.addAll(workItemService.getByDescriptionContains((String.format("Created today #%d", i))));
-                workItemService.removeById(items.get(0).getId());
-                items.clear();
-            }
-        }
+    @Test
+    public void getAllByCreationDateShouldThrowExceptionIfNoMatchFoundInDatabase() {
+        exception.expect(NoSearchResultException.class);
+        LocalDate fromDate = LocalDate.now().minusDays(1);
+        LocalDate toDate = LocalDate.now().plusDays(1);
+        when(workItemRepository.findByCreationDate(fromDate, toDate)).thenReturn(null);
+        workItemService.getByCreatedBetweenDates(fromDate, toDate);
     }
 
     @Test
