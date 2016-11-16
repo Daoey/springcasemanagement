@@ -1,6 +1,6 @@
 package se.teknikhogskolan.springcasemanagement.service.exception;
 
-public class InvalidInputException extends ServiceException {
+public final class InvalidInputException extends ServiceException {
 
     private static final long serialVersionUID = -155178842463683079L;
 
