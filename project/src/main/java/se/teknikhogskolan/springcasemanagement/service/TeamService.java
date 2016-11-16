@@ -1,6 +1,7 @@
 package se.teknikhogskolan.springcasemanagement.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
@@ -22,31 +23,22 @@ public class TeamService {
     }
 
     public Team getById(Long teamId) {
-        Team team;
-        try {
-            team = teamRepository.findOne(teamId);
-        } catch (Exception e) {
-            throw new ServiceException("Could not get team with id: " + teamId, e);
-        }
-
-        if (team != null) {
-            return team;
-        } else
-            throw new NoSearchResultException("Team with id '" + teamId + "' do not exist");
+        return findTeam(teamId, String.format("Team with id '%d' do not exist", teamId));
     }
 
     public Team getByName(String teamName) {
         Team team;
         try {
             team = teamRepository.findByName(teamName);
-        } catch (Exception e) {
-            throw new ServiceException("Could not get team with name: " + teamName, e);
+        } catch (DataAccessException e) {
+            throw new DatabaseException(String.format("Could not get team with name: %s", teamName), e);
         }
 
         if (team != null) {
             return team;
-        } else
-            throw new NoSearchResultException("Team with name '" + teamName + "' do not exist");
+        } else {
+            throw new NoSearchResultException(String.format("Team with name '%s' do not exist", teamName));
+        }
     }
 
     public Team create(String teamName) {
@@ -54,119 +46,117 @@ public class TeamService {
         try {
             return teamRepository.save(team);
         } catch (DuplicateKeyException e) {
-            throw new ServiceException("Team wit name '" + teamName + "' already exist", e);
-        } catch (Exception e) {
-            throw new ServiceException("Could not create team with name: " + teamName, e);
+            throw new DuplicateValueException(String.format("Team wit name '%s' already exist", teamName), e);
+        } catch (DataAccessException e) {
+            throw new DatabaseException(String.format("Could not create team with name: %s", teamName));
         }
     }
 
     public Team updateName(Long teamId, String teamName) {
-        try {
-            Team team = teamRepository.findOne(teamId);
-            if (team.isActive()) {
-                team.setName(teamName);
-                return teamRepository.save(team);
-            } else
-                throw new ServiceException("Could not update "
-                        + "name on team with id '" + teamId + "' since it's inactive.");
-        } catch (ServiceException e) {
-            throw e;
-        } catch (NullPointerException e) {
-            throw new NoSearchResultException("Team with id '" + teamId + "' do not exist.");
-        } catch (Exception e) {
-            throw new ServiceException("Could not update name on team with id: " + teamId, e);
+        Team team = findTeam(teamId, String.format("Team with id '%d' do not exist.", teamId));
+        if (team.isActive()) {
+            team.setName(teamName);
+            return saveTeam(team, String.format("Could not update name on team with id: %d", teamId));
+        } else {
+            throw new ForbiddenOperationException(String.format("Could not update "
+                    + "name on team with id '%d' since it's inactive.", teamId));
         }
     }
 
-    public Team inactivate(Long teamId) {
-        try {
-            Team team = teamRepository.findOne(teamId);
-            team.setActive(false);
-            return teamRepository.save(team);
-        } catch (NullPointerException e) {
-            throw new NoSearchResultException("Failed to inactivate team with id '"
-                    + teamId + "' since it could not be found in the database", e);
-        } catch (Exception e) {
-            throw new ServiceException("Could not inactivate team with id: " + teamId, e);
-        }
-    }
-
-    public Team activate(Long teamId) {
-        try {
-            Team team = teamRepository.findOne(teamId);
-            team.setActive(true);
-            return teamRepository.save(team);
-        } catch (NullPointerException e) {
-            throw new NoSearchResultException("Failed to activate team with id '"
-                    + teamId + "' since it could not be found in the database", e);
-        } catch (Exception e) {
-            throw new ServiceException("Could not activate team with id: " + teamId, e);
-        }
+    public Team setTeamActive(boolean active, Long teamId) {
+        Team team = findTeam(teamId, String.format("Failed to change status on team with id '%d'"
+                + " since it could not be found in the database", teamId));
+        team.setActive(active);
+        return saveTeam(team, String.format("Could not change status on team with id: %d", teamId));
     }
 
     public Iterable<Team> getAll() {
         Iterable<Team> teams;
         try {
             teams = teamRepository.findAll();
-            if (teams == null)
-                throw new NoSearchResultException("No teams were found in the database");
+        } catch (DataAccessException e) {
+            throw new DatabaseException("Could not get all teams", e);
+        }
+
+        if (teams != null) {
             return teams;
-        } catch (NoSearchResultException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new ServiceException("Could not get all teams", e);
+        } else {
+            throw new NoSearchResultException("No teams were found in the database");
         }
     }
 
     public Team addUserToTeam(Long teamId, Long userId) {
-        try {
-            User user = userRepository.findOne(userId);
-            Team team = teamRepository.findOne(teamId);
+        User user = findUser(userId, String.format("User with id '%d' did not exist.", userId));
+        Team team = findTeam(teamId, String.format("Team with id '%d' did not exist.", teamId));
 
-            if (team == null || user == null) {
-                throw new NoSearchResultException("Team with id '"
-                        + teamId + "' or User with id '" + userId + "' did not exist.");
-            } else if (!user.isActive() || !team.isActive()) {
-                throw new ServiceException("User with id '"
-                        + userId + "' or Team with id '" + teamId + "' is inactive");
+        if (user.isActive() && team.isActive()) {
+            if (team.getUsers().size() < 10) {
+                user.setTeam(team);
+                saveUser(user, String.format("Could not add user with id '%d' to team with id '%d'", userId, teamId));
+                return findTeam(teamId, String.format("Team with id '%d' did not exist.", teamId));
             } else {
-                if (team.getUsers().size() < 10) {
-                    user.setTeam(team);
-                    userRepository.save(user);
-                    return teamRepository.findOne(teamId);
-                } else {
-                    throw new ServiceException("Team with id '" + teamId + "' already contains 10 users");
-                }
+                throw new MaximumQuantityException(String.format("Team with id '%d' already contains 10 users",
+                        teamId));
             }
-        } catch (ServiceException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new ServiceException("Could not add user with id '" + userId
-                    + "' to team with id '" + teamId, e);
+        } else {
+            throw new ForbiddenOperationException(String.format("User with id '%d' or Team with id '%d' is inactive",
+                    userId, teamId));
         }
     }
 
     public Team removeUserFromTeam(Long teamId, Long userId) {
+        User user = findUser(userId, String.format("User with id '%d' did not exist.", userId));
+        Team team = findTeam(teamId, String.format("Team with id '%d' did not exist.", teamId));
+
+        if (user.isActive() && team.isActive()) {
+            user.setTeam(null);
+            saveUser(user, String.format("Could not remove user with id '%d' to team with id '%d'", userId, teamId));
+            return findTeam(teamId, String.format("Team with id '%d' did not exist.", teamId));
+        } else {
+            throw new ForbiddenOperationException(String.format("User with id '%d' or Team with id '%d' is inactive",
+                    userId, teamId));
+        }
+    }
+
+    private Team saveTeam(Team team, String databaseExceptionMessage) {
+        try {
+            return teamRepository.save(team);
+        } catch (DataAccessException e) {
+            throw new DatabaseException(databaseExceptionMessage, e);
+        }
+    }
+
+    private User saveUser(User user, String databaseExceptionMessage) {
+        try {
+            return userRepository.save(user);
+        } catch (DataAccessException e) {
+            throw new DatabaseException(databaseExceptionMessage, e);
+        }
+    }
+
+    private Team findTeam(Long teamId, String noSearchResultExceptionMessage) {
+        try {
+            Team team = teamRepository.findOne(teamId);
+            if (team != null) {
+                return team;
+            } else {
+                throw new NoSearchResultException(noSearchResultExceptionMessage);
+            }
+        } catch (DataAccessException e) {
+            throw new DatabaseException(String.format("Could not find team with id: %d", teamId), e);
+        }
+    }
+
+    private User findUser(Long userId, String noSearchResultExceptionMessage) {
         try {
             User user = userRepository.findOne(userId);
-            Team team = teamRepository.findOne(teamId);
-
-            if (team == null || user == null) {
-                throw new NoSearchResultException("Team with id '"
-                        + teamId + "' or User with id '" + userId + "' did not exist.");
-            } else if (!user.isActive() || !team.isActive()) {
-                throw new ServiceException("User with id '"
-                        + userId + "' or Team with id '" + teamId + "' is inactive");
+            if (user != null) {
+                return user;
             } else {
-                user.setTeam(null);
-                userRepository.save(user);
-                return teamRepository.findOne(teamId);
+                throw new NoSearchResultException(noSearchResultExceptionMessage);
             }
-        } catch (ServiceException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new ServiceException("Could not remove user with id '" + userId
-                    + "' from team with id '" + teamId, e);
+        } catch (DataAccessException e) {
+            throw new DatabaseException(String.format("Could not find user with id: %d", userId), e);
         }
     }
 }

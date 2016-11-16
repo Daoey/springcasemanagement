@@ -49,7 +49,8 @@ public class TestTeamIntegration {
     @Test
     public void teamToString() {
         final String result = teamService.getById(teamId).toString();
-        final String expectedToString = "Team [id=1, name=test, active=true, usersSize=0, created=2016-11-11, lastModified=null]";
+        final String expectedToString = "Team [id=1, name=test, active=true, "
+                + "usersSize=0, created=2016-11-11, lastModified=null]";
         assertEquals(result, expectedToString);
     }
 
@@ -74,15 +75,15 @@ public class TestTeamIntegration {
 
     @Test
     public void canInactiveTeam() {
-        Team teamFromDb = teamService.inactivate(teamId);
+        Team teamFromDb = teamService.setTeamActive(false, teamId);
         assertFalse(teamFromDb.isActive());
     }
 
     @Test
     public void canActivateTeam() {
-        Team inactiveTeamFromDb = teamService.inactivate(teamId);
+        Team inactiveTeamFromDb = teamService.setTeamActive(false, teamId);
         assertFalse(inactiveTeamFromDb.isActive());
-        Team activeTeamFromDb = teamService.activate(teamId);
+        Team activeTeamFromDb = teamService.setTeamActive(true, teamId);
         assertTrue(activeTeamFromDb.isActive());
     }
 
