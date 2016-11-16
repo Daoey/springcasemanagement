@@ -6,7 +6,6 @@ import static se.teknikhogskolan.springcasemanagement.model.WorkItem.Status.UNST
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,12 +60,6 @@ public class WorkItemService {
         else throw new NoSearchResultException(String.format("No WorkItems found between dates '%s' and '%s'", fromDate, toDate));
     }
 
-    private void throwNoSearchResultExceptionIfResultIsEmpty(Collection<WorkItem> result, String exceptionMessage) {
-        if (null == result || result.isEmpty()) {
-            throw new NoSearchResultException(exceptionMessage);
-        }
-    }
-
     public Page<WorkItem> getAllByPage(int page, int pageSize) {
         Page<WorkItem> result = getAllByPage(new PageRequest(page, pageSize));
         throwNoSearchResultExceptionIfResultIsEmpty(result,
@@ -98,10 +91,10 @@ public class WorkItemService {
     }
 
     private WorkItem removeIssueFrom(WorkItem workItem) {
-        Optional<Issue> issue = Optional.ofNullable(workItem.getIssue());
-        if (issue.isPresent()){
+        Issue issue = workItem.getIssue();
+        if (weHaveA(issue)){
             saveWorkItem(workItem.setIssue(null));
-            deleteIssue(issue.get());
+            deleteIssue(issue);
             return workItem;
         } else throw new ForbiddenOperationException(String.format("Cannot remove Issue from WorkItem %d, no Issue found in WorkItem", workItem.getId()));
     }
@@ -159,13 +152,13 @@ public class WorkItemService {
     }
 
     private Issue getIssueById(Long issueId) {
-        Optional<Issue> issue;
+        Issue issue;
         try {
-            issue = Optional.ofNullable(issueRepository.findOne(issueId));
+            issue = issueRepository.findOne(issueId);
         } catch (DataAccessException e) {
             throw new DatabaseException(String.format("Cannot get Issue with id '%d'", issueId), e);
         }
-        if (issue.isPresent()) return issue.get();
+        if (weHaveA(issue)) return issue;
         else throw new NoSearchResultException(String.format("No match for Issue with id '%d'", issueId));
     }
 
@@ -178,11 +171,12 @@ public class WorkItemService {
     }
 
     public Collection<WorkItem> getByTeamId(Long teamId) {
-        Collection<WorkItem> workItems = executeCollection(workItemRepository -> {
+        Collection<WorkItem> result = executeCollection(workItemRepository -> {
             return workItemRepository.findByTeamId(teamId);
         }, String.format("Cannot not get WorkItems by Team id '%s'", teamId));
-        throwNoSearchResultExceptionIfResultIsEmpty(workItems, String.format("No match for WorkItems with team id '%d'", teamId));
-        return workItems;
+        
+        if (weHaveA(result)) return result;
+        else throw new NoSearchResultException(String.format("No match for WorkItems with team id '%d'", teamId));
     }
 
     public WorkItem setStatus(Long workItemId, WorkItem.Status status) {
