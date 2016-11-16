@@ -87,6 +87,7 @@ public final class TestWorkItemService {
         LocalDate toDate = LocalDate.now().plusDays(1);
         workItemList.add(workItem);
         when(workItemRepository.findByCreationDate(fromDate, toDate)).thenReturn(workItemList);
+        
         workItemCollection = workItemService.getByCreatedBetweenDates(fromDate, toDate);
         verify(workItemRepository).findByCreationDate(fromDate, toDate);
         assertTrue(workItemCollection.contains(workItem));
@@ -107,6 +108,7 @@ public final class TestWorkItemService {
         Page<WorkItem> workItemPage = new PageImpl<>(workItemList);
         PageRequest pageRequest = new PageRequest(0, 10);
         when(workItemRepository.findAll(pageRequest)).thenReturn(workItemPage);
+        
         Page<WorkItem> result = workItemService.getAllByPage(0, 10);
         assertEquals(workItemPage, result);
     }
@@ -117,6 +119,7 @@ public final class TestWorkItemService {
         PageRequest pageRequest = new PageRequest(1, 1);
         when(workItemRepository.findAll(pageRequest)).thenReturn(page);
         when(page.hasContent()).thenReturn(true);
+        
         Page<WorkItem> result = workItemService.getAllByPage(1, 1);
         assertEquals(page, result);
     }
@@ -127,6 +130,7 @@ public final class TestWorkItemService {
         LocalDate toDate = LocalDate.now().plusDays(1);
         workItemList.add(workItem);
         when(workItemRepository.findByCreationDate(fromDate, toDate)).thenReturn(workItemList);
+        
         List<WorkItem> result = workItemService.getByCreatedBetweenDates(fromDate, toDate);
         assertEquals(workItem, result.get(0));
     }
@@ -191,6 +195,7 @@ public final class TestWorkItemService {
         when(user.getId()).thenReturn(userId);
         when(workItemRepository.findByUserId(userId)).thenReturn(workItemCollection);
         when(workItemRepository.findOne(workItemId)).thenReturn(workItem);
+        
         workItemService.setUser(userNumber, workItemId);
         verify(workItem).setUser(user);
         verify(workItemRepository).save(workItem);
@@ -214,18 +219,19 @@ public final class TestWorkItemService {
     public void canGetWorkItemsByUserId() {
         WorkItem workItem = new WorkItem("Get by User");
         workItem.setUser(user);
-        workItemCollection.add(workItem);
+        Collection<WorkItem> workItemsWithOurUser = new ArrayList<>();
+        workItemsWithOurUser.add(workItem);
 
         when(user.getId()).thenReturn(userId);
         when(user.getUserNumber()).thenReturn(userNumber);
         when(userRepository.findByUserNumber(userNumber)).thenReturn(user);
-        when(workItemRepository.findByUserId(userId)).thenReturn(workItemCollection);
+        when(workItemRepository.findByUserId(userId)).thenReturn(workItemsWithOurUser);
 
-        Collection<WorkItem> result = workItemService.getByUsernumber(userNumber);
+        workItemCollection = workItemService.getByUsernumber(userNumber);
 
         verify(workItemRepository).findByUserId(userId);
-        assertEquals(workItemCollection, result);
-        result.forEach(item -> assertEquals(userId, item.getUser().getId()));
+        assertEquals(workItemsWithOurUser, workItemCollection);
+        workItemCollection.forEach(item -> assertEquals(userId, item.getUser().getId()));
     }
 
     @Test
@@ -284,12 +290,10 @@ public final class TestWorkItemService {
     public void canGetAllWithIssue() {
         Collection<WorkItem> workItemsWithIssue = new ArrayList<>();
         workItemsWithIssue.add(workItem);
-
         when(workItemRepository.findByIssueIsNotNull()).thenReturn(workItemsWithIssue);
         when(workItem.getIssue()).thenReturn(issue);
 
         workItemCollection = workItemService.getAllWithIssue();
-
         verify(workItemRepository).findByIssueIsNotNull();
         workItemCollection.forEach(item -> assertNotNull(item.getIssue()));
     }
@@ -334,7 +338,6 @@ public final class TestWorkItemService {
         when(workItemRepository.findOne(workItem.getId())).thenReturn(workItem);
 
         workItemService.addIssueToWorkItem(issue.getId(), workItem.getId());
-
         verify(workItem).setStatus(Status.UNSTARTED);
         verify(workItem).setIssue(issue);
         verify(workItemRepository).save(workItem);
@@ -409,7 +412,6 @@ public final class TestWorkItemService {
     @Test
     public void canFindByDescriptionContains() {
         String searchText = "important";
-        workItemCollection = new ArrayList<>();
         workItemCollection.add(workItem);
         when(workItemRepository.findByDescriptionContains(searchText)).thenReturn(workItemCollection);
         workItemService.getByDescriptionContains(searchText);
@@ -535,9 +537,9 @@ public final class TestWorkItemService {
     public void canGetCompletedWorkItemsBetweenDates() {
         LocalDate from = LocalDate.now().minusDays(1);
         LocalDate to = LocalDate.now().plusDays(1);
-        List<WorkItem> workItems = new ArrayList<>();
-        workItems.add(workItem);
-        when(workItemRepository.findByCompletionDate(from, to)).thenReturn(workItems);
+        workItemList.add(workItem);
+        when(workItemRepository.findByCompletionDate(from, to)).thenReturn(workItemList);
+        
         workItemService.getCompletedWorkItems(from, to);
         verify(workItemRepository).findByCompletionDate(from, to);
     }
