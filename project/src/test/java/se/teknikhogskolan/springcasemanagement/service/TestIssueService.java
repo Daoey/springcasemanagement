@@ -68,9 +68,9 @@ public final class TestIssueService {
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfErrorOccursWhenGettingIssueById() {
-        thrown.expect(ServiceException.class);
-        thrown.expectMessage("Could not get issue with id: " + issueId);
+    public void shouldThrowDatabaseExceptionIfErrorOccursWhenGettingIssueById() {
+        thrown.expect(DatabaseException.class);
+        thrown.expectMessage("Could not find issue with id: " + issueId);
         doThrow(dataAccessException).when(issueRepository).findOne(issueId);
         issueService.getById(issueId);
     }
@@ -135,10 +135,11 @@ public final class TestIssueService {
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfErrorOccursWhenUpdatingIssueDescription() {
-        thrown.expect(ServiceException.class);
+    public void shouldThrowDatabaseExceptionIfErrorOccursWhenUpdatingIssueDescription() {
+        thrown.expect(DatabaseException.class);
         thrown.expectMessage("Could not update description on issue with id: " + issueId);
-        doThrow(dataAccessException).when(issueRepository).findOne(issueId);
+        when(issueRepository.findOne(issueId)).thenReturn(issueInDb);
+        doThrow(dataAccessException).when(issueRepository).save(issueInDb);
         issueService.updateDescription(issueId, "test");
     }
 
@@ -163,11 +164,12 @@ public final class TestIssueService {
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfErrorOccursWhenInactivatingAnIssue() {
-        thrown.expect(ServiceException.class);
+    public void shouldThrowDatabaseExceptionIfErrorOccursWhenInactivatingAnIssue() {
+        thrown.expect(DatabaseException.class);
         thrown.expectMessage("Could not inactivate issue with id: " + issueId);
         issueInDb.setActive(true);
-        doThrow(dataAccessException).when(issueRepository).findOne(issueId);
+        when(issueRepository.findOne(issueId)).thenReturn(issueInDb);
+        doThrow(dataAccessException).when(issueRepository).save(issueInDb);
         issueService.inactivate(issueId);
     }
 
@@ -192,11 +194,12 @@ public final class TestIssueService {
     }
 
     @Test
-    public void shouldThrowServiceExceptionIfErrorOccursWhenActivatingAnIssue() {
-        thrown.expect(ServiceException.class);
+    public void shouldThrowDatabaseExceptionIfErrorOccursWhenActivatingAnIssue() {
+        thrown.expect(DatabaseException.class);
         thrown.expectMessage("Could not activate issue with id: " + issueId);
         issueInDb.setActive(false);
-        doThrow(dataAccessException).when(issueRepository).findOne(issueId);
+        when(issueRepository.findOne(issueId)).thenReturn(issueInDb);
+        doThrow(dataAccessException).when(issueRepository).save(issueInDb);
         issueService.activate(issueId);
     }
 
