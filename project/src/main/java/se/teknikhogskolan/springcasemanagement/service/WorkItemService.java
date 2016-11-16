@@ -245,8 +245,9 @@ public class WorkItemService {
         Collection<WorkItem> workItems = executeCollection(workItemRepository -> {
             return workItemRepository.findByStatus(status);
         }, String.format("Cannot get WorkItems by Status '%s'", status));
-        throwNoSearchResultExceptionIfResultIsEmpty(workItems, String.format("No match for get WorkItems by Status '%s'", status));
-        return workItems;
+        
+        if (isPresent(workItems)) return workItems;
+        else throw new NoSearchResultException(String.format("No match for get WorkItems by Status '%s'", status));
     }
 
     public Collection<WorkItem> getByUsernumber(Long userNumber) {
@@ -254,6 +255,7 @@ public class WorkItemService {
         Collection<WorkItem> result = executeCollection(workItemRepository -> {
             return workItemRepository.findByUserId(user.getId());
         }, String.format("Cannot get WorkItems by userNumber '%d'", userNumber));
+        
         if (isPresent(result)) return result;
         else throw new NoSearchResultException(String.format("No match for WorkItems added to User with Usernumber '%d'", userNumber));
     }
@@ -262,16 +264,22 @@ public class WorkItemService {
         Collection<WorkItem> result = executeCollection(workItemRepository -> {
             return workItemRepository.findByDescriptionContains(text);
         }, String.format("Cannot get WorkItems by description contains '%s'", text));
+        
         if (isPresent(result)) return result;
         else throw new NoSearchResultException(String.format("No match for WorkItem description contains '%s'", text));
     }
     
-    private boolean isPresent(Collection result) {
-        if (null == result || result.isEmpty()) {
+    private boolean isPresent(Object result) {
+        if (null == result) {
             return false;
-        } else {
-            return true;
         }
+        if (result instanceof Collection) {
+            Collection collection = (Collection) result;
+            if (collection.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public WorkItem setUser(Long userNumber, Long workItemId) {
@@ -285,13 +293,13 @@ public class WorkItemService {
     }
 
     private User getUserByUsernumber(Long userNumber) {
-        Optional<User> user;
+        User result;
         try {
-            user = Optional.ofNullable(userRepository.findByUserNumber(userNumber));
+            result = userRepository.findByUserNumber(userNumber);
         } catch (DataAccessException e) {
             throw new DatabaseException(String.format("Cannot get User by userNumber '%d'", userNumber), e);
         }
-        if (user.isPresent()) return user.get();
+        if (isPresent(result)) return result;
         else throw new NoSearchResultException(String.format("No match for User '%d'", userNumber));
     }
 
@@ -305,7 +313,7 @@ public class WorkItemService {
     private boolean userHasRoomForOneMoreWorkItem(User user) {
         Collection<WorkItem> workItemsToThisUser = workItemRepository.findByUserId(user.getId());
         final int maxAllowedWorkItemsPerUser = 5;
-        if (workItemsToThisUser.size() < maxAllowedWorkItemsPerUser)
+        if (null == workItemsToThisUser || workItemsToThisUser.size() < maxAllowedWorkItemsPerUser)
             return true;
         return false;
     }
