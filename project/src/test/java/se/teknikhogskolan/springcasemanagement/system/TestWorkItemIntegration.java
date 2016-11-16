@@ -80,7 +80,7 @@ public class TestWorkItemIntegration {
     public void canGetByUser() {
         final Long userNumber = 10003L;
         List<WorkItem> result = new ArrayList<>();
-        result.addAll(workItemService.getByUserNumber(userNumber));
+        result.addAll(workItemService.getByUsernumber(userNumber));
         final Long workItemId = 98486464L;
         assertEquals(workItemId, result.get(0).getId());
     }

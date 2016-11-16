@@ -246,7 +246,7 @@ public final class TestWorkItemService {
         when(userRepository.findByUserNumber(userNumber)).thenReturn(user);
         when(workItemRepository.findByUserId(userId)).thenReturn(workItemsWithOurUser);
 
-        Collection<WorkItem> result = workItemService.getByUserNumber(userNumber);
+        Collection<WorkItem> result = workItemService.getByUsernumber(userNumber);
 
         verify(workItemRepository).findByUserId(userId);
         assertEquals(workItemsWithOurUser, result);
@@ -257,7 +257,7 @@ public final class TestWorkItemService {
     public void getWorkItemsByUserIdShouldThrowExceptionIfNoMatch() {
         exception.expect(NoSearchResultException.class);
         when(userRepository.findByUserNumber(userNumber)).thenReturn(null);
-        workItemService.getByUserNumber(userNumber);
+        workItemService.getByUsernumber(userNumber);
     }
 
     @Test
@@ -299,7 +299,7 @@ public final class TestWorkItemService {
     @Test
     public void removingIssueFromWorkItemShouldCatchExceptionsAndThrowServiceException() {
         exception.expect(ServiceException.class);
-        exception.expectMessage(String.format("Cannot find WorkItem '%d'", workItemId));
+        exception.expectMessage(String.format("Cannot get WorkItem '%d'", workItemId));
         doThrow(dataAccessException).when(workItemRepository).findOne(workItemId);
         workItemService.removeIssueFromWorkItem(workItemId);
     }
@@ -511,8 +511,8 @@ public final class TestWorkItemService {
     @Test
     public void changeWorkItemStatusShouldCatchExceptionsAndThrowServiceException() {
         Status newStatus = Status.DONE;
-        exception.expect(ServiceException.class);
-        exception.expectMessage(String.format("Cannot set Status '%s' on WorkItem '%s'", newStatus, workItemId));
+        exception.expect(DatabaseException.class);
+        exception.expectMessage(String.format("Cannot get WorkItem '%d'", workItemId));
         when(workItemRepository.findOne(workItemId)).thenThrow(dataAccessException);
         when(workItem.getId()).thenReturn(workItemId);
         workItemService.setStatus(workItemId, newStatus);

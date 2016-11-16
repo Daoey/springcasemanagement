@@ -6,11 +6,11 @@ import static se.teknikhogskolan.springcasemanagement.model.WorkItem.Status.UNST
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.core.NestedRuntimeException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -49,7 +49,7 @@ public class WorkItemService {
     private List<WorkItem> getAllCreatedBetweenDates(LocalDate fromDate, LocalDate toDate) {
         try {
             return workItemRepository.findByCreationDate(fromDate, toDate);
-        } catch (NestedRuntimeException e) {
+        } catch (DataAccessException e) {
             throw new DatabaseException(String.format("Cannot get WorkItems between '%s' and '%s'", toDate, fromDate),
                     e);
         }
@@ -71,7 +71,7 @@ public class WorkItemService {
     private Page<WorkItem> getAllByPage(PageRequest pageRequest) {
         try {
             return workItemRepository.findAll(pageRequest);
-        } catch (NestedRuntimeException e) {
+        } catch (DataAccessException e) {
             throw new DatabaseException(String.format("Cannot get Page '%d' with size '%d'",
                     pageRequest.getPageNumber(), pageRequest.getPageSize()), e);
         }
@@ -86,27 +86,29 @@ public class WorkItemService {
     @Transactional // TODO test @Transactional
     public WorkItem removeIssueFromWorkItem(Long workItemId) {
         WorkItem workItem = getWorkItemById(workItemId);
-        Issue issue = workItem.getIssue();
-        throwNoSearchResultExceptionIfNull(issue, String.format("Cannot remove Issue from WorkItem %d, no Issue found in WorkItem", workItemId));
-        workItem = saveWorkItem(workItem.setIssue(null));
-        issue = deleteIssue(issue);
-        return workItem;
+        Optional<Issue> issue = Optional.ofNullable(workItem.getIssue());
+        if (issue.isPresent()){
+            saveWorkItem(workItem.setIssue(null));
+            deleteIssue(issue.get());
+            return workItem;
+        } else throw new ForbiddenOperationException(String.format("Cannot remove Issue from WorkItem %d, no Issue found in WorkItem", workItemId));
     }
 
     private WorkItem getWorkItemById(Long workItemId) {
+        Optional<WorkItem> workItem;
         try {
-            WorkItem workItem = workItemRepository.findOne(workItemId);
-            throwNoSearchResultExceptionIfNull(workItem, String.format("No match for WorkItem with id '%d'", workItemId));
-            return workItem;
-        } catch (NestedRuntimeException e) {
-            throw new DatabaseException(String.format("Cannot find WorkItem '%d'", workItemId));
+            workItem = Optional.ofNullable(workItemRepository.findOne(workItemId));
+        } catch (DataAccessException e) {
+            throw new DatabaseException(String.format("Cannot get WorkItem '%d'", workItemId));
         }
+        if (workItem.isPresent()) return workItem.get();
+        else throw new NoSearchResultException(String.format("No match for WorkItem with id '%d'", workItemId));
     }
 
     private WorkItem saveWorkItem(WorkItem workItem) {
         try {
             return workItemRepository.save(workItem);
-        } catch (NestedRuntimeException e) {
+        } catch (DataAccessException e) {
             throw new DatabaseException(String.format("Cannot save WorkItem with description '%s'", workItem.getDescription(), e));
         }
     }
@@ -115,31 +117,26 @@ public class WorkItemService {
         try {
             issueRepository.delete(issue.getId());
             return issue;
-        } catch (NestedRuntimeException e) {
+        } catch (DataAccessException e) {
             throw new DatabaseException(String.format("Cannot remove Issue from WorkItem. Issue id '%d'", issue.getId()), e);
         }
     }
 
     public Collection<WorkItem> getAllWithIssue() {
-        Collection<WorkItem> workItems = executeMany(workItemRepository -> {
+        Collection<WorkItem> result = executeCollection(workItemRepository -> {
             return workItemRepository.findByIssueIsNotNull();
         }, "Cannot get all WorkItems with Issue");
-        ifEmptyThrowNoSearchResultException(workItems, "No match for get all WorkItems with Issue");
-        return workItems;
+        if (null == result || result.isEmpty()) {
+            throw new NoSearchResultException("No match for get all WorkItems with Issue");
+        } else return result;
     }
 
-    private Collection<WorkItem> executeMany(Function<WorkItemRepository, Collection<WorkItem>> operation,
+    private Collection<WorkItem> executeCollection(Function<WorkItemRepository, Collection<WorkItem>> operation,
             String exceptionMessage) {
         try {
             return operation.apply(workItemRepository);
-        } catch (NestedRuntimeException e) {
+        } catch (DataAccessException e) {
             throw new DatabaseException(exceptionMessage, e);
-        }
-    }
-    
-    private void ifEmptyThrowNoSearchResultException(Collection<WorkItem> collection, String exceptionMessage) {
-        if (null == collection || collection.isEmpty()) {
-            throw new NoSearchResultException(exceptionMessage);
         }
     }
 
@@ -150,30 +147,31 @@ public class WorkItemService {
             workItem.setStatus(UNSTARTED);
             workItem.setIssue(issue);
             return saveWorkItem(workItem);
-        } else throw new DatabaseException(String.format("Issue can only be added to WorkItem with Status 'DONE', Status was '%s'. "
+        } else throw new InvalidInputException(String.format("Issue can only be added to WorkItem with Status 'DONE', Status was '%s'. "
                 + "Issue id '%d', WorkItem id '%d'", workItem.getStatus(), issueId, workItemId)); // TODO test this exception
     }
 
     private Issue getIssueById(Long issueId) {
+        Optional<Issue> issue;
         try {
-            Issue issue = issueRepository.findOne(issueId);
-            throwNoSearchResultExceptionIfNull(issue, String.format("No match for Issue with id '%d'", issueId));
-            return issue;
-        } catch (NestedRuntimeException e) {
+            issue = Optional.ofNullable(issueRepository.findOne(issueId));
+        } catch (DataAccessException e) {
             throw new DatabaseException(String.format("Cannot get Issue with id '%d'", issueId), e);
         }
+        if (issue.isPresent()) return issue.get();
+        else throw new NoSearchResultException(String.format("No match for Issue with id '%d'", issueId));
     }
 
     public Issue createIssue(String description) {
         try {
             return issueRepository.save(new Issue(description));
-        } catch (NestedRuntimeException e) {
+        } catch (DataAccessException e) {
             throw new DatabaseException(String.format("Cannot create Issue with description '%s'", description), e);
         }
     }
 
     public Collection<WorkItem> getByTeamId(Long teamId) {
-        Collection<WorkItem> workItems = executeMany(workItemRepository -> {
+        Collection<WorkItem> workItems = executeCollection(workItemRepository -> {
             return workItemRepository.findByTeamId(teamId);
         }, String.format("Cannot not get WorkItems by Team id '%s'", teamId));
         throwNoSearchResultExceptionIfResultIsEmpty(workItems, String.format("No match for WorkItems with team id '%d'", teamId));
@@ -181,35 +179,36 @@ public class WorkItemService {
     }
 
     public WorkItem setStatus(Long workItemId, WorkItem.Status status) {
-        try {
-            WorkItem workItem = workItemRepository.findOne(workItemId);
-            workItem.setStatus(status);
-            if (status.equals(DONE))
-                workItem.setCompletionDate(LocalDate.now());
-            return workItemRepository.save(workItem);
-        } catch (NullPointerException e) {
-            throw new NoSearchResultException(
-                    String.format("Cannot set Status '%s' on WorkItem '%s'", status, workItemId), e);
-        } catch (NestedRuntimeException e) {
-            throw new DatabaseException(String.format("Cannot set Status '%s' on WorkItem '%s'", status, workItemId), e);
+        WorkItem workItem = getWorkItemById(workItemId);
+        workItem.setStatus(status);
+        if (status.equals(DONE)){
+            workItem.setCompletionDate(LocalDate.now());
         }
+        return saveWorkItem(workItem);
     }
 
     public WorkItem create(String description) {
         try {
             return saveWorkItem(new WorkItem(description));
-        } catch (NestedRuntimeException e) {
+        } catch (DataAccessException e) {
             throw new DatabaseException(String.format("Cannot create WorkItem with description '%s'", description), e);
         }
     }
 
     public List<WorkItem> getCompletedWorkItems(LocalDate from, LocalDate to) {
+        List<WorkItem> workItems = executeList(workItemRepository -> {
+            return workItemRepository.findByCompletionDate(from, to);
+        }, "Cannot get completed WorkItems");
+        throwNoSearchResultExceptionIfResultIsEmpty(workItems, String.format("No match for WorkItems completed between '%s' and '%s'", to, from));
+        return workItems;
+    }
+
+    private List<WorkItem> executeList(Function<WorkItemRepository, List<WorkItem>> operation,
+            String exceptionMessage) {
         try {
-            List<WorkItem> workItems = workItemRepository.findByCompletionDate(from, to);
-            throwNoSearchResultExceptionIfResultIsEmpty(workItems, String.format("No match for WorkItems completed between '%s' and '%s'", to, from));
-            return workItems;
-        } catch (NestedRuntimeException e) {
-            throw new DatabaseException("Failed to get completed work items", e);
+            return operation.apply(workItemRepository);
+        } catch (DataAccessException e) {
+            throw new DatabaseException(exceptionMessage, e);
         }
     }
 
@@ -222,7 +221,7 @@ public class WorkItemService {
             return workItem;
         } catch (NoSearchResultException e) {
             throw e;
-        } catch (NestedRuntimeException e) {
+        } catch (DataAccessException e) {
             throw new DatabaseException(String.format("Cannot get WorkItem with id %d", workItemId), e);
         }
     }
@@ -237,35 +236,42 @@ public class WorkItemService {
             return workItem;
         } catch (NoSearchResultException e) {
             throw e;
-        } catch (NestedRuntimeException e) {
+        } catch (DataAccessException e) {
             throw new DatabaseException(String.format("Cannot remove WorkItem with id '%d'", workItemId), e);
         }
     }
 
     public Collection<WorkItem> getByStatus(WorkItem.Status status) {
-        Collection<WorkItem> workItems = executeMany(workItemRepository -> {
+        Collection<WorkItem> workItems = executeCollection(workItemRepository -> {
             return workItemRepository.findByStatus(status);
         }, String.format("Cannot get WorkItems by Status '%s'", status));
         throwNoSearchResultExceptionIfResultIsEmpty(workItems, String.format("No match for get WorkItems by Status '%s'", status));
         return workItems;
     }
 
-    public Collection<WorkItem> getByUserNumber(Long userNumber) {
-        User user = userRepository.findByUserNumber(userNumber);
-        if (null == user) {
-            throw new NoSearchResultException(String.format("Cannot find User with usernNumber '%d'", userNumber));
-        }
-        return executeMany(workItemRepository -> {
+    public Collection<WorkItem> getByUsernumber(Long userNumber) {
+        User user = getUserByUsernumber(userNumber);
+        Collection<WorkItem> result = executeCollection(workItemRepository -> {
             return workItemRepository.findByUserId(user.getId());
         }, String.format("Cannot get WorkItems by userNumber '%d'", userNumber));
+        if (isPresent(result)) return result;
+        else throw new NoSearchResultException(String.format("No match for WorkItems added to User with Usernumber '%d'", userNumber));
     }
 
     public Collection<WorkItem> getByDescriptionContains(String text) {
-        Collection<WorkItem> workItems = executeMany(workItemRepository -> {
+        Collection<WorkItem> result = executeCollection(workItemRepository -> {
             return workItemRepository.findByDescriptionContains(text);
         }, String.format("Cannot get WorkItems by description contains '%s'", text));
-        throwNoSearchResultExceptionIfResultIsEmpty(workItems, String.format("No match for WorkItem description contains '%s'", text));
-        return workItems;
+        if (isPresent(result)) return result;
+        else throw new NoSearchResultException(String.format("No match for WorkItem description contains '%s'", text));
+    }
+    
+    private boolean isPresent(Collection result) {
+        if (null == result || result.isEmpty()) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     public WorkItem setUser(Long userNumber, Long workItemId) {
@@ -279,20 +285,14 @@ public class WorkItemService {
     }
 
     private User getUserByUsernumber(Long userNumber) {
-        User user;
+        Optional<User> user;
         try {
-            user = userRepository.findByUserNumber(userNumber);
-        } catch (NestedRuntimeException e) {
+            user = Optional.ofNullable(userRepository.findByUserNumber(userNumber));
+        } catch (DataAccessException e) {
             throw new DatabaseException(String.format("Cannot get User by userNumber '%d'", userNumber), e);
         }
-        throwNoSearchResultExceptionIfNull(user, String.format("No match for User '%d'", userNumber));
-        return user;
-    }
-
-    private void throwNoSearchResultExceptionIfNull(AbstractEntity entity, String exceptionMessage) {
-        if (null == entity) {
-            throw new NoSearchResultException(exceptionMessage);
-        }
+        if (user.isPresent()) return user.get();
+        else throw new NoSearchResultException(String.format("No match for User '%d'", userNumber));
     }
 
     private boolean userCanHaveOneMoreWorkItem(User user) {
