@@ -27,8 +27,8 @@ import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 import se.teknikhogskolan.springcasemanagement.service.exception.DatabaseException;
-import se.teknikhogskolan.springcasemanagement.service.exception.DuplicateValueException;
 import se.teknikhogskolan.springcasemanagement.service.exception.ForbiddenOperationException;
+import se.teknikhogskolan.springcasemanagement.service.exception.InvalidInputException;
 import se.teknikhogskolan.springcasemanagement.service.exception.MaximumQuantityException;
 import se.teknikhogskolan.springcasemanagement.service.exception.NoSearchResultException;
 
@@ -121,8 +121,8 @@ public final class TestTeamService {
     }
 
     @Test
-    public void shouldThrowDuplicateValueExceptionWhenCreatingTeamWithAnAlreadyExistingName() {
-        thrown.expect(DuplicateValueException.class);
+    public void shouldThrowInvalidInputExceptionExceptionWhenCreatingTeamWithAnAlreadyExistingName() {
+        thrown.expect(InvalidInputException.class);
         thrown.expectMessage(String.format("Team wit name '%s' already exist", team.getName()));
         doThrow(DuplicateKeyException.class).when(teamRepository).save(team);
         teamService.create(team.getName());

@@ -2,7 +2,7 @@ package se.teknikhogskolan.springcasemanagement.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import se.teknikhogskolan.springcasemanagement.model.Team;
@@ -10,8 +10,8 @@ import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 import se.teknikhogskolan.springcasemanagement.service.exception.DatabaseException;
-import se.teknikhogskolan.springcasemanagement.service.exception.DuplicateValueException;
 import se.teknikhogskolan.springcasemanagement.service.exception.ForbiddenOperationException;
+import se.teknikhogskolan.springcasemanagement.service.exception.InvalidInputException;
 import se.teknikhogskolan.springcasemanagement.service.exception.MaximumQuantityException;
 import se.teknikhogskolan.springcasemanagement.service.exception.NoSearchResultException;
 
@@ -50,8 +50,8 @@ public class TeamService {
         Team team = new Team(teamName);
         try {
             return teamRepository.save(team);
-        } catch (DuplicateKeyException e) {
-            throw new DuplicateValueException(String.format("Team wit name '%s' already exist", teamName), e);
+        } catch (DataIntegrityViolationException e) {
+            throw new InvalidInputException(String.format("Team wit name '%s' already exist", teamName), e);
         } catch (DataAccessException e) {
             throw new DatabaseException(String.format("Could not create team with name: %s", teamName));
         }
