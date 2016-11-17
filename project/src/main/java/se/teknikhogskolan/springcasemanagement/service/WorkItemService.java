@@ -168,14 +168,9 @@ public class WorkItemService {
             workItem.setStatus(UNSTARTED);
             workItem.setIssue(issue);
             return saveWorkItem(workItem);
-        } else
-            throw new InvalidInputException(String.format(
-                    "Issue can only be added to WorkItem with Status 'DONE', Status was '%s'. "
-                            + "Issue id '%d', WorkItem id '%d'",
-                    workItem.getStatus(), issue.getId(), workItem.getId())); // TODO
-                                                                             // test
-                                                                             // this
-                                                                             // exception
+        } else throw new InvalidInputException(String.format(
+                "Issue can only be added to WorkItem with Status 'DONE', Status was '%s'. Issue id '%d', WorkItem id '%d'",
+                    workItem.getStatus(), issue.getId(), workItem.getId()));
     }
 
     private Issue getIssueById(Long issueId) {
@@ -194,6 +189,9 @@ public class WorkItemService {
     public Issue createIssue(String description) {
         try {
             return issueRepository.save(new Issue(description));
+        } catch (DataIntegrityViolationException e) {
+            throw new InvalidInputException(String.format("Issue with description '%s' violates data integrity",
+                    description, e));
         } catch (DataAccessException e) {
             throw new DatabaseException(String.format("Cannot create Issue with description '%s'", description), e);
         }
