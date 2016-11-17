@@ -195,11 +195,7 @@ public class WorkItemService {
     }
 
     public WorkItem create(String description) {
-        try {
             return saveWorkItem(new WorkItem(description));
-        } catch (DataAccessException e) {
-            throw new DatabaseException(String.format("Cannot create WorkItem with description '%s'", description), e);
-        }
     }
 
     public List<WorkItem> getCompletedWorkItems(LocalDate from, LocalDate to) {
