@@ -8,7 +8,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
-import org.h2.jdbc.JdbcSQLException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -24,9 +23,9 @@ import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 import se.teknikhogskolan.springcasemanagement.repository.WorkItemRepository;
 import se.teknikhogskolan.springcasemanagement.service.exception.DatabaseException;
-import se.teknikhogskolan.springcasemanagement.service.exception.DuplicateValueException;
 import se.teknikhogskolan.springcasemanagement.service.exception.ForbiddenOperationException;
 import se.teknikhogskolan.springcasemanagement.service.exception.InvalidInputException;
+import se.teknikhogskolan.springcasemanagement.service.exception.MaximumQuantityException;
 import se.teknikhogskolan.springcasemanagement.service.exception.NoSearchResultException;
 
 @Service
@@ -285,7 +284,7 @@ public class WorkItemService {
             workItem.setUser(user);
             return saveWorkItem(workItem);
         } else
-            throw new DatabaseException("Cannot set User to WorkItem. User is inactive or have 5 WorkItems");
+            throw new MaximumQuantityException("Cannot set User to WorkItem. User is inactive or have 5 WorkItems");
     }
 
     private User getUserByUsernumber(Long userNumber) {
