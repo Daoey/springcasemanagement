@@ -60,16 +60,6 @@ public class TestWorkItemIntegration {
         workItemService.create(description);
         workItemService.create(description);
     }
-    
-    @Test
-    public void removeIssueFromWorkItemIsTransactional() {
-        // TODO implement test this
-    }
-    
-    @Test
-    public void canGetWorkItemsCompletedBetweenDates() {
-        // TODO implement test this
-    }
 
     @Test
     public void workItemToString() {
