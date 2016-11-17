@@ -68,11 +68,18 @@ public class TeamService {
         }
     }
 
-    public Team setTeamActive(boolean active, Long teamId) {
-        Team team = findTeam(teamId, String.format("Failed to change status on team with id '%d'"
+    public Team activateTeam(Long teamId) {
+        Team team = findTeam(teamId, String.format("Failed to activate team with id '%d'"
                 + " since it could not be found in the database", teamId));
-        team.setActive(active);
-        return saveTeam(team, String.format("Could not change status on team with id: %d", teamId));
+        team.setActive(true);
+        return saveTeam(team, String.format("Could not activate team with id: %d", teamId));
+    }
+
+    public Team inactivateTeam(Long teamId) {
+        Team team = findTeam(teamId, String.format("Failed to inactivate team with id '%d'"
+                + " since it could not be found in the database", teamId));
+        team.setActive(false);
+        return saveTeam(team, String.format("Could not inactivate team with id: %d", teamId));
     }
 
     public Iterable<Team> getAll() {

@@ -3,6 +3,7 @@ package se.teknikhogskolan.springcasemanagement.service;
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -180,31 +181,59 @@ public final class TestTeamService {
     }
 
     @Test
-    public void canChangeStatusOnTeam() {
-        teamInDb.setActive(true);
+    public void canInactivateTeam() {
         when(teamRepository.findOne(teamId)).thenReturn(teamInDb);
         when(teamRepository.save(teamInDb)).thenReturn(teamInDb);
-        Team teamFromDb = teamService.setTeamActive(false, teamId);
+        Team teamFromDb = teamService.inactivateTeam(teamId);
         verify(teamRepository).save(teamInDb);
         assertFalse(teamFromDb.isActive());
     }
 
     @Test
-    public void shouldThrowNoSearchResultExceptionWhenTryingToChangeStatusOnANonExistingTeam() {
+    public void shouldThrowNoSearchResultExceptionWhenTryingToInactivateANonExistingTeam() {
         thrown.expect(NoSearchResultException.class);
-        thrown.expectMessage(String.format("Failed to change status on team with id '%d'"
+        thrown.expectMessage(String.format("Failed to inactivate team with id '%d'"
                 + " since it could not be found in the database", teamId));
         when(teamRepository.findOne(teamId)).thenReturn(null);
-        teamService.setTeamActive(false, teamId);
+        teamService.inactivateTeam(teamId);
     }
 
     @Test
-    public void shouldThrowDatabaseExceptionIfAnErrorOccursWhenChangingStatusOnATeam() {
+    public void shouldThrowDatabaseExceptionIfAnErrorOccursWhenInactivatingOnATeam() {
         thrown.expect(DatabaseException.class);
-        thrown.expectMessage(String.format("Could not change status on team with id: %d", teamId));
+        thrown.expectMessage(String.format("Could not inactivate team with id: %d", teamId));
         when(teamRepository.findOne(teamId)).thenReturn(teamInDb);
         doThrow(dataAccessException).when(teamRepository).save(teamInDb);
-        teamService.setTeamActive(false, teamId);
+        teamService.inactivateTeam(teamId);
+    }
+
+
+    @Test
+    public void canActivateTeam() {
+        teamInDb.setActive(false);
+        when(teamRepository.findOne(teamId)).thenReturn(teamInDb);
+        when(teamRepository.save(teamInDb)).thenReturn(teamInDb);
+        Team teamFromDb = teamService.activateTeam(teamId);
+        verify(teamRepository).save(teamInDb);
+        assertTrue(teamFromDb.isActive());
+    }
+
+    @Test
+    public void shouldThrowNoSearchResultExceptionWhenTryingToActivateANonExistingTeam() {
+        thrown.expect(NoSearchResultException.class);
+        thrown.expectMessage(String.format("Failed to activate team with id '%d'"
+                + " since it could not be found in the database", teamId));
+        when(teamRepository.findOne(teamId)).thenReturn(null);
+        teamService.activateTeam(teamId);
+    }
+
+    @Test
+    public void shouldThrowDatabaseExceptionIfAnErrorOccursWhenActivatingOnATeam() {
+        thrown.expect(DatabaseException.class);
+        thrown.expectMessage(String.format("Could not activate team with id: %d", teamId));
+        when(teamRepository.findOne(teamId)).thenReturn(teamInDb);
+        doThrow(dataAccessException).when(teamRepository).save(teamInDb);
+        teamService.activateTeam(teamId);
     }
 
     @Test
@@ -354,6 +383,14 @@ public final class TestTeamService {
         when(teamRepository.findOne(teamId)).thenReturn(team);
         when(userRepository.findOne(userId)).thenReturn(user);
         doThrow(dataAccessException).when(userRepository).save(user);
+        teamService.removeUserFromTeam(teamId, userId);
+    }
+
+    @Test
+    public void shouldThrowDatabaseExceptionIfErrorOccursWhenFindingUser() {
+        thrown.expect(DatabaseException.class);
+        thrown.expectMessage(String.format("Could not find user with id: %d", userId));
+        doThrow(dataAccessException).when(userRepository).findOne(userId);
         teamService.removeUserFromTeam(teamId, userId);
     }
 

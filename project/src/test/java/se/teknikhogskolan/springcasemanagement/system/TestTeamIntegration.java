@@ -74,15 +74,15 @@ public class TestTeamIntegration {
 
     @Test
     public void canInactiveTeam() {
-        Team teamFromDb = teamService.setTeamActive(false, teamId);
+        Team teamFromDb = teamService.inactivateTeam(teamId);
         assertFalse(teamFromDb.isActive());
     }
 
     @Test
     public void canActivateTeam() {
-        Team inactiveTeamFromDb = teamService.setTeamActive(false, teamId);
+        Team inactiveTeamFromDb = teamService.inactivateTeam(teamId);
         assertFalse(inactiveTeamFromDb.isActive());
-        Team activeTeamFromDb = teamService.setTeamActive(true, teamId);
+        Team activeTeamFromDb = teamService.activateTeam(teamId);
         assertTrue(activeTeamFromDb.isActive());
     }
 
