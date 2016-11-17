@@ -33,6 +33,8 @@ import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 import se.teknikhogskolan.springcasemanagement.repository.WorkItemRepository;
 import se.teknikhogskolan.springcasemanagement.service.exception.DatabaseException;
+import se.teknikhogskolan.springcasemanagement.service.exception.InvalidInputException;
+import se.teknikhogskolan.springcasemanagement.service.exception.MaximumQuantityException;
 import se.teknikhogskolan.springcasemanagement.service.exception.NoSearchResultException;
 import se.teknikhogskolan.springcasemanagement.service.exception.ServiceException;
 
@@ -158,8 +160,8 @@ public final class TestWorkItemService {
 
     @Test
     public void settingInactiveUserToWorkItemShouldThrowException() {
-        exception.expect(ServiceException.class);
-        exception.expectMessage("Cannot set User to WorkItem. User is inactive or have 5 WorkItems");
+        exception.expect(InvalidInputException.class);
+        exception.expectMessage("User is inactive. Only active User can be assigned to WorkItem");
         when(userRepository.findByUserNumber(userNumber)).thenReturn(user);
         when(user.isActive()).thenReturn(false);
         workItemService.setUser(userNumber, workItemId);
@@ -167,8 +169,8 @@ public final class TestWorkItemService {
 
     @Test
     public void settingUserWithFiveWorkItemToSixthWorkItemShouldThrowException() {
-        exception.expect(ServiceException.class);
-        exception.expectMessage("Cannot set User to WorkItem. User is inactive or have 5 WorkItems");
+        exception.expect(MaximumQuantityException.class);
+        exception.expectMessage("User already have maximum amount of WorkItems");
         when(userRepository.findByUserNumber(userNumber)).thenReturn(user);
         when(user.isActive()).thenReturn(true);
         when(user.getId()).thenReturn(userId);

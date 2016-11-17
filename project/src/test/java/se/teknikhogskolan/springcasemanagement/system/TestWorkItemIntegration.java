@@ -31,6 +31,7 @@ import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
 import se.teknikhogskolan.springcasemanagement.service.WorkItemService;
 import se.teknikhogskolan.springcasemanagement.service.exception.InvalidInputException;
+import se.teknikhogskolan.springcasemanagement.service.exception.MaximumQuantityException;
 import se.teknikhogskolan.springcasemanagement.service.exception.NoSearchResultException;
 import se.teknikhogskolan.springcasemanagement.service.exception.ServiceException;
 
@@ -115,8 +116,8 @@ public class TestWorkItemIntegration {
 
     @Test
     public void addingWorkItemToInactiveUserShouldThrowException() {
-        exception.expect(ServiceException.class);
-        exception.expectMessage("Cannot set User to WorkItem. User is inactive or have 5 WorkItems");
+        exception.expect(InvalidInputException.class);
+        exception.expectMessage("User is inactive. Only active User can be assigned to WorkItem");
         Long workItemIdWithoutUser = 8658766L;
         Long inactiveUsernumber = 20001L;
         workItemService.setUser(inactiveUsernumber, workItemIdWithoutUser);
@@ -124,8 +125,8 @@ public class TestWorkItemIntegration {
 
     @Test
     public void addingWorkItemToUserWithFiveWorkItemsShouldThrowException() {
-        exception.expect(ServiceException.class);
-        exception.expectMessage("Cannot set User to WorkItem. User is inactive or have 5 WorkItems");
+        exception.expect(MaximumQuantityException.class);
+        exception.expectMessage("User already have maximum amount of WorkItems");
         Long workItemIdWithoutUser = 8658766L;
         Long usernumberWithFiveWorkItems = 20002L;
         workItemService.setUser(usernumberWithFiveWorkItems, workItemIdWithoutUser);
