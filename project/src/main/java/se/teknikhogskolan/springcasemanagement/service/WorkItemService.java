@@ -8,8 +8,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
+import org.h2.jdbc.JdbcSQLException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 import se.teknikhogskolan.springcasemanagement.repository.WorkItemRepository;
 import se.teknikhogskolan.springcasemanagement.service.exception.DatabaseException;
+import se.teknikhogskolan.springcasemanagement.service.exception.DuplicateValueException;
 import se.teknikhogskolan.springcasemanagement.service.exception.ForbiddenOperationException;
 import se.teknikhogskolan.springcasemanagement.service.exception.InvalidInputException;
 import se.teknikhogskolan.springcasemanagement.service.exception.NoSearchResultException;
@@ -106,6 +109,8 @@ public class WorkItemService {
     private WorkItem saveWorkItem(WorkItem workItem) {
         try {
             return workItemRepository.save(workItem);
+        } catch (DataIntegrityViolationException e) {
+            throw new InvalidInputException(String.format("WorkItem with description '%s' violates data integrity", workItem.getDescription(), e));
         } catch (DataAccessException e) {
             throw new DatabaseException(String.format("Cannot save WorkItem with description '%s'", workItem.getDescription(), e));
         }

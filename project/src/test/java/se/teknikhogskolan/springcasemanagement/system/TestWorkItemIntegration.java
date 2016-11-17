@@ -30,6 +30,7 @@ import se.teknikhogskolan.springcasemanagement.config.h2.H2InfrastructureConfig;
 import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
 import se.teknikhogskolan.springcasemanagement.service.WorkItemService;
+import se.teknikhogskolan.springcasemanagement.service.exception.InvalidInputException;
 import se.teknikhogskolan.springcasemanagement.service.exception.NoSearchResultException;
 import se.teknikhogskolan.springcasemanagement.service.exception.ServiceException;
 
@@ -49,6 +50,15 @@ public class TestWorkItemIntegration {
 
     private final Long workItemLeadTeamId = 98486464L;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    @Test
+    public void duplicateKeysShouldThrowException() {
+        final String description = "duplicate description";
+        exception.expect(InvalidInputException.class);
+        exception.expectMessage(String.format("WorkItem with description '%s' violates data integrity", description));
+        workItemService.create(description);
+        workItemService.create(description);
+    }
     
     @Test
     public void removeIssueFromWorkItemIsTransactional() {
