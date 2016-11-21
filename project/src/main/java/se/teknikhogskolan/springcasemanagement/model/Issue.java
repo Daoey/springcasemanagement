@@ -1,16 +1,24 @@
 package se.teknikhogskolan.springcasemanagement.model;
 
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.FetchType;
 import javax.persistence.OneToOne;
 
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 public class Issue extends AbstractEntity {
 
     @OneToOne(fetch = FetchType.EAGER, mappedBy = "issue")
     private WorkItem workItem;
     private String description;
     private boolean active;
+
+    @CreatedBy
+    private String createdBy;
 
     protected Issue() {
     }
@@ -84,6 +92,6 @@ public class Issue extends AbstractEntity {
         builder.append("]");
         return builder.toString();
     }
-    
-    
+
+
 }
