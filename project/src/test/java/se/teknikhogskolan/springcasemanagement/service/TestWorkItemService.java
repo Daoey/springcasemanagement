@@ -37,6 +37,7 @@ import se.teknikhogskolan.springcasemanagement.service.exception.InvalidInputExc
 import se.teknikhogskolan.springcasemanagement.service.exception.MaximumQuantityException;
 import se.teknikhogskolan.springcasemanagement.service.exception.NoSearchResultException;
 import se.teknikhogskolan.springcasemanagement.service.exception.ServiceException;
+import se.teknikhogskolan.springcasemanagement.service.wrapper.Piece;
 
 public final class TestWorkItemService {
     
@@ -60,6 +61,9 @@ public final class TestWorkItemService {
 
     @Mock
     private IssueRepository issueRepository;
+
+    @Mock
+    private Piece<WorkItem> piece;
 
     @Mock
     private Page<WorkItem> page;
@@ -111,8 +115,8 @@ public final class TestWorkItemService {
         PageRequest pageRequest = new PageRequest(0, 10);
         when(workItemRepository.findAll(pageRequest)).thenReturn(workItemPage);
         
-        Page<WorkItem> result = workItemService.getAllByPage(0, 10);
-        assertEquals(workItemPage, result);
+        Piece<WorkItem> result = workItemService.getAllByPage(0, 10);
+        assertNotNull(result);
     }
 
     @Test
@@ -122,8 +126,8 @@ public final class TestWorkItemService {
         when(workItemRepository.findAll(pageRequest)).thenReturn(page);
         when(page.hasContent()).thenReturn(true);
         
-        Page<WorkItem> result = workItemService.getAllByPage(1, 1);
-        assertEquals(page, result);
+        Piece<WorkItem> result = workItemService.getAllByPage(1, 1);
+        assertNotNull(result);
     }
 
     @Test

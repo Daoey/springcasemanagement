@@ -27,6 +27,7 @@ import se.teknikhogskolan.springcasemanagement.service.exception.ForbiddenOperat
 import se.teknikhogskolan.springcasemanagement.service.exception.InvalidInputException;
 import se.teknikhogskolan.springcasemanagement.service.exception.MaximumQuantityException;
 import se.teknikhogskolan.springcasemanagement.service.exception.NoSearchResultException;
+import se.teknikhogskolan.springcasemanagement.service.wrapper.Piece;
 
 @Service
 public class WorkItemService {
@@ -71,8 +72,8 @@ public class WorkItemService {
                     String.format("No WorkItems found between dates '%s' and '%s'", fromDate, toDate));
     }
 
-    public Page<WorkItem> getAllByPage(int page, int pageSize) {
-        Page<WorkItem> result = getAllByPage(new PageRequest(page, pageSize));
+    public Piece<WorkItem> getAllByPage(int page, int pageSize) {
+        Piece<WorkItem> result = new Piece<>(getAllByPage(new PageRequest(page, pageSize)));
         throwNoSearchResultExceptionIfResultIsEmpty(result,
                 String.format("No WorkItems found when requesting page #%d and page size '%d'", page, pageSize));
         return result;
@@ -87,7 +88,7 @@ public class WorkItemService {
         }
     }
 
-    private void throwNoSearchResultExceptionIfResultIsEmpty(Page<WorkItem> result, String exceptionMessage) {
+    private void throwNoSearchResultExceptionIfResultIsEmpty(Piece<WorkItem> result, String exceptionMessage) {
         if (null == result || !result.hasContent()) {
             throw new NoSearchResultException(exceptionMessage);
         }
