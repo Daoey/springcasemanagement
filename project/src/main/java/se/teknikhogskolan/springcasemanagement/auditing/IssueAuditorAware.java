@@ -2,7 +2,7 @@ package se.teknikhogskolan.springcasemanagement.auditing;
 
 import org.springframework.data.domain.AuditorAware;
 
-public class IssueAuditorAware implements AuditorAware<String> {
+public final class IssueAuditorAware implements AuditorAware<String> {
 
     @Override
     public String getCurrentAuditor() {
