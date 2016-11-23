@@ -302,7 +302,7 @@ public class WorkItemService {
             return false;
         }
         if (result instanceof Collection) {
-            Collection collection = (Collection) result;
+            Collection<?> collection = (Collection<?>) result;
             if (collection.isEmpty()) {
                 return false;
             }
