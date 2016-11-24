@@ -2,14 +2,16 @@ package se.teknikhogskolan.springcasemanagement.service.wrapper;
 import java.util.Iterator;
 import java.util.List;
 
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 
 public class Piece<T> {
-    private Page<?> page;
+    private Page<T> page;
     
-    public Piece(Page<?> page) {
+    public Piece(Page<T> page) {
         this.page = page;
     }
     
@@ -31,7 +33,7 @@ public class Piece<T> {
     }
     
     public List<T> getContent() {
-        return (List<T>) page.getContent();
+        return page.getContent();
     }
     
     public boolean hasContent() {
@@ -67,7 +69,7 @@ public class Piece<T> {
     }
 
     public Iterator<T> iterator() {
-        return (Iterator<T>) page.iterator();
+        return page.iterator();
     }
     
     public int getTotalPages() {
@@ -76,5 +78,9 @@ public class Piece<T> {
     
     public long getTotalElements() {
         return getTotalElements();
+    }
+
+    public <S> Slice<S> map(Converter<? super T, ? extends S> converter) {
+        return page.map(converter);
     }
 }
