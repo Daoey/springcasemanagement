@@ -1,13 +1,5 @@
 package se.teknikhogskolan.springcasemanagement.service;
 
-import static se.teknikhogskolan.springcasemanagement.model.WorkItem.Status.DONE;
-import static se.teknikhogskolan.springcasemanagement.model.WorkItem.Status.UNSTARTED;
-
-import java.time.LocalDate;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Function;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -15,19 +7,22 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
 import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 import se.teknikhogskolan.springcasemanagement.repository.WorkItemRepository;
-import se.teknikhogskolan.springcasemanagement.service.exception.DatabaseException;
-import se.teknikhogskolan.springcasemanagement.service.exception.ForbiddenOperationException;
-import se.teknikhogskolan.springcasemanagement.service.exception.InvalidInputException;
-import se.teknikhogskolan.springcasemanagement.service.exception.MaximumQuantityException;
-import se.teknikhogskolan.springcasemanagement.service.exception.NoSearchResultException;
+import se.teknikhogskolan.springcasemanagement.service.exception.*;
 import se.teknikhogskolan.springcasemanagement.service.wrapper.Piece;
+
+import java.time.LocalDate;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
+
+import static se.teknikhogskolan.springcasemanagement.model.WorkItem.Status.DONE;
+import static se.teknikhogskolan.springcasemanagement.model.WorkItem.Status.UNSTARTED;
 
 @Service
 public class WorkItemService {
@@ -44,86 +39,118 @@ public class WorkItemService {
         this.issueRepository = issueRepository;
     }
 
-    public WorkItem getById(Long workItemId) {
-        WorkItem result = getWorkItemById(workItemId);
-        if (weHaveA(result))
-            return result;
-        else
-            throw new NoSearchResultException(String.format("No match for WorkItem with id '%d'", workItemId));
-    }
-
-    private WorkItem getWorkItemById(Long workItemId) {
-        try {
-            return workItemRepository.findOne(workItemId);
-        } catch (DataAccessException e) {
-            throw new DatabaseException(String.format("Cannot get WorkItem '%d'", workItemId));
-        }
-    }
-
-    public List<WorkItem> getByCreatedBetweenDates(LocalDate fromDate, LocalDate toDate) {
-        List<WorkItem> result = executeList(workItemRepository -> {
-            return workItemRepository.findByCreationDate(fromDate, toDate);
-        }, String.format("Cannot get WorkItems between '%s' and '%s'", toDate, fromDate));
-
-        if (weHaveA(result))
-            return result;
-        else
-            throw new NoSearchResultException(
-                    String.format("No WorkItems found between dates '%s' and '%s'", fromDate, toDate));
-    }
-
-    public Piece<WorkItem> getAllByPage(int page, int pageSize) {
-        Piece<WorkItem> result = new Piece<>(getAllByPage(new PageRequest(page, pageSize)));
-        throwNoSearchResultExceptionIfResultIsEmpty(result,
-                String.format("No WorkItems found when requesting page #%d and page size '%d'", page, pageSize));
-        return result;
-    }
-
-    private Page<WorkItem> getAllByPage(PageRequest pageRequest) {
-        try {
-            return workItemRepository.findAll(pageRequest);
-        } catch (DataAccessException e) {
-            throw new DatabaseException(String.format("Cannot get Page '%d' with size '%d'",
-                    pageRequest.getPageNumber(), pageRequest.getPageSize()), e);
-        }
-    }
-
-    private void throwNoSearchResultExceptionIfResultIsEmpty(Piece<WorkItem> result, String exceptionMessage) {
-        if (null == result || !result.hasContent()) {
-            throw new NoSearchResultException(exceptionMessage);
-        }
-    }
-
-    @Transactional // TODO test @Transactional
-    public WorkItem removeIssueFromWorkItem(Long workItemId) {
-        WorkItem workItem = getWorkItemById(workItemId);
-        if (weHaveA(workItem)) {
-            return removeIssueFrom(workItem);
-        } else
-            throw new NoSearchResultException(String.format("No match for WorkItem with id '%d'", workItemId));
-    }
-
-    private WorkItem removeIssueFrom(WorkItem workItem) {
-        Issue issue = workItem.getIssue();
-        if (weHaveA(issue)) {
-            saveWorkItem(workItem.setIssue(null));
-            deleteIssue(issue);
-            return workItem;
-        } else
-            throw new ForbiddenOperationException(String
-                    .format("Cannot remove Issue from WorkItem %d, no Issue found in WorkItem", workItem.getId()));
+    public WorkItem create(String description) {
+        return saveWorkItem(new WorkItem(description));
     }
 
     private WorkItem saveWorkItem(WorkItem workItem) {
         try {
             return workItemRepository.save(workItem);
         } catch (DataIntegrityViolationException e) {
-            throw new InvalidInputException(String.format("WorkItem with description '%s' violates data integrity",
+            throw new NotAllowedException(String.format(
+                    "Cannot save WorkItem. Description '%s' violates data integrity.",
                     workItem.getDescription(), e));
         } catch (DataAccessException e) {
             throw new DatabaseException(
                     String.format("Cannot save WorkItem with description '%s'", workItem.getDescription(), e));
         }
+    }
+
+    public WorkItem getById(Long workItemId) {
+        WorkItem workItem = getWorkItemById(workItemId);
+        if (nullOrEmpty(workItem)) throw new NotFoundException(String.format("Cannot find WorkItem with id '%d'.", workItemId));
+        return workItem;
+    }
+
+    private WorkItem getWorkItemById(Long workItemId) {
+        try {
+            return workItemRepository.findOne(workItemId);
+        } catch (DataAccessException e) {
+            throw new DatabaseException(String.format("Cannot get WorkItem with id '%d'.", workItemId));
+        }
+    }
+
+    public List<WorkItem> getCompletedWorkItems(LocalDate from, LocalDate to) {
+        String exceptionMessage = "Cannot get completed WorkItems.";
+        return executeList(workItemRepository -> workItemRepository.findByCompletionDate(from, to), exceptionMessage);
+    }
+
+    public List<WorkItem> getByCreatedBetweenDates(LocalDate fromDate, LocalDate toDate) {
+        String exceptionMessage = String.format("Cannot get WorkItems between '%s' and '%s'.", toDate, fromDate);
+        return executeList(workItemRepository -> workItemRepository.findByCreationDate(fromDate, toDate), exceptionMessage);
+    }
+
+    public Piece<WorkItem> getAllByPiece(int page, int pageSize) {
+        return new Piece<>(getAllByPage(new PageRequest(page, pageSize)));
+    }
+
+    private Page<WorkItem> getAllByPage(PageRequest pageRequest) {
+        try {
+            return workItemRepository.findAll(pageRequest);
+        } catch (DataAccessException e) {
+            throw new DatabaseException(String.format("Cannot get Page '%d' with size '%d'.",
+                    pageRequest.getPageNumber(), pageRequest.getPageSize()), e);
+        }
+    }
+
+    public Issue createIssue(String description) {
+        try {
+            return issueRepository.save(new Issue(description));
+        } catch (DataIntegrityViolationException e) {
+            throw new NotAllowedException(String.format("Issue with description '%s' violates data integrity.", description, e));
+        } catch (DataAccessException e) {
+            throw new DatabaseException(String.format("Cannot create Issue with description '%s'.", description), e);
+        }
+    }
+
+    public WorkItem addIssueToWorkItem(Long issueId, Long workItemId) {
+        WorkItem workItem = getWorkItemById(workItemId);
+        if (nullOrEmpty(workItem)) throw new NotFoundException(String.format("No WorkItem with id '%d' exists.", workItemId))
+                .setMissingEntity(WorkItem.class);
+        Issue issue = getIssueById(issueId);
+        if (nullOrEmpty(issue)) throw new NotFoundException(String.format("No Issue with id '%d' exists.", issueId))
+                .setMissingEntity(Issue.class);
+        return add(issue, workItem);
+    }
+
+    private Issue getIssueById(Long issueId) {
+        try {
+            return issueRepository.findOne(issueId);
+        } catch (DataAccessException e) {
+            throw new DatabaseException(String.format("Cannot get Issue with id '%d'.", issueId), e);
+        }
+    }
+
+    private WorkItem add(Issue issue, WorkItem workItem) {
+        if (!DONE.equals(workItem.getStatus())){
+            throw new NotAllowedException(String.format(
+                    "Issue can only be added to WorkItem with Status 'DONE', Status was '%s'. Issue id '%d', WorkItem id '%d'.",
+                    workItem.getStatus(), issue.getId(), workItem.getId()));
+        }
+
+        workItem.setStatus(UNSTARTED);
+        workItem.setIssue(issue);
+        return saveWorkItem(workItem);
+    }
+
+    @Transactional
+    public WorkItem removeIssueFromWorkItem(Long workItemId) {
+        WorkItem workItem = getWorkItemById(workItemId);
+        if (nullOrEmpty(workItem)) throw new NotFoundException(String.format("No WorkItem with id '%d'.", workItemId))
+                .setMissingEntity(WorkItem.class);
+        return removeIssueFrom(workItem);
+    }
+
+    private WorkItem removeIssueFrom(WorkItem workItem) {
+        Issue issue = workItem.getIssue();
+        if (nullOrEmpty(issue)) throw new NotFoundException(
+                String.format("Cannot remove Issue from WorkItem with id '%d', no Issue in WorkItem.", workItem.getId()))
+                .setMissingEntity(Issue.class);
+
+        WorkItem backupToReturnDeletedData = workItem;
+        saveWorkItem(workItem.setIssue(null));
+        deleteIssue(issue);
+        return backupToReturnDeletedData;
     }
 
     private Issue deleteIssue(Issue issue) {
@@ -132,18 +159,13 @@ public class WorkItemService {
             return issue;
         } catch (DataAccessException e) {
             throw new DatabaseException(
-                    String.format("Cannot remove Issue from WorkItem. Issue id '%d'", issue.getId()), e);
+                    String.format("Cannot remove Issue from WorkItem. Issue id '%d'.", issue.getId()), e);
         }
     }
 
     public Collection<WorkItem> getAllWithIssue() {
-        Collection<WorkItem> result = executeCollection(workItemRepository -> {
-            return workItemRepository.findByIssueIsNotNull();
-        }, "Cannot get all WorkItems with Issue");
-        if (null == result || result.isEmpty()) {
-            throw new NoSearchResultException("No match for get all WorkItems with Issue");
-        } else
-            return result;
+        String exceptionMessage = "Cannot get all WorkItems with Issue.";
+        return executeCollection(workItemRepository -> workItemRepository.findByIssueIsNotNull(), exceptionMessage);
     }
 
     private Collection<WorkItem> executeCollection(Function<WorkItemRepository, Collection<WorkItem>> operation,
@@ -155,86 +177,22 @@ public class WorkItemService {
         }
     }
 
-    public WorkItem addIssueToWorkItem(Long issueId, Long workItemId) {
-        Issue issue = getIssueById(issueId);
-        WorkItem workItem = getWorkItemById(workItemId);
-        if (weHaveA(workItem)) {
-            return add(issue, workItem);
-        } else
-            throw new NoSearchResultException(String.format("No match for WorkItem with id '%d'", workItemId));
-    }
-
-    private WorkItem add(Issue issue, WorkItem workItem) {
-        if (DONE.equals(workItem.getStatus())) {
-            workItem.setStatus(UNSTARTED);
-            workItem.setIssue(issue);
-            return saveWorkItem(workItem);
-        } else throw new InvalidInputException(String.format(
-                "Issue can only be added to WorkItem with Status 'DONE', Status was '%s'. Issue id '%d', WorkItem id '%d'",
-                    workItem.getStatus(), issue.getId(), workItem.getId()));
-    }
-
-    private Issue getIssueById(Long issueId) {
-        Issue issue;
-        try {
-            issue = issueRepository.findOne(issueId);
-        } catch (DataAccessException e) {
-            throw new DatabaseException(String.format("Cannot get Issue with id '%d'", issueId), e);
-        }
-        if (weHaveA(issue))
-            return issue;
-        else
-            throw new NoSearchResultException(String.format("No match for Issue with id '%d'", issueId));
-    }
-
-    public Issue createIssue(String description) {
-        try {
-            return issueRepository.save(new Issue(description));
-        } catch (DataIntegrityViolationException e) {
-            throw new InvalidInputException(String.format("Issue with description '%s' violates data integrity",
-                    description, e));
-        } catch (DataAccessException e) {
-            throw new DatabaseException(String.format("Cannot create Issue with description '%s'", description), e);
-        }
-    }
-
     public Collection<WorkItem> getByTeamId(Long teamId) {
-        Collection<WorkItem> result = executeCollection(workItemRepository -> {
-            return workItemRepository.findByTeamId(teamId);
-        }, String.format("Cannot not get WorkItems by Team id '%s'", teamId));
-
-        if (weHaveA(result))
-            return result;
-        else
-            throw new NoSearchResultException(String.format("No match for WorkItems with team id '%d'", teamId));
+        String exceptionMessage = String.format("Cannot not get WorkItems by Team id '%s'.", teamId);
+        return executeCollection(workItemRepository -> workItemRepository.findByTeamId(teamId), exceptionMessage);
     }
 
     public WorkItem setStatus(Long workItemId, WorkItem.Status status) {
         WorkItem workItem = getWorkItemById(workItemId);
-        if (weHaveA(workItem)) {
-            workItem.setStatus(status);
-            if (status.equals(DONE)) {
-                workItem.setCompletionDate(LocalDate.now());
-            }
-            return saveWorkItem(workItem);
-        } else
-            throw new NoSearchResultException(String.format("No match for WorkItem with id '%d'", workItemId));
-    }
+        if (nullOrEmpty(workItem)){
+            throw new NotFoundException(String.format("No WorkItem with id '%d'.", workItemId));
+        }
 
-    public WorkItem create(String description) {
-        return saveWorkItem(new WorkItem(description));
-    }
-
-    public List<WorkItem> getCompletedWorkItems(LocalDate from, LocalDate to) {
-        List<WorkItem> result = executeList(workItemRepository -> {
-            return workItemRepository.findByCompletionDate(from, to);
-        }, "Cannot get completed WorkItems");
-
-        if (weHaveA(result))
-            return result;
-        else
-            throw new NoSearchResultException(
-                    String.format("No match for WorkItems completed between '%s' and '%s'", to, from));
+        workItem.setStatus(status);
+        if (status.equals(DONE)) {
+            workItem.setCompletionDate(LocalDate.now());
+        }
+        return saveWorkItem(workItem);
     }
 
     private List<WorkItem> executeList(Function<WorkItemRepository, List<WorkItem>> operation,
@@ -248,10 +206,8 @@ public class WorkItemService {
 
     public WorkItem removeById(Long workItemId) {
         WorkItem workItem = getWorkItemById(workItemId);
-        if (weHaveA(workItem)) {
-            return delete(workItem);
-        } else
-            throw new NoSearchResultException(String.format("No match for WorkItem with id '%d'", workItemId));
+        if (nullOrEmpty(workItem)) throw new NotFoundException(String.format("No WorkItem with id '%d'", workItemId));
+        return delete(workItem);
     }
 
     private WorkItem delete(WorkItem workItem) {
@@ -264,84 +220,70 @@ public class WorkItemService {
     }
 
     public Collection<WorkItem> getByStatus(WorkItem.Status status) {
-        Collection<WorkItem> result = executeCollection(workItemRepository -> {
-            return workItemRepository.findByStatus(status);
-        }, String.format("Cannot get WorkItems by Status '%s'", status));
-
-        if (weHaveA(result))
-            return result;
-        else
-            throw new NoSearchResultException(String.format("No match for get WorkItems by Status '%s'", status));
+        String exceptionMessage = String.format("Cannot get WorkItems by Status '%s'", status);
+        return executeCollection(workItemRepository -> workItemRepository.findByStatus(status), exceptionMessage);
     }
 
     public Collection<WorkItem> getByUsernumber(Long userNumber) {
         User user = getUserByUsernumber(userNumber);
-        Collection<WorkItem> result = executeCollection(workItemRepository -> {
-            return workItemRepository.findByUserId(user.getId());
-        }, String.format("Cannot get WorkItems by userNumber '%d'", userNumber));
-
-        if (weHaveA(result))
-            return result;
-        else
-            throw new NoSearchResultException(
-                    String.format("No match for WorkItems added to User with Usernumber '%d'", userNumber));
+        if (nullOrEmpty(user)){
+            throw new NotFoundException(String.format("No User with Usernumber '%d'.", userNumber)).setMissingEntity(User.class);
+        }
+        String exceptionMessage = String.format("Cannot get WorkItems by userNumber '%d'", userNumber);
+        return executeCollection(workItemRepository -> workItemRepository.findByUserId(user.getId()), exceptionMessage);
     }
 
     public Collection<WorkItem> getByDescriptionContains(String text) {
-        Collection<WorkItem> result = executeCollection(workItemRepository -> {
-            return workItemRepository.findByDescriptionContains(text);
-        }, String.format("Cannot get WorkItems by description contains '%s'", text));
-
-        if (weHaveA(result))
-            return result;
-        else
-            throw new NoSearchResultException(String.format("No match for WorkItem description contains '%s'", text));
+        String exceptionMessage = String.format("Cannot get WorkItems by description contains '%s'", text);
+        return executeCollection(workItemRepository -> workItemRepository.findByDescriptionContains(text), exceptionMessage);
     }
 
-    private boolean weHaveA(Object result) {
-        if (null == result) {
-            return false;
+    private boolean nullOrEmpty(Object object) {
+        if (null == object) {
+            return true;
         }
-        if (result instanceof Collection) {
-            Collection<?> collection = (Collection<?>) result;
+        if (object instanceof Collection) {
+            Collection<?> collection = (Collection<?>) object;
             if (collection.isEmpty()) {
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     public WorkItem setUser(Long userNumber, Long workItemId) {
+        WorkItem workItem = getWorkItemById(workItemId);
+        if (nullOrEmpty(workItem)) throw new NotFoundException(String.format("No WorkItem with id '%d'", workItemId))
+                .setMissingEntity(WorkItem.class);
+
         User user = getUserByUsernumber(userNumber);
-        if (user.isActive()) {
-            if (userHasRoomForOneMoreWorkItem(user)) {
-                WorkItem workItem = getWorkItemById(workItemId);
-                workItem.setUser(user);
-                return saveWorkItem(workItem);
-            } else
-                throw new MaximumQuantityException("User already have maximum amount of WorkItems");
-        } else
-            throw new InvalidInputException("User is inactive. Only active User can be assigned to WorkItem");
+        if (nullOrEmpty(user)) throw new NotFoundException(String.format("No User with usernumber '%d'.", userNumber))
+                .setMissingEntity(User.class);
+        if (notActive(user)) throw new NotAllowedException(String.format("User with usernumber '%d' is inactive. Only active User can be assigned to WorkItem", userNumber));
+        if (userReachedWorkItemLimit(user)) throw new MaximumQuantityException("User already have maximum amount of WorkItems");
+
+        workItem.setUser(user);
+        return saveWorkItem(workItem);
     }
 
     private User getUserByUsernumber(Long userNumber) {
-        User result;
         try {
-            result = userRepository.findByUserNumber(userNumber);
+            return userRepository.findByUserNumber(userNumber);
         } catch (DataAccessException e) {
             throw new DatabaseException(String.format("Cannot get User by userNumber '%d'", userNumber), e);
         }
-        if (weHaveA(result))
-            return result;
-        else
-            throw new NoSearchResultException(String.format("No match for User '%d'", userNumber));
     }
 
-    private boolean userHasRoomForOneMoreWorkItem(User user) {
+    private boolean notActive(User user) {
+        return !user.isActive();
+    }
+
+    private boolean userReachedWorkItemLimit(User user) {
         Collection<WorkItem> workItemsToThisUser = workItemRepository.findByUserId(user.getId());
         final int maxAllowedWorkItemsPerUser = 5;
-        if (null == workItemsToThisUser || workItemsToThisUser.size() < maxAllowedWorkItemsPerUser)
-            return true;
-        return false;
+        if (null == workItemsToThisUser || workItemsToThisUser.size() < maxAllowedWorkItemsPerUser){
+            return false;
+        }
+        return true;
     }
 }

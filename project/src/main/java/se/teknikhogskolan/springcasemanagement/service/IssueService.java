@@ -11,8 +11,8 @@ import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
 import se.teknikhogskolan.springcasemanagement.repository.paging.PagingIssueRepository;
 import se.teknikhogskolan.springcasemanagement.service.exception.DatabaseException;
-import se.teknikhogskolan.springcasemanagement.service.exception.ForbiddenOperationException;
-import se.teknikhogskolan.springcasemanagement.service.exception.NoSearchResultException;
+import se.teknikhogskolan.springcasemanagement.service.exception.NotAllowedException;
+import se.teknikhogskolan.springcasemanagement.service.exception.NotFoundException;
 
 @Service
 public class IssueService {
@@ -32,7 +32,7 @@ public class IssueService {
         if (issue != null) {
             return issue;
         } else
-            throw new NoSearchResultException("Issue with id '" + issueId + "' do not exist");
+            throw new NotFoundException("Issue with id '" + issueId + "' do not exist");
     }
 
     public List<Issue> getByDescription(String description) {
@@ -46,7 +46,7 @@ public class IssueService {
         if (issue != null) {
             return issue;
         } else
-            throw new NoSearchResultException("Issues with description '" + description + "' do not exist");
+            throw new NotFoundException("Issues with description '" + description + "' do not exist");
     }
 
     public Issue updateDescription(Long issueId, String description) {
@@ -56,11 +56,11 @@ public class IssueService {
                 issue.setDescription(description);
                 return saveIssue(issue, "Could not update description on issue with id: " + issueId);
             } else {
-                throw new ForbiddenOperationException("Could not update "
+                throw new NotAllowedException("Could not update "
                         + "description on Issue with id '" + issueId + "' since it's inactivate.");
             }
         } else {
-            throw new NoSearchResultException("Failed to update issue with id '"
+            throw new NotFoundException("Failed to update issue with id '"
                     + issueId + "' since it could not be found in the database");
         }
     }
@@ -71,7 +71,7 @@ public class IssueService {
             issue.setActive(false);
             return saveIssue(issue, "Could not inactivate issue with id: " + issueId);
         } else {
-            throw new NoSearchResultException("Failed to inactivate issue with id '"
+            throw new NotFoundException("Failed to inactivate issue with id '"
                     + issueId + "' since it could not be found in the database");
         }
     }
@@ -82,7 +82,7 @@ public class IssueService {
             issue.setActive(true);
             return saveIssue(issue, "Could not activate issue with id: " + issueId);
         } else {
-            throw new NoSearchResultException("Failed to activate issue with id '"
+            throw new NotFoundException("Failed to activate issue with id '"
                     + issueId + "' since it could not be found in the database");
         }
     }
@@ -98,7 +98,7 @@ public class IssueService {
         if (page != null) {
             return page;
         } else
-            throw new NoSearchResultException("No issues on page: " + pageNumber);
+            throw new NotFoundException("No issues on page: " + pageNumber);
     }
 
     private Issue saveIssue(Issue issue, String exceptionMessage) {

@@ -13,9 +13,9 @@ import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 import se.teknikhogskolan.springcasemanagement.service.exception.DatabaseException;
-import se.teknikhogskolan.springcasemanagement.service.exception.ForbiddenOperationException;
+import se.teknikhogskolan.springcasemanagement.service.exception.NotAllowedException;
 import se.teknikhogskolan.springcasemanagement.service.exception.InvalidInputException;
-import se.teknikhogskolan.springcasemanagement.service.exception.NoSearchResultException;
+import se.teknikhogskolan.springcasemanagement.service.exception.NotFoundException;
 
 @Service
 public class UserService {
@@ -45,7 +45,7 @@ public class UserService {
             throw new DatabaseException("Failed to get user with id: " + userId, e);
         }
         if (user == null) {
-            throw new NoSearchResultException("No user with id: " + userId + " found");
+            throw new NotFoundException("No user with id: " + userId + " found");
         } else {
             return user;
         }
@@ -59,7 +59,7 @@ public class UserService {
             throw new DatabaseException("Failed to get user with user number: " + userNumber, e);
         }
         if (user == null) {
-            throw new NoSearchResultException("No user with user number: " + userNumber + " found");
+            throw new NotFoundException("No user with user number: " + userNumber + " found");
         } else {
             return user;
         }
@@ -71,7 +71,7 @@ public class UserService {
             user.setFirstName(firstName);
             return saveUser(user, "Failed to update firstName on user with user number: " + userNumber);
         } else {
-            throw new ForbiddenOperationException("User is inactive");
+            throw new NotAllowedException("User is inactive");
         }
     }
 
@@ -81,7 +81,7 @@ public class UserService {
             user.setLastName(lastName);
             return saveUser(user, "Failed to update lastName on user with user number: " + userNumber);
         } else {
-            throw new ForbiddenOperationException("User is inactive");
+            throw new NotAllowedException("User is inactive");
         }
     }
 
@@ -95,7 +95,7 @@ public class UserService {
                 throw new InvalidInputException("Username too short");
             }
         } else {
-            throw new ForbiddenOperationException("User is inactive");
+            throw new NotAllowedException("User is inactive");
         }
     }
 
@@ -123,7 +123,7 @@ public class UserService {
             throw new DatabaseException("Failed to get all users with team id: " + teamId, e);
         }
         if (users == null || users.size() == 0) {
-            throw new NoSearchResultException("No users with team id: " + teamId + " found");
+            throw new NotFoundException("No users with team id: " + teamId + " found");
         } else {
             return users;
         }
@@ -138,7 +138,7 @@ public class UserService {
                     + ", lastName = " + lastName + ", username = " + username, e);
         }
         if (users == null || users.size() == 0) {
-            throw new NoSearchResultException("No users fulfilling criteria: " + "firstName = " + firstName
+            throw new NotFoundException("No users fulfilling criteria: " + "firstName = " + firstName
                     + ", lastName = " + lastName + ", username = " + username);
         } else {
             return users;
@@ -155,7 +155,7 @@ public class UserService {
         if (page != null) {
             return page;
         } else {
-            throw new NoSearchResultException("No users on page: " + pageNumber);
+            throw new NotFoundException("No users on page: " + pageNumber);
         }
     }
 
@@ -170,7 +170,7 @@ public class UserService {
         }
         
         if (users == null || users.size() == 0) {
-            throw new NoSearchResultException("No users created between: " + startDate + " and " + endDate);
+            throw new NotFoundException("No users created between: " + startDate + " and " + endDate);
         } else {
             return users;
         }

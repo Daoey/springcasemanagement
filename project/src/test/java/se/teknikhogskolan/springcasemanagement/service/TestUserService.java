@@ -30,7 +30,7 @@ import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem;
 import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
-import se.teknikhogskolan.springcasemanagement.service.exception.NoSearchResultException;
+import se.teknikhogskolan.springcasemanagement.service.exception.NotFoundException;
 import se.teknikhogskolan.springcasemanagement.service.exception.ServiceException;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -99,7 +99,7 @@ public final class TestUserService {
 
     @Test
     public void getUserByIdThrowsNoSearchResultExceptionIfNoUserFound() {
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage("No user with id: 1 found");
         when(userRepository.findOne(1L)).thenReturn(null);
         userService.getById(1L);
@@ -122,7 +122,7 @@ public final class TestUserService {
 
     @Test
     public void getUserByNumberThrowsNoSearchResultExceptionIfNoUserFound() {
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage("No user with user number: 1 found");
         when(userRepository.findByUserNumber(1L)).thenReturn(null);
         userService.getByUserNumber(1L);
@@ -149,7 +149,7 @@ public final class TestUserService {
 
     @Test
     public void updateFirstNameThrowsNoSearchResultExceptionIfNoUserFound() {
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage("No user with user number: 1 found");
         when(userRepository.findByUserNumber(1L)).thenReturn(null);
         userService.updateFirstName(1L, "some name");
@@ -185,7 +185,7 @@ public final class TestUserService {
     @Test
     public void updateLastNameThrowsNoSearchResultIfNoUserFound() {
         when(userRepository.findByUserNumber(1L)).thenReturn(null);
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage("No user with user number: 1 found");
         userService.updateLastName(1L, "some name");
     }
@@ -228,7 +228,7 @@ public final class TestUserService {
     @Test
     public void updateUsernameThrowsNoSearchResultExceptionIfNoUserFound() {
         when(userRepository.findByUserNumber(1L)).thenReturn(null);
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage("No user with user number: 1 found");
         userService.updateUsername(1L, "some long enough name");
     }
@@ -254,7 +254,7 @@ public final class TestUserService {
     @Test
     public void activateUserThrowsNoSearchResultIfNoUserFound() {
         when(userRepository.findByUserNumber(1L)).thenReturn(null);
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage("No user with user number: 1 found");
         userService.activate(1L);
     }
@@ -301,7 +301,7 @@ public final class TestUserService {
     @Test
     public void inactivateUserThrowsNoSearchResultExceptionIfNoUserFound() {
         when(userRepository.findByUserNumber(1L)).thenReturn(null);
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage("No user with user number: 1 found");
         userService.inactivate(1L);
     }
@@ -325,7 +325,7 @@ public final class TestUserService {
     @Test
     public void getAllByTeamIdThrowsNoSearchResultExceptionIfEmptyListReturned() {
         when(userRepository.findByTeamId(1L)).thenReturn(new ArrayList<>());
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage("No users with team id: 1 found");
         userService.getAllByTeamId(1L);
     }
@@ -333,7 +333,7 @@ public final class TestUserService {
     @Test
     public void getAllByTeamIdThrowsNoSearchResultExceptionIfNullReturned() {
         when(userRepository.findByTeamId(1L)).thenReturn(null);
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage("No users with team id: 1 found");
         userService.getAllByTeamId(1L);
     }
@@ -361,7 +361,7 @@ public final class TestUserService {
     public void searchUsersThrowsNoSearchResultExceptionIfEmptyListReturned() {
         when(userRepository.searchUsers("first", "last",
                 "user")).thenReturn(new ArrayList<>());
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage("No users fulfilling criteria: firstName = first, lastName = last, username = user");
         userService.search("first", "last", "user");
     }
@@ -370,7 +370,7 @@ public final class TestUserService {
     public void searchUsersThrowsNoSearchResultExceptionIfNullReturned() {
         when(userRepository.searchUsers("first", "last",
                 "user")).thenReturn(null);
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage("No users fulfilling criteria: firstName = first, lastName = last, username = user");
         userService.search("first", "last", "user");
     }
@@ -404,7 +404,7 @@ public final class TestUserService {
     @Test
     public void getAllByPageThrowsNoSearchResultExceptionIfNoUsersFound() {
         when(userRepository.findAll(new PageRequest(4, 10))).thenReturn(null);
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage("No users on page: 4");
         userService.getAllByPage(4, 10);
     }
@@ -434,7 +434,7 @@ public final class TestUserService {
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = LocalDate.now().plusDays(3);
         when(userRepository.findByCreationDate(startDate, endDate)).thenReturn(null);
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage("No users created between: " + startDate + " and " + endDate);
         userService.getByCreationDate(startDate, endDate);
     }
@@ -444,7 +444,7 @@ public final class TestUserService {
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = LocalDate.now().plusDays(3);
         when(userRepository.findByCreationDate(startDate, endDate)).thenReturn(new ArrayList<>());
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage("No users created between: " + startDate + " and " + endDate);
         userService.getByCreationDate(startDate, endDate);
     }

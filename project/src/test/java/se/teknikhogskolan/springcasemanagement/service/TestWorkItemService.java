@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.hibernate.jdbc.Work;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,11 +33,7 @@ import se.teknikhogskolan.springcasemanagement.model.WorkItem.Status;
 import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 import se.teknikhogskolan.springcasemanagement.repository.WorkItemRepository;
-import se.teknikhogskolan.springcasemanagement.service.exception.DatabaseException;
-import se.teknikhogskolan.springcasemanagement.service.exception.InvalidInputException;
-import se.teknikhogskolan.springcasemanagement.service.exception.MaximumQuantityException;
-import se.teknikhogskolan.springcasemanagement.service.exception.NoSearchResultException;
-import se.teknikhogskolan.springcasemanagement.service.exception.ServiceException;
+import se.teknikhogskolan.springcasemanagement.service.exception.*;
 import se.teknikhogskolan.springcasemanagement.service.wrapper.Piece;
 
 public final class TestWorkItemService {
@@ -100,12 +97,12 @@ public final class TestWorkItemService {
     }
 
     @Test
-    public void getAllByCreationDateShouldThrowExceptionIfNoMatchFoundInDatabase() {
-        exception.expect(NoSearchResultException.class);
+    public void getAllByCreationDateWithMatchFoundInDatabaseShouldReturnEmptyList() {
         LocalDate fromDate = LocalDate.now().minusDays(1);
         LocalDate toDate = LocalDate.now().plusDays(1);
-        when(workItemRepository.findByCreationDate(fromDate, toDate)).thenReturn(null);
-        workItemService.getByCreatedBetweenDates(fromDate, toDate);
+        when(workItemRepository.findByCreationDate(fromDate, toDate)).thenReturn(new ArrayList<>());
+        Collection<WorkItem> workItems = workItemService.getByCreatedBetweenDates(fromDate, toDate);
+        assertTrue(workItems.isEmpty());
     }
 
     @Test
@@ -115,7 +112,7 @@ public final class TestWorkItemService {
         PageRequest pageRequest = new PageRequest(0, 10);
         when(workItemRepository.findAll(pageRequest)).thenReturn(workItemPage);
         
-        Piece<WorkItem> result = workItemService.getAllByPage(0, 10);
+        Piece<WorkItem> result = workItemService.getAllByPiece(0, 10);
         assertNotNull(result);
     }
 
@@ -126,7 +123,7 @@ public final class TestWorkItemService {
         when(workItemRepository.findAll(pageRequest)).thenReturn(page);
         when(page.hasContent()).thenReturn(true);
         
-        Piece<WorkItem> result = workItemService.getAllByPage(1, 1);
+        Piece<WorkItem> result = workItemService.getAllByPiece(1, 1);
         assertNotNull(result);
     }
 
@@ -157,15 +154,16 @@ public final class TestWorkItemService {
 
     @Test
     public void getByIdWithNoMatchShouldThrowNoSearchResultException() {
-        exception.expect(NoSearchResultException.class);
+        exception.expect(NotFoundException.class);
         when(workItemRepository.findOne(workItemId)).thenReturn(null);
         workItemService.getById(workItemId);
     }
 
     @Test
     public void settingInactiveUserToWorkItemShouldThrowException() {
-        exception.expect(InvalidInputException.class);
-        exception.expectMessage("User is inactive. Only active User can be assigned to WorkItem");
+        exception.expect(NotAllowedException.class);
+        exception.expectMessage(String.format("User with usernumber '%d' is inactive. Only active User can be assigned to WorkItem", userNumber));
+        when(workItemRepository.findOne(workItemId)).thenReturn(workItem);
         when(userRepository.findByUserNumber(userNumber)).thenReturn(user);
         when(user.isActive()).thenReturn(false);
         workItemService.setUser(userNumber, workItemId);
@@ -216,7 +214,7 @@ public final class TestWorkItemService {
 
     @Test
     public void setNotFoundUserToWorkItemShouldThrowNoSearchResultExeption() {
-        exception.expect(NoSearchResultException.class);
+        exception.expect(NotFoundException.class);
         when(userRepository.findByUserNumber(userNumber)).thenReturn(null);
         workItemService.setUser(userNumber, workItemId);
     }
@@ -242,7 +240,7 @@ public final class TestWorkItemService {
 
     @Test
     public void getWorkItemsByUserIdShouldThrowExceptionIfNoMatch() {
-        exception.expect(NoSearchResultException.class);
+        exception.expect(NotFoundException.class);
         when(userRepository.findByUserNumber(userNumber)).thenReturn(null);
         workItemService.getByUsernumber(userNumber);
     }
@@ -269,7 +267,7 @@ public final class TestWorkItemService {
     public void removingIssueFromWorkItemWithoutIssueShouldThrowException() {
         exception.expect(ServiceException.class);
         exception.expectMessage(
-                String.format("Cannot remove Issue from WorkItem %d, no Issue found in WorkItem", workItemId));
+                String.format("Cannot remove Issue from WorkItem with id '%d', no Issue in WorkItem.", workItemId));
         when(workItemRepository.findOne(workItemId)).thenReturn(workItem);
         when(workItem.getIssue()).thenReturn(null);
         when(workItem.getId()).thenReturn(workItemId);
@@ -278,8 +276,8 @@ public final class TestWorkItemService {
 
     @Test
     public void removingIssueFromWorkItemNotFoundInDatabaseShouldThrowException() {
-        exception.expect(ServiceException.class);
-        exception.expectMessage(String.format("No match for WorkItem with id '%d'", workItemId));
+        exception.expect(NotFoundException.class);
+        exception.expectMessage(String.format("No WorkItem with id '%d'", workItemId));
         when(workItemRepository.findOne(workItemId)).thenReturn(null);
         workItemService.removeIssueFromWorkItem(workItemId);
     }
@@ -287,7 +285,7 @@ public final class TestWorkItemService {
     @Test
     public void removingIssueFromWorkItemShouldCatchExceptionsAndThrowServiceException() {
         exception.expect(ServiceException.class);
-        exception.expectMessage(String.format("Cannot get WorkItem '%d'", workItemId));
+        exception.expectMessage(String.format("Cannot get WorkItem with id '%d'", workItemId));
         doThrow(dataAccessException).when(workItemRepository).findOne(workItemId);
         workItemService.removeIssueFromWorkItem(workItemId);
     }
@@ -305,17 +303,17 @@ public final class TestWorkItemService {
     }
 
     @Test
-    public void canGetAllWithIssueWhenThereIsNoIssuesShouldThrowException() {
-        exception.expect(NoSearchResultException.class);
+    public void canGetAllWithIssueWhenThereIsNoIssuesShouldReturnEmptyList() {
         when(workItemRepository.findByIssueIsNotNull()).thenReturn(workItemCollection);
-        workItemCollection = workItemService.getAllWithIssue();
+        Collection<WorkItem> workItems = workItemCollection = workItemService.getAllWithIssue();
+        assertTrue(workItems.isEmpty());
     }
 
     @Test
-    public void canGetAllWithIssueReturnsNullShouldThrowException() {
-        exception.expect(NoSearchResultException.class);
-        when(workItemRepository.findByIssueIsNotNull()).thenReturn(null);
-        workItemCollection = workItemService.getAllWithIssue();
+    public void canGetAllWithIssueWithNoMatchShouldReturnEmptyList() {
+        when(workItemRepository.findByIssueIsNotNull()).thenReturn(new ArrayList<>());
+        Collection<WorkItem> workItems = workItemCollection = workItemService.getAllWithIssue();
+        assertTrue(workItems.isEmpty());
     }
 
     @Test
@@ -351,16 +349,17 @@ public final class TestWorkItemService {
 
     @Test
     public void addingNotFoundIssueToWorkItemShouldThrowException() {
-        exception.expect(NoSearchResultException.class);
-        exception.expectMessage(String.format("No match for Issue with id '%d'", issueId));
+        exception.expect(NotFoundException.class);
+        exception.expectMessage(String.format("No Issue with id '%d' exists.", issueId));
+        when(workItemRepository.findOne(workItemId)).thenReturn(workItem);
         when(issueRepository.findOne(issueId)).thenReturn(null);
         workItemService.addIssueToWorkItem(issueId, workItemId);
     }
 
     @Test
     public void addingIssueNotFoundToWorkItemShouldThrowException() {
-        exception.expect(NoSearchResultException.class);
-        exception.expectMessage(String.format("No match for WorkItem with id '%d'", workItemId));
+        exception.expect(NotFoundException.class);
+        exception.expectMessage(String.format("No WorkItem with id '%d' exists.", workItemId));
         when(issueRepository.findOne(issueId)).thenReturn(issue);
         when(workItemRepository.findOne(workItemId)).thenReturn(null);
         workItemService.addIssueToWorkItem(issueId, workItemId);
@@ -369,8 +368,8 @@ public final class TestWorkItemService {
     @Test
     public void addingIssueToWorkItemShouldCatchExceptionsAndThrowServiceException() {
         exception.expect(ServiceException.class);
-        exception.expectMessage(String.format("Cannot get Issue with id '%d'", issueId));
-        doThrow(dataAccessException).when(issueRepository).findOne(issueId);
+        exception.expectMessage(String.format("Cannot get WorkItem with id '%d'", workItemId));
+        doThrow(dataAccessException).when(workItemRepository).findOne(workItemId);
         workItemService.addIssueToWorkItem(issueId, workItemId);
     }
 
@@ -407,11 +406,10 @@ public final class TestWorkItemService {
     }
 
     @Test
-    public void canFindByTeamIdReturnsWithoutResultShouldThrowException() {
-        exception.expect(NoSearchResultException.class);
-        exception.expectMessage(String.format("No match for WorkItems with team id '%d'", teamId));
-        when(workItemRepository.findByTeamId(teamId)).thenReturn(null);
-        workItemService.getByTeamId(teamId);
+    public void canFindByTeamIdWithoutMatchShouldReturnEmptyList() {
+        when(workItemRepository.findByTeamId(teamId)).thenReturn(new ArrayList<>());
+        Collection<WorkItem> workItems = workItemService.getByTeamId(teamId);
+        assertTrue(workItems.isEmpty());
         verify(workItemRepository).findByTeamId(teamId);
     }
 
@@ -425,22 +423,11 @@ public final class TestWorkItemService {
     }
 
     @Test
-    public void canFindByDescriptionContainsReturnsEmptyListShouldThrowException() {
+    public void canFindByDescriptionContainsWithNoMatchShouldReturnEmptyList() {
         String searchText = "important";
-        exception.expect(NoSearchResultException.class);
-        exception.expectMessage(String.format("No match for WorkItem description contains '%s'", searchText));
         when(workItemRepository.findByDescriptionContains(searchText)).thenReturn(workItemCollection);
-        workItemService.getByDescriptionContains(searchText);
-        verify(workItemRepository).findByDescriptionContains(searchText);
-    }
-
-    @Test
-    public void canFindByDescriptionContainsReturnsNullShouldThrowException() {
-        String searchText = "important";
-        exception.expect(NoSearchResultException.class);
-        exception.expectMessage(String.format("No match for WorkItem description contains '%s'", searchText));
-        when(workItemRepository.findByDescriptionContains(searchText)).thenReturn(null);
-        workItemService.getByDescriptionContains(searchText);
+        Collection<WorkItem> workItems = workItemService.getByDescriptionContains(searchText);
+        assertTrue(workItems.isEmpty());
         verify(workItemRepository).findByDescriptionContains(searchText);
     }
 
@@ -454,11 +441,11 @@ public final class TestWorkItemService {
     }
 
     @Test
-    public void canFindByStatusShouldThrowExceptionIfNoWorkItemFound() {
+    public void canFindByStatusShouldReturnEmptyListIfNoWorkItemFound() {
         Status wantedStatus = Status.STARTED;
-        exception.expect(NoSearchResultException.class);
-        exception.expectMessage(String.format(String.format("No match for get WorkItems by Status '%s'", wantedStatus)));
-        workItemService.getByStatus(wantedStatus);
+        when(workItemRepository.findByStatus(wantedStatus)).thenReturn(new ArrayList<>());
+        Collection<WorkItem> workItems = workItemService.getByStatus(wantedStatus);
+        assertTrue(workItems.isEmpty());
         verify(workItemRepository).findByStatus(wantedStatus);
     }
 
@@ -478,7 +465,7 @@ public final class TestWorkItemService {
 
     @Test
     public void removeByIdShouldThrowExceptionWhenWorkItemNotFound() {
-        exception.expect(NoSearchResultException.class);
+        exception.expect(NotFoundException.class);
         when(workItemRepository.findOne(workItemId)).thenReturn(null);
         workItemService.removeById(workItemId);
     }
@@ -496,7 +483,7 @@ public final class TestWorkItemService {
     public void changeWorkItemStatusShouldCatchExceptionsAndThrowServiceException() {
         Status newStatus = Status.DONE;
         exception.expect(DatabaseException.class);
-        exception.expectMessage(String.format("Cannot get WorkItem '%d'", workItemId));
+        exception.expectMessage(String.format("Cannot get WorkItem with id '%d'", workItemId));
         when(workItemRepository.findOne(workItemId)).thenThrow(dataAccessException);
         when(workItem.getId()).thenReturn(workItemId);
         workItemService.setStatus(workItemId, newStatus);
@@ -504,7 +491,7 @@ public final class TestWorkItemService {
 
     @Test
     public void changeWorkItemStatusOnWorkItemNotFoundShouldThrowNoSearchResultException() {
-        exception.expect(NoSearchResultException.class);
+        exception.expect(NotFoundException.class);
         Status newStatus = Status.DONE;
         when(workItemRepository.findOne(workItem.getId())).thenReturn(null);
         when(workItem.getId()).thenReturn(workItemId);
@@ -551,12 +538,12 @@ public final class TestWorkItemService {
     }
 
     @Test
-    public void shouldThrowNoSearchResultExceptionIfNoWorkItemsFoundBetweenDates() {
-        exception.expect(NoSearchResultException.class);
+    public void shouldReturnEmptyListIfNoWorkItemsFoundBetweenDates() {
         LocalDate from = LocalDate.now().minusDays(1);
         LocalDate to = LocalDate.now().plusDays(1);
-        when(workItemRepository.findByCompletionDate(from, to)).thenReturn(null);
-        workItemService.getCompletedWorkItems(from, to);
+        when(workItemRepository.findByCompletionDate(from, to)).thenReturn(new ArrayList<>());
+        List<WorkItem> workItems = workItemService.getCompletedWorkItems(from, to);
+        assertTrue(workItems.isEmpty());
     }
 
     @Test

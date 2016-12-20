@@ -26,7 +26,7 @@ import se.teknikhogskolan.springcasemanagement.model.Issue;
 import se.teknikhogskolan.springcasemanagement.repository.IssueRepository;
 import se.teknikhogskolan.springcasemanagement.repository.paging.PagingIssueRepository;
 import se.teknikhogskolan.springcasemanagement.service.exception.DatabaseException;
-import se.teknikhogskolan.springcasemanagement.service.exception.NoSearchResultException;
+import se.teknikhogskolan.springcasemanagement.service.exception.NotFoundException;
 import se.teknikhogskolan.springcasemanagement.service.exception.ServiceException;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -64,7 +64,7 @@ public final class TestIssueService {
 
     @Test
     public void shouldThrowNoSearchResultExceptionWhenGettingIssueByIdThatDoNotExist() {
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage("Issue with id '" + issueId + "' do not exist");
         when(issueRepository.findOne(issueId)).thenReturn(null);
         issueService.getById(issueId);
@@ -93,7 +93,7 @@ public final class TestIssueService {
     @Test
     public void shouldThrowNoSearchResultExceptionWhenGettingIssueByDescriptionThatDoNotExist() {
         String desc = "Test";
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage("Issues with description '" + desc + "' do not exist");
         when(issueRepository.findByDescription(desc)).thenReturn(null);
         issueService.getByDescription(desc);
@@ -130,7 +130,7 @@ public final class TestIssueService {
 
     @Test
     public void shouldThrowNoSearchResultExceptionWhenUpdatingDescriptionOnANonExistingIssue() {
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage(
                 "Failed to update issue with id '" + issueId + "' since it could not be found in the database");
         when(issueRepository.findOne(issueId)).thenReturn(null);
@@ -158,7 +158,7 @@ public final class TestIssueService {
 
     @Test
     public void shouldThrowNoSearchResultExceptionWhenInactivatingAnIssueThatDoNotExist() {
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage(
                 "Failed to inactivate issue with id '" + issueId + "' since it could not be found in the database");
         issueInDb.setActive(true);
@@ -188,7 +188,7 @@ public final class TestIssueService {
 
     @Test
     public void shouldThrowNoSearchResultExceptionWhenActivatingAnIssueThatDoNotExist() {
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage(
                 "Failed to activate issue with id '" + issueId + "' since it could not be found in the database");
         issueInDb.setActive(false);
@@ -208,7 +208,7 @@ public final class TestIssueService {
 
     @Test
     public void shouldThrowExceptionIfPageIsEmpty() {
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         issueService.getAllByPage(0, 6);
     }
 

@@ -28,10 +28,10 @@ import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 import se.teknikhogskolan.springcasemanagement.service.exception.DatabaseException;
-import se.teknikhogskolan.springcasemanagement.service.exception.ForbiddenOperationException;
+import se.teknikhogskolan.springcasemanagement.service.exception.NotAllowedException;
 import se.teknikhogskolan.springcasemanagement.service.exception.InvalidInputException;
 import se.teknikhogskolan.springcasemanagement.service.exception.MaximumQuantityException;
-import se.teknikhogskolan.springcasemanagement.service.exception.NoSearchResultException;
+import se.teknikhogskolan.springcasemanagement.service.exception.NotFoundException;
 
 @RunWith(MockitoJUnitRunner.class)
 public final class TestTeamService {
@@ -77,7 +77,7 @@ public final class TestTeamService {
 
     @Test
     public void shouldThrowNoSearchResultExceptionWhenGettingTeamByIdThatDoNotExist() {
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage(String.format("Team with id '%d' do not exist", teamId));
         when(teamRepository.findOne(teamId)).thenReturn(null);
         teamService.getById(teamId);
@@ -101,7 +101,7 @@ public final class TestTeamService {
 
     @Test
     public void shouldThrowNoSearchResultExceptionWhenGettingTeamByNameThatDoNotExist() {
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage(String.format("Team with name '%s' do not exist", team.getName()));
         when(teamRepository.findByName(team.getName())).thenReturn(null);
         teamService.getByName(team.getName());
@@ -151,7 +151,7 @@ public final class TestTeamService {
 
     @Test
     public void shouldThrowForbiddenOperationExceptionIfTeamIsInactiveWhenUpdatingName() {
-        thrown.expect(ForbiddenOperationException.class);
+        thrown.expect(NotAllowedException.class);
         thrown.expectMessage(String.format("Could not update "
                 + "name on team with id '%d' since it's inactive.", teamId));
         String newName = "New name";
@@ -162,7 +162,7 @@ public final class TestTeamService {
 
     @Test
     public void shouldThrowNoSearchResultExceptionWhenUpdatingNameOnANonExistingTeam() {
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage(String.format("Team with id '%d' do not exist.", teamId));
         String newName = "New name";
         when(teamRepository.findOne(teamId)).thenReturn(null);
@@ -191,7 +191,7 @@ public final class TestTeamService {
 
     @Test
     public void shouldThrowNoSearchResultExceptionWhenTryingToInactivateANonExistingTeam() {
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage(String.format("Failed to inactivate team with id '%d'"
                 + " since it could not be found in the database", teamId));
         when(teamRepository.findOne(teamId)).thenReturn(null);
@@ -220,7 +220,7 @@ public final class TestTeamService {
 
     @Test
     public void shouldThrowNoSearchResultExceptionWhenTryingToActivateANonExistingTeam() {
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage(String.format("Failed to activate team with id '%d'"
                 + " since it could not be found in the database", teamId));
         when(teamRepository.findOne(teamId)).thenReturn(null);
@@ -245,7 +245,7 @@ public final class TestTeamService {
 
     @Test
     public void shouldThrowNoSearchResultExceptionWhenThereAreNoTeams() {
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage("No teams were found in the database");
         when(teamRepository.findAll()).thenReturn(null);
         teamService.getAll();
@@ -281,7 +281,7 @@ public final class TestTeamService {
 
     @Test
     public void shouldThrowNoSearchResultExceptionIfUserIdIsNullWhenAddingUserToTeam() {
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage(String.format("User with id '%d' did not exist.", userId));
         when(teamRepository.findOne(teamId)).thenReturn(team);
         when(userRepository.findOne(userId)).thenReturn(null);
@@ -290,7 +290,7 @@ public final class TestTeamService {
 
     @Test
     public void shouldThrowNoSearchResultExceptionIfTeamIdIsNullWhenAddingUserToTeam() {
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage(String.format("Team with id '%d' did not exist.", teamId));
         when(teamRepository.findOne(teamId)).thenReturn(null);
         when(userRepository.findOne(userId)).thenReturn(user);
@@ -299,7 +299,7 @@ public final class TestTeamService {
 
     @Test
     public void shouldThrowForbiddenOperationExceptionIfUserIsInactiveWhenAddingUserToTeam() {
-        thrown.expect(ForbiddenOperationException.class);
+        thrown.expect(NotAllowedException.class);
         thrown.expectMessage(String.format("User with id '%d' or Team with id '%d' is inactive",
                 userId, teamId));
         when(teamRepository.findOne(teamId)).thenReturn(team);
@@ -310,7 +310,7 @@ public final class TestTeamService {
 
     @Test
     public void shouldThrowForbiddenOperationExceptionIfTeamIsInactiveWhenAddingUserToTeam() {
-        thrown.expect(ForbiddenOperationException.class);
+        thrown.expect(NotAllowedException.class);
         thrown.expectMessage(String.format("User with id '%d' or Team with id '%d' is inactive",
                 userId, teamId));
         when(teamRepository.findOne(teamId)).thenReturn(team);
@@ -340,7 +340,7 @@ public final class TestTeamService {
 
     @Test
     public void shouldThrowNoSearchResultExceptionIfUserIdIsNullWhenRemovingUserToTeam() {
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage(String.format("User with id '%d' did not exist.", userId));
         when(teamRepository.findOne(teamId)).thenReturn(team);
         when(userRepository.findOne(userId)).thenReturn(null);
@@ -349,7 +349,7 @@ public final class TestTeamService {
 
     @Test
     public void shouldThrowNoSearchResultExceptionIfTeamIdIsNullWhenRemovingUserToTeam() {
-        thrown.expect(NoSearchResultException.class);
+        thrown.expect(NotFoundException.class);
         thrown.expectMessage(String.format("Team with id '%d' did not exist.", teamId));
         when(teamRepository.findOne(teamId)).thenReturn(null);
         when(userRepository.findOne(userId)).thenReturn(user);
@@ -358,7 +358,7 @@ public final class TestTeamService {
 
     @Test
     public void shouldThrowForbiddenOperationExceptionIfUserIsInactiveWhenRemovingUserToTeam() {
-        thrown.expect(ForbiddenOperationException.class);
+        thrown.expect(NotAllowedException.class);
         thrown.expectMessage(String.format("User with id '%d' or Team with id '%d' is inactive", userId, teamId));
         when(teamRepository.findOne(teamId)).thenReturn(team);
         when(userRepository.findOne(userId)).thenReturn(user);
@@ -368,7 +368,7 @@ public final class TestTeamService {
 
     @Test
     public void shouldThrowForbiddenOperationExceptionIfTeamIsInactiveWhenRemovingUserToTeam() {
-        thrown.expect(ForbiddenOperationException.class);
+        thrown.expect(NotAllowedException.class);
         thrown.expectMessage(String.format("User with id '%d' or Team with id '%d' is inactive", userId, teamId));
         when(teamRepository.findOne(teamId)).thenReturn(team);
         when(userRepository.findOne(userId)).thenReturn(user);

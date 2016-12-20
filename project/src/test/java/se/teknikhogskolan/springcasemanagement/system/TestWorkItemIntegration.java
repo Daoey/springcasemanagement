@@ -32,7 +32,7 @@ import se.teknikhogskolan.springcasemanagement.model.WorkItem;
 import se.teknikhogskolan.springcasemanagement.service.WorkItemService;
 import se.teknikhogskolan.springcasemanagement.service.exception.InvalidInputException;
 import se.teknikhogskolan.springcasemanagement.service.exception.MaximumQuantityException;
-import se.teknikhogskolan.springcasemanagement.service.exception.NoSearchResultException;
+import se.teknikhogskolan.springcasemanagement.service.exception.NotFoundException;
 import se.teknikhogskolan.springcasemanagement.service.exception.ServiceException;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -131,7 +131,7 @@ public class TestWorkItemIntegration {
 
     @Test
     public void canRemoveWorkItem() {
-        exception.expect(NoSearchResultException.class);
+        exception.expect(NotFoundException.class);
         workItemService.removeById(workItemLeadTeamId);
         workItemService.getById(workItemLeadTeamId);
     }
@@ -178,7 +178,7 @@ public class TestWorkItemIntegration {
 
     @Test
     public void canGetAllCreatedBetweenDatesNoMatchShouldThrowNoSearchResultException() {
-        exception.expect(NoSearchResultException.class);
+        exception.expect(NotFoundException.class);
         LocalDate fromDate = LocalDate.parse("2016-11-01", formatter);
         LocalDate toDate = LocalDate.parse("2016-11-02", formatter);
         workItemService.getByCreatedBetweenDates(fromDate, toDate);
@@ -205,13 +205,13 @@ public class TestWorkItemIntegration {
 
     @Test
     public void getWorkItemByDescriptionNoMatchShouldThrowNoSearchResultException() {
-        exception.expect(NoSearchResultException.class);
+        exception.expect(NotFoundException.class);
         workItemService.getByDescriptionContains("8r347y8w%%%r78");
     }
 
     @Test
     public void getByCreatedBetweenDatesShouldThrowNoSearchResultExceptionIfNoMatch() {
-        exception.expect(NoSearchResultException.class);
+        exception.expect(NotFoundException.class);
         LocalDate fromDate = LocalDate.now().plusDays(1);
         LocalDate toDate = LocalDate.now().plusDays(2);
         workItemService.getByCreatedBetweenDates(fromDate, toDate);

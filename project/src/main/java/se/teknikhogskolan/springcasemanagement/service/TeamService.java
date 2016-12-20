@@ -10,10 +10,10 @@ import se.teknikhogskolan.springcasemanagement.model.User;
 import se.teknikhogskolan.springcasemanagement.repository.TeamRepository;
 import se.teknikhogskolan.springcasemanagement.repository.UserRepository;
 import se.teknikhogskolan.springcasemanagement.service.exception.DatabaseException;
-import se.teknikhogskolan.springcasemanagement.service.exception.ForbiddenOperationException;
+import se.teknikhogskolan.springcasemanagement.service.exception.NotAllowedException;
 import se.teknikhogskolan.springcasemanagement.service.exception.InvalidInputException;
 import se.teknikhogskolan.springcasemanagement.service.exception.MaximumQuantityException;
-import se.teknikhogskolan.springcasemanagement.service.exception.NoSearchResultException;
+import se.teknikhogskolan.springcasemanagement.service.exception.NotFoundException;
 
 @Service
 public class TeamService {
@@ -42,7 +42,7 @@ public class TeamService {
         if (team != null) {
             return team;
         } else {
-            throw new NoSearchResultException(String.format("Team with name '%s' do not exist", teamName));
+            throw new NotFoundException(String.format("Team with name '%s' do not exist", teamName));
         }
     }
 
@@ -63,7 +63,7 @@ public class TeamService {
             team.setName(teamName);
             return saveTeam(team, String.format("Could not update name on team with id: %d", teamId));
         } else {
-            throw new ForbiddenOperationException(String.format("Could not update "
+            throw new NotAllowedException(String.format("Could not update "
                     + "name on team with id '%d' since it's inactive.", teamId));
         }
     }
@@ -93,7 +93,7 @@ public class TeamService {
         if (teams != null) {
             return teams;
         } else {
-            throw new NoSearchResultException("No teams were found in the database");
+            throw new NotFoundException("No teams were found in the database");
         }
     }
 
@@ -111,7 +111,7 @@ public class TeamService {
                         teamId));
             }
         } else {
-            throw new ForbiddenOperationException(String.format("User with id '%d' or Team with id '%d' is inactive",
+            throw new NotAllowedException(String.format("User with id '%d' or Team with id '%d' is inactive",
                     userId, teamId));
         }
     }
@@ -125,7 +125,7 @@ public class TeamService {
             saveUser(user, String.format("Could not remove user with id '%d' to team with id '%d'", userId, teamId));
             return findTeam(teamId, String.format("Team with id '%d' did not exist.", teamId));
         } else {
-            throw new ForbiddenOperationException(String.format("User with id '%d' or Team with id '%d' is inactive",
+            throw new NotAllowedException(String.format("User with id '%d' or Team with id '%d' is inactive",
                     userId, teamId));
         }
     }
@@ -152,7 +152,7 @@ public class TeamService {
             if (team != null) {
                 return team;
             } else {
-                throw new NoSearchResultException(noSearchResultExceptionMessage);
+                throw new NotFoundException(noSearchResultExceptionMessage);
             }
         } catch (DataAccessException e) {
             throw new DatabaseException(String.format("Could not find team with id: %d", teamId), e);
@@ -165,7 +165,7 @@ public class TeamService {
             if (user != null) {
                 return user;
             } else {
-                throw new NoSearchResultException(noSearchResultExceptionMessage);
+                throw new NotFoundException(noSearchResultExceptionMessage);
             }
         } catch (DataAccessException e) {
             throw new DatabaseException(String.format("Could not find user with id: %d", userId), e);
